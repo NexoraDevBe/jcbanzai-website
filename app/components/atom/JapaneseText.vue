@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const props = defineProps(
-    [
-        'vertical',
-        'size',
-        'outline'
-    ]
-)
+interface Props {
+  vertical: boolean
+  size: number
+  outline: boolean
+}
+
+defineProps<Props>()
 </script>
 
 <template>
@@ -56,10 +56,18 @@ span {
 }
 
 .size--4 {
-  font-size: 5rem;
+  font-size: 7rem;
+
+  &.outline {
+    -webkit-text-stroke-width: 2px;
+  }
 }
 
 .size--5 {
-  font-size: 10rem;
+  font-size: 15rem;
+
+  &.outline {
+    -webkit-text-stroke-width: 5px;
+  }
 }
 </style>
