@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Rokkitt:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  --white: #fff;
+  --gray-100: #E6E6E6;
+  --gray-200: #C8C8C8;
+  --gray-300: #A9A9A9;
+  --gray-500: #808080;
+  --gray-700: #575757;
+  --gray-800: #383838;
+  --gray-900: #1A1A1A;
+  --black: #000;
+
+  --red: #CB161E;
+  --orange: #FD9438;
+  --yellow: #FFE62D;
+  --green: #20AC20;
+  --blue: #2265F7;
+  --brown: #7B5533;
+
+  --primary: var(--gray-100);
+  --secondary: var(--gray-900);
+  --accent: var(--red);
+  --light: var(--gray-100);
+  --dark: var(--gray-900);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: var(--gray-900);
+    --secondary: var(--gray-100);
+    --accent: var(--red);
+  }
+}
+
+* {
+  font-family: 'Rokkitt', Arial, serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  max-width: 1920px;
+  margin: 0 auto;
+  background-color: var(--primary);
+  color: var(--secondary);
+}
+
+header, main, footer {
+  margin: 0 4rem;
+}

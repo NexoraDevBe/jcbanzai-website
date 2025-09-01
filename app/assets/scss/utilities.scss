@@ -1,0 +1,123 @@
+// TYPOGRAPHY
+@mixin rokkitt {
+  font-family: "Rokkitt", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.rokkitt-100 {
+  @include rokkitt;
+  font-weight: 100;
+}
+
+.rokkitt-300 {
+  @include rokkitt;
+  font-weight: 300;
+}
+
+.rokkitt-400 {
+  @include rokkitt;
+  font-weight: 400;
+}
+
+.rokkitt-500 {
+  @include rokkitt;
+  font-weight: 500;
+}
+
+.rokkitt-600 {
+  @include rokkitt;
+  font-weight: 600;
+}
+
+.rokkitt-700 {
+  @include rokkitt;
+  font-weight: 700;
+}
+
+.rokkitt-800 {
+  @include rokkitt;
+  font-weight: 800;
+}
+
+.rokkitt-900 {
+  @include rokkitt;
+  font-weight: 900;
+}
+
+// SVG
+.fill-primary {
+  fill: var(--primary);
+}
+
+.fill-secondary {
+  fill: var(--secondary);
+}
+
+.fill-accent {
+  fill: var(--accent);
+}
+
+.fill-light {
+  fill: var(--light);
+}
+
+.fill-dark {
+  fill: var(--dark);
+}
+
+.stroke-primary {
+  stroke-width: 1px;
+  stroke: var(--primary);
+}
+
+.stroke-secondary {
+  stroke-width: 1px;
+  stroke: var(--secondary);
+}
+
+.stroke-accent {
+  stroke-width: 1px;
+  stroke: var(--accent);
+}
+
+// COLORS
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-secondary {
+  background-color: var(--secondary);
+}
+
+.bg-accent {
+  background-color: var(--accent);
+}
+
+.bg-light {
+  background-color: var(--light);
+}
+
+.bg-dark {
+  background-color: var(--dark);
+}
+
+.color-primary {
+  color: var(--primary);
+}
+
+.color-secondary {
+  color: var(--secondary);
+}
+
+.color-accent {
+  color: var(--accent);
+}
+
+.color-light {
+  color: var(--light);
+}
+
+.color-dark {
+  color: var(--dark);
+}
