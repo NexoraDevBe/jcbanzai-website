@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Rokkitt:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
+  // BASE COLORS
   --white: #fff;
   --gray-100: #E6E6E6;
   --gray-200: #C8C8C8;
@@ -18,18 +19,69 @@
   --blue: #2265F7;
   --brown: #7B5533;
 
+  // GENERAL COLORS
   --primary: var(--gray-100);
   --secondary: var(--gray-900);
   --accent: var(--red);
-  --light: var(--gray-100);
-  --dark: var(--gray-900);
+  --light: #E6E6E6;
+  --dark: #1A1A1A;
+
+  // OPACITY COLORS
+
+  --primary-10: rgba(230, 230, 230, 0.1);
+  --primary-20: rgba(230, 230, 230, 0.2);
+  --primary-30: rgba(230, 230, 230, 0.3);
+  --primary-40: rgba(230, 230, 230, 0.4);
+  --primary-50: rgba(230, 230, 230, 0.5);
+  --primary-60: rgba(230, 230, 230, 0.6);
+  --primary-70: rgba(230, 230, 230, 0.7);
+  --primary-80: rgba(230, 230, 230, 0.8);
+  --primary-90: rgba(230, 230, 230, 0.9);
+
+  --secondary-10: rgba(26, 26, 26, 0.1);
+  --secondary-20: rgba(26, 26, 26, 0.2);
+  --secondary-30: rgba(26, 26, 26, 0.3);
+  --secondary-40: rgba(26, 26, 26, 0.4);
+  --secondary-50: rgba(26, 26, 26, 0.5);
+  --secondary-60: rgba(26, 26, 26, 0.6);
+  --secondary-70: rgba(26, 26, 26, 0.7);
+  --secondary-80: rgba(26, 26, 26, 0.8);
+  --secondary-90: rgba(26, 26, 26, 0.9);
+
+  --accent-80: rgba(203, 22, 30, 0.8);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --primary: var(--gray-900);
-    --secondary: var(--gray-100);
-    --accent: var(--red);
+    // BASE COLORS
+    --gray-100: #1A1A1A;
+    --gray-200: #383838;
+    --gray-300: #575757;
+    --gray-500: #808080;
+    --gray-700: #A9A9A9;
+    --gray-800: #C8C8C8;
+    --gray-900: #E6E6E6;
+
+    // OPACITY COLORS
+    --primary-10: rgba(26, 26, 26, 0.1);
+    --primary-20: rgba(26, 26, 26, 0.2);
+    --primary-30: rgba(26, 26, 26, 0.3);
+    --primary-40: rgba(26, 26, 26, 0.4);
+    --primary-50: rgba(26, 26, 26, 0.5);
+    --primary-60: rgba(26, 26, 26, 0.6);
+    --primary-70: rgba(26, 26, 26, 0.7);
+    --primary-80: rgba(26, 26, 26, 0.8);
+    --primary-90: rgba(26, 26, 26, 0.9);
+
+    --secondary-10: rgba(230, 230, 230, 0.1);
+    --secondary-20: rgba(230, 230, 230, 0.2);
+    --secondary-30: rgba(230, 230, 230, 0.3);
+    --secondary-40: rgba(230, 230, 230, 0.4);
+    --secondary-50: rgba(230, 230, 230, 0.5);
+    --secondary-60: rgba(230, 230, 230, 0.6);
+    --secondary-70: rgba(230, 230, 230, 0.7);
+    --secondary-80: rgba(230, 230, 230, 0.8);
+    --secondary-90: rgba(230, 230, 230, 0.9);
   }
 }
 
