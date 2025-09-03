@@ -24,13 +24,15 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 1rem;
+  width: fit-content;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 5rem;
   background-color: var(--accent);
   color: var(--light);
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
+  font-family: 'Rokkitt', Arial, serif;
   text-transform: uppercase;
   cursor: pointer;
 }
