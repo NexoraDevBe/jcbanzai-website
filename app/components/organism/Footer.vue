@@ -16,9 +16,18 @@
       <li><NuxtLink to="https://www.judovlaanderen.be/" external>Judo Vlaanderen</NuxtLink></li>
       <li><NuxtLink to="/bestuur">Bestuur</NuxtLink></li>
     </ul>
-    <div class="socials">
-
-    </div>
+    <ul class="socials">
+      <li>
+        <NuxtLink to="https://www.instagram.com/judoclubbanzai/" external>
+          <IconInstagram :size="40" :stroke-width="1.5"/>
+        </NuxtLink>
+      </li>
+      <li>
+        <NuxtLink to="https://www.facebook.com/judoclubbanzai" external>
+          <IconFacebook :size="40" :stroke-width="1.5"/>
+        </NuxtLink>
+      </li>
+    </ul>
     <ul class="handy">
       <li><NuxtLink to="https://maps.app.goo.gl/naJyMZre6dtJk2hQ7" external>Sportdreef 1B, 9890 Gavere</NuxtLink></li>
       <li><NuxtLink to="https://maps.app.goo.gl/Tbbnr8PGE5wXWp5b9" external>Drapstraat 76, 9810 Nazareth</NuxtLink></li>
@@ -45,7 +54,7 @@ footer {
   .info {
     display: flex;
     justify-content: space-between;
-    margin: 4rem;
+    margin: 1.5rem 3rem 3rem;
     padding: 2rem 3rem;
     border-radius: 1rem;
     background-color: var(--secondary-10);
@@ -54,6 +63,7 @@ footer {
     ul {
       display: flex;
       flex-direction: column;
+      justify-content: center;
       gap: .2rem;
       margin: 0;
       padding: 0;
