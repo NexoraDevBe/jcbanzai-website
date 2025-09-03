@@ -29,14 +29,14 @@ defineProps<Props>()
   display: flex;
   justify-content: space-between;
   width: 100%;
-  margin: 1rem 0;
-  padding: 0;
+  margin: 0;
+  padding: 1rem 0;
   list-style: none;
 
   li {
     position: relative;
 
-    &::after {
+    &::before {
       $size: 2rem;
       content: "";
       display: block;
@@ -53,7 +53,7 @@ defineProps<Props>()
     }
 
     &:has(.router-link-active) {
-      &::after {
+      &::before {
         transform: translateX(-25%) translateY(-50%);
       }
     }

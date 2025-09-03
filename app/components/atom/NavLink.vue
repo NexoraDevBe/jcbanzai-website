@@ -12,7 +12,7 @@ defineProps<Props>()
   <NuxtLink
       :to="to"
       :target="external ? '_blank' : undefined"
-      :class="['nav-link', { 'external': external }]"
+      class="nav-link"
   >
     {{ label }}
   </NuxtLink>
