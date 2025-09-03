@@ -4,10 +4,68 @@
 
 <template>
 <footer>
+  <div class="sponsors">
 
+  </div>
+  <div class="info">
+    <ul class="links">
+      <li><NuxtLink to="" external>Privacy</NuxtLink></li>
+      <li><NuxtLink to="https://www.judovlaanderen.be/clubbeheer/verzekering/" external>Verzekeringsformulier</NuxtLink></li>
+      <li><NuxtLink to="" external>Initiatieformulier</NuxtLink></li>
+      <li><NuxtLink to="https://www.ijf.org/" external>International Judo Federation</NuxtLink></li>
+      <li><NuxtLink to="https://www.judovlaanderen.be/" external>Judo Vlaanderen</NuxtLink></li>
+      <li><NuxtLink to="/bestuur">Bestuur</NuxtLink></li>
+    </ul>
+    <div class="socials">
+
+    </div>
+    <ul class="handy">
+      <li><NuxtLink to="https://maps.app.goo.gl/naJyMZre6dtJk2hQ7" external>Sportdreef 1B, 9890 Gavere</NuxtLink></li>
+      <li><NuxtLink to="https://maps.app.goo.gl/Tbbnr8PGE5wXWp5b9" external>Drapstraat 76, 9810 Nazareth</NuxtLink></li>
+      <li><NuxtLink to="mailto:info@judoclubbanzai.be" external>info@judoclubbanzai.be</NuxtLink></li>
+      <li><NuxtLink to="mailto:secretaris@judoclubbanzai.be" external>secretaris@judoclubbanzai.be</NuxtLink></li>
+      <li><NuxtLink to="mailto:inschrijvingen.wedstrijden@judoclubbanzai.be" external>inschrijvingen.wedstrijden@judoclubbanzai.be</NuxtLink></li>
+    </ul>
+    <ul class="important">
+      <li>Judoclub Banzai vzw</li>
+      <li>Maatschappelijke zetel: 's Gravenstraat 82, 9810 Nazareth</li>
+      <li>Ondernemingsnr.: 0725.528.623</li>
+      <li>RPR afdeling Gent</li>
+      <li>Rekening nr.: BE14 0682 0310 4283</li>
+    </ul>
+  </div>
 </footer>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+footer {
+  max-width: 1920px;
+  margin: 0 auto;
 
+  .info {
+    display: flex;
+    justify-content: space-between;
+    margin: 4rem;
+    padding: 2rem 3rem;
+    border-radius: 1rem;
+    background-color: var(--secondary-10);
+    backdrop-filter: blur(5px);
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      li {
+        a {
+          color: inherit;
+          text-decoration: none;
+        }
+      }
+    }
+  }
+}
 </style>
