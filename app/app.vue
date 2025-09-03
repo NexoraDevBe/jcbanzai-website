@@ -6,12 +6,12 @@ useHead({
   ],
   bodyAttrs: {
     class: 'test'
-  },
-  script: [ { innerHTML: 'console.log(\'Hello world\')' } ]
+  }
 })
 </script>
 
 <template>
-  <OrganismHeader></OrganismHeader>
-  <NuxtPage />
+  <OrganismHeader/>
+  <NuxtPage/>
+  <OrganismFooter/>
 </template>
