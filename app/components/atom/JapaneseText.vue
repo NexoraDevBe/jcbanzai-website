@@ -24,7 +24,7 @@ span {
 }
 
 .outline {
-  color: var(--primary);
+  color: transparent;
   -webkit-text-stroke-width: 1px;
   -webkit-text-stroke-color: var(--accent);
 }
