@@ -11,7 +11,7 @@ useHead({
 </script>
 
 <template>
-  <OrganismHeader/>
+  <OrganismAppHeader/>
   <NuxtPage/>
-  <OrganismFooter/>
+  <OrganismAppFooter/>
 </template>
