@@ -10,10 +10,9 @@ const cta = () => {
   <main id="home-page">
     <section class="hero">
       <AtomJapaneseText :outline="true" :size="4" :vertical="false">バンザイ</AtomJapaneseText>
-      <h1>Judoclub<br> <span>Banzai</span></h1>
+      <h1 class="hero-title">Judoclub<br> <span>Banzai</span></h1>
       <AtomCallToAction :on-click="cta">
         Starten?
-        <IconArrowExtd :class-name="'fill-light'" :height="24"/>
       </AtomCallToAction>
     </section>
     <section class="intro">
@@ -31,6 +30,8 @@ const cta = () => {
 
 <style scoped lang="scss">
 #home-page {
+  padding: 0;
+
   .hero {
     position: relative;
     display: flex;
@@ -38,29 +39,31 @@ const cta = () => {
     justify-content: center;
     height: 100dvh;
 
-    h1 {
+    .hero-title {
       margin: 0;
       line-height: .8;
-      font-size: 10rem;
+      font-size: var(--font-size-8xl);
       font-weight: 400;
       text-transform: uppercase;
 
       span {
-        font-size: 14rem;
+        font-size: var(--font-size-9xl);
       }
     }
 
     button {
-      margin-left: 4rem;
+      margin-left: var(--space-4xl);
     }
 
     &::after {
       display: block;
       position: absolute;
       top: 10vh;
-      right: -20rem;
+      right: -20%;
       content: '';
-      height: 100%;
+      height: 50dvw;
+      max-height: 100%;
+      min-height: 40rem;
       aspect-ratio: 1;
       background-color: var(--accent);
       border-radius: 50%;

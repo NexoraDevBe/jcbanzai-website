@@ -1,12 +1,9 @@
 <script setup lang="ts">
 useHead({
-  title: 'Judoclub Banzai',
+  title: 'JC Banzai',
   meta: [
     { name: 'description', content: 'My amazing site.' }
   ],
-  bodyAttrs: {
-    class: 'test'
-  }
 })
 </script>
 
@@ -19,7 +16,7 @@ useHead({
 <style scoped lang="scss">
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.4s;
+  transition: all .2s;
 }
 .page-enter-from,
 .page-leave-to {

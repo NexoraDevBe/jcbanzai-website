@@ -22,11 +22,11 @@ const navigationItems = [
 <style scoped lang="scss">
 header {
   position: fixed;
-  width: 100%;
+  width: 100vw;
   margin: 0;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   z-index: 1;
 
   &::after {

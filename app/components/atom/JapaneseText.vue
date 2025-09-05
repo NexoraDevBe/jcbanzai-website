@@ -44,7 +44,7 @@ span {
 }
 
 .size--1 {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
 }
 
 .size--2 {

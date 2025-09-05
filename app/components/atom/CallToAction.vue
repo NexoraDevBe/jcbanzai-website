@@ -16,6 +16,7 @@ const handleClick = () => {
 <button :class="className" @click="handleClick">
   <slot>
   </slot>
+  <IconArrowExtd :class-name="'fill-light'" :height="24"/>
 </button>
 </template>
 
