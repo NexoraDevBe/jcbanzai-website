@@ -42,17 +42,17 @@ const cta = () => {
     .hero-title {
       margin: 0;
       line-height: .8;
-      font-size: var(--font-size-8xl);
+      font-size: 10rem;
       font-weight: 400;
       text-transform: uppercase;
 
       span {
-        font-size: var(--font-size-9xl);
+        font-size: 14rem;
       }
     }
 
     button {
-      margin-left: var(--space-4xl);
+      margin-left: 4rem;
     }
 
     &::after {
