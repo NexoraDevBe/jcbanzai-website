@@ -29,11 +29,19 @@ defineProps<Props>()
 <style scoped lang="scss">
 .socials-list {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  gap: .2rem;
+  gap: 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media screen and (width >= 1024px) {
+  .socials-list {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+  }
 }
 </style>

@@ -19,9 +19,20 @@ defineProps<Props>()
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: .2rem;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
+  text-align: center;
+}
+
+@media screen and (width >= 1280px) {
+  .company-info {
+    align-items: flex-start;
+    text-align: left;
+    width: fit-content;
+  }
 }
 </style>

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-
 interface Sponsor {
   path: string
   link: string
@@ -105,7 +103,7 @@ onUnmounted(() => {
   .sponsors-track {
     display: flex;
     gap: 2rem;
-    padding-right: 2rem;
+    padding: 0 1rem;
   }
 
   &.carousel-enabled {

@@ -20,7 +20,7 @@ defineProps<Props>()
         :href="link.href"
         :external="link.external"
     >
-      {{ link.text }}
+      {{ link.text.replace('@', '&#8203;@') }}
     </AtomLinkItem>
   </ul>
 </template>
@@ -30,9 +30,18 @@ defineProps<Props>()
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: .2rem;
+  align-items: center;
+  gap: .5rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  text-align: center;
+}
+
+@media screen and (width >= 1024px) {
+  .links-list {
+    align-items: flex-start;
+    text-align: left;
+  }
 }
 </style>
