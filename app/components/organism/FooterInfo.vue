@@ -15,24 +15,46 @@ defineProps<Props>()
     <MoleculeSocialsList :socials="socialLinks" />
     <MoleculeLinksList :links="contactLinks" />
     <MoleculeCompanyInfo :company-details="companyDetails" />
+    <div class="small-text">
+      <p>©2025</p>
+      <p>website by SiteArt.</p>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .footer-info {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  margin: 1rem;
+  margin: var(--page-margin);
   padding: 1.5rem;
   border-radius: 1rem;
   background-color: var(--secondary-10);
   backdrop-filter: blur(5px);
+
+  .small-text {
+    position: absolute;
+    left: 0;
+    bottom: -.5rem;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(100%);
+    padding: 0 .5rem;
+    width: 100%;
+    font-size: 1rem;
+    color: var(--gray-800);
+
+    p {
+      margin: 0;
+    }
+  }
 }
 
 @media screen and (width >= 640px) {
   .footer-info {
-    margin: 1.5rem 2rem 2rem;
+    margin-top: 1.5rem;
     padding: 2rem;
   }
 }
@@ -42,7 +64,6 @@ defineProps<Props>()
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: space-between;
-    margin: 1.5rem 3rem 3rem;
     padding: 2rem 3rem;
   }
 }
