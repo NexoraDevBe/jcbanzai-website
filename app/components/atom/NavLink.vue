@@ -22,8 +22,14 @@ defineProps<Props>()
 .nav-link {
   color: var(--secondary);
   text-decoration: none;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
   text-transform: uppercase;
+}
+
+@media screen and (width >= 80rem) {
+  .nav-link {
+    font-size: 1.5rem;
+  }
 }
 </style>

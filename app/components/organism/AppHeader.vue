@@ -9,43 +9,93 @@ const navigationItems = [
   { to: '/gallerij', label: 'Gallerij' },
   { to: 'https://judoclubbanzai.inker.be/', label: 'Webshop', external: true }
 ]
+
+const state = ref<boolean>(false)
+const hasInteracted = ref<boolean>(false)
+const route = useRoute()
+
+watch(() => route.path, (newPath) => {
+  state.value = false
+}, { immediate: true })
+
+const toggle = () => {
+  hasInteracted.value = true
+  state.value = !state.value
+}
 </script>
 
 <template>
   <header>
-    <nav>
-      <MoleculeNavList :items="navigationItems"/>
+    <nav :class="{ 'nav-open': state }">
+      <MoleculeNavList :items="navigationItems" />
     </nav>
+    <AtomBurgerMenu
+        :is-open="state"
+        :has-interacted="hasInteracted"
+        @toggle="toggle"
+    />
   </header>
 </template>
 
 <style scoped lang="scss">
 header {
   position: fixed;
-  width: 100vw;
-  margin: 0;
   top: 0;
-  left: 0;
-  right: 0;
+  width: 100dvw;
+  height: 100dvh;
+  margin: 0;
   z-index: 1;
-
-  &::after {
-    display: block;
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--primary-50);
-    backdrop-filter: blur(5px);
-    z-index: -2;
-  }
+  pointer-events: none;
+  transition: none;
 
   nav {
     max-width: 1920px;
-    padding: 0 4rem;
+    padding: 0 var(--page-margin);
     margin: 0 auto;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100dvh;
+
+    &.nav-open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition-delay: 0.2s;
+    }
+  }
+}
+
+@media screen and (width >= 64rem) {
+  header {
+    height: fit-content;
+
+    :deep(.burger-menu-container) {
+      display: none;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: var(--primary-50);
+      backdrop-filter: blur(5px);
+      z-index: -2;
+    }
+
+    nav {
+      pointer-events: all;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      height: auto;
+      transition: none;
+    }
   }
 }
 </style>
