@@ -49,6 +49,9 @@
   --secondary-90: rgba(26, 26, 26, 0.9);
 
   --accent-80: rgba(203, 22, 30, 0.8);
+
+  // SPACERS
+  --page-margin: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -92,6 +95,7 @@
 
 * {
   box-sizing: border-box;
+  transition: all 300ms ease-in-out;
 }
 
 body {
@@ -120,31 +124,87 @@ body {
 }
 
 header, main, footer {
-  margin: 0 4rem;
+  margin: 0 var(--page-margin);
 }
 
 main {
-  padding-top: 2rem;
-  margin-bottom: 12rem;
+  //padding-top: 2rem;
+  margin-bottom: 6rem;
+
+  a {
+    position: relative;
+    color: var(--secondary);
+    text-decoration: none;
+
+    &::after {
+      position: absolute;
+      content: "";
+      bottom: 1px;
+      left: 0;
+      display: block;
+      height: 2px;
+      width: 100%;
+      background-color: var(--accent);
+    }
+  }
 }
 
 section {
   margin-bottom: 4rem;
 }
 
+h1 {
+  margin-top: 1rem;
+  margin-bottom: 5rem;
+  font-size: 3rem;
+  font-weight: 800;
+}
+
 // BREAKPOINTS
-@media screen and (width >= 640px) {
+@media screen and (width >= 40rem) {
+  :root {
+    --page-margin: 1.5rem;
+  }
 
+  main {
+    padding-top: 2rem;
+    margin-bottom: 12rem;
+  }
+
+  h1 {
+    font-size: 6rem;
+  }
 }
 
-@media screen and (width >= 768px) {
+@media screen and (width >= 48rem) {
+  :root {
+    --page-margin: 2rem;
+  }
 
+  h1 {
+    font-size: 8rem;
+  }
 }
 
-@media screen and (width >= 1024px) {
+@media screen and (width >= 64rem) {
+  :root {
+    --page-margin: 3rem;
+  }
 
+  h1 {
+    margin: 6rem 0;
+    font-size: 8rem;
+  }
 }
 
-@media screen and (width >= 1280px) {
+@media screen and (width >= 80rem) {
+  :root {
+    --page-margin: 4rem;
+  }
+}
 
+@media screen and (width >= 90rem) {
+  :root {
+    --page-margin: 4rem;
+  }
 }
