@@ -27,6 +27,14 @@ withDefaults(defineProps<Props>(), {
 .styled-paragraph {
   position: relative;
 
+  h3 {
+    font-size: 2rem;
+  }
+
+  h3, p {
+    margin: 0;
+  }
+
   &.left, &.right {
     .style-element {
       position: absolute;
