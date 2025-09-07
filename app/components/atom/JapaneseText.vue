@@ -9,7 +9,7 @@ defineProps<Props>()
 </script>
 
 <template>
-  <span :class="[vertical ? 'vertical' : 'horizontal', 'size--' + size, outline ? 'outline' : 'fill']">
+  <span aria-hidden="true" :class="[vertical ? 'vertical' : 'horizontal', 'size--' + size, outline ? 'outline' : 'fill']">
     <slot></slot>
   </span>
 </template>
@@ -35,8 +35,9 @@ span {
 }
 
 .vertical {
-  writing-mode: vertical-rl;
+  writing-mode: vertical-lr;
   text-orientation: upright;
+  height: max-content;
 }
 
 .horizontal {
@@ -56,10 +57,20 @@ span {
 }
 
 .size--4 {
-  font-size: 7rem;
+  font-size: 3rem;
 
   &.outline {
-    -webkit-text-stroke-width: 2px;
+    -webkit-text-stroke-width: 1px;
+  }
+}
+
+@media screen and (width >= 48rem) {
+  .size--4 {
+    font-size: 7rem;
+
+    &.outline {
+      -webkit-text-stroke-width: 2px;
+    }
   }
 }
 
@@ -67,7 +78,7 @@ span {
   font-size: 15rem;
 
   &.outline {
-    -webkit-text-stroke-width: 5px;
+    -webkit-text-stroke-width: 2px;
   }
 }
 </style>
