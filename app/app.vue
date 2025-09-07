@@ -1,6 +1,6 @@
 <script setup lang="ts">
 useHead({
-  title: 'JC Banzai',
+  title: 'Judoclub Banzai',
   meta: [
     { name: 'description', content: 'My amazing site.' }
   ],
