@@ -11,6 +11,7 @@ useHead({
   <OrganismAppHeader/>
   <NuxtPage/>
   <OrganismAppFooter/>
+  <AtomCursorFollow/>
 </template>
 
 <style scoped lang="scss">
