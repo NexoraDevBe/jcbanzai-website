@@ -29,6 +29,7 @@ withDefaults(defineProps<Props>(), {
 
   h3 {
     font-size: 2rem;
+    font-weight: 700;
   }
 
   h3, p {
