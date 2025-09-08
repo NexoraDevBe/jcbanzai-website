@@ -33,6 +33,7 @@ defineProps<Props>()
   border-radius: 1rem;
   background-color: var(--secondary-10);
   backdrop-filter: blur(5px);
+  z-index: 1;
 
   .small-text {
     position: absolute;
