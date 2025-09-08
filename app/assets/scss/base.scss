@@ -128,7 +128,6 @@ header, main, footer {
 }
 
 main {
-  //padding-top: 2rem;
   margin-bottom: 6rem;
 
   a {
@@ -160,6 +159,22 @@ h1 {
   font-weight: 800;
 }
 
+h2 {
+  font-size: 3.5rem;
+  font-weight: 700;
+}
+
+h3 {
+  font-size: 2.5rem;
+  font-weight: 400;
+}
+
+h4 {
+  color: var(--accent);
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
 // BREAKPOINTS
 @media screen and (width >= 40rem) {
   :root {
@@ -173,6 +188,22 @@ h1 {
 
   h1 {
     font-size: 6rem;
+  }
+
+  h2 {
+    font-size: 4rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 2.8rem;
+    font-weight: 400;
+  }
+
+  h4 {
+    color: var(--accent);
+    font-size: 1.8rem;
+    font-weight: 400;
   }
 }
 
@@ -195,11 +226,38 @@ h1 {
     margin: 6rem 0;
     font-size: 8rem;
   }
+
+  h2 {
+    font-size: 5rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 3.2rem;
+    font-weight: 400;
+  }
+
+  h4 {
+    color: var(--accent);
+    font-size: 2.2rem;
+    font-weight: 400;
+  }
 }
 
 @media screen and (width >= 80rem) {
   :root {
     --page-margin: 4rem;
+  }
+
+  h3 {
+    font-size: 3.5rem;
+    font-weight: 400;
+  }
+
+  h4 {
+    color: var(--accent);
+    font-size: 2.5rem;
+    font-weight: 400;
   }
 }
 
@@ -207,4 +265,31 @@ h1 {
   :root {
     --page-margin: 4rem;
   }
+}
+
+
+// COPIED VERSIONS
+@media screen and (width >= 40rem) {
+
+}
+
+@media screen and (width >= 48rem) {
+
+}
+
+@media screen and (width >= 64rem) {
+
+}
+
+@media screen and (width >= 80rem) {
+
+}
+
+// SPECIALS
+@media screen and (width >= 32rem) {
+
+}
+
+@media screen and (width >= 90rem) {
+
 }
