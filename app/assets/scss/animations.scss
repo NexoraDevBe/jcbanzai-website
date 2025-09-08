@@ -1,4 +1,4 @@
-// HEADER
+// BURGER MENU
 @keyframes expandToFullscreen {
   0% {
     transform: scale(1);
@@ -187,7 +187,6 @@
     transform: translateX(-50%) translateY(-50%) rotate(0deg);
   }
 }
-// END HEADER
 
 // SCROLL INDICATOR
 @keyframes scrollIndicator {
@@ -217,4 +216,13 @@
     margin-top: 2px;
   }
 }
-//END SCROLL INDICATOR
+
+// CAROUSEL
+@keyframes scrolling {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
