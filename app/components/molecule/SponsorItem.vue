@@ -45,7 +45,7 @@ defineProps<Props>()
     width: 100%;
     height: 100%;
     border-radius: .6rem;
-    z-index: 1;
+    z-index: 0;
     text-decoration: none;
   }
 }

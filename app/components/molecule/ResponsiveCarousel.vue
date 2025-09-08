@@ -1,34 +1,35 @@
 <script setup lang="ts">
-interface Sponsor {
-  path: string
-  link: string
-  name?: string
-}
-
 interface Props {
-  sponsors: Sponsor[]
+  items: any[]
+  gap?: string
+  padding?: string
+  speed?: number // pixels per second
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  gap: '2rem',
+  padding: '1rem',
+  speed: 100
+})
 
-const sponsorsContainer = ref<HTMLElement>()
-const sponsorsTrack = ref<HTMLElement>()
+const carouselContainer = ref<HTMLElement>()
+const carouselTrack = ref<HTMLElement>()
 const carouselDuration = ref<string>('')
 const isOverflowing = ref(false)
 
 const checkOverflow = () => {
-  if (sponsorsContainer.value && sponsorsTrack.value) {
-    const containerWidth = sponsorsContainer.value.offsetWidth
-    const trackWidth = sponsorsTrack.value.scrollWidth
-    carouselDuration.value = trackWidth / 100 + 's'
+  if (carouselContainer.value && carouselTrack.value) {
+    const containerWidth = carouselContainer.value.offsetWidth
+    const trackWidth = carouselTrack.value.scrollWidth
+    carouselDuration.value = trackWidth / props.speed + 's'
     isOverflowing.value = trackWidth > containerWidth
   }
 }
 
 const waitForImagesToLoad = async () => {
-  if (!sponsorsTrack.value) return
+  if (!carouselTrack.value) return
 
-  const images = sponsorsTrack.value.querySelectorAll('img')
+  const images = carouselTrack.value.querySelectorAll('img')
   const imagePromises = Array.from(images).map((img) => {
     return new Promise((resolve) => {
       if (img.complete) {
@@ -56,60 +57,53 @@ onUnmounted(() => {
 
 <template>
   <div
-      ref="sponsorsContainer"
-      class="sponsors"
+      ref="carouselContainer"
+      class="carousel"
       :class="{ 'carousel-enabled': isOverflowing }"
   >
     <div
-        ref="sponsorsTrack"
-        class="sponsors-track"
+        ref="carouselTrack"
+        class="carousel-track"
     >
-      <MoleculeSponsorItem
-          v-for="(sponsor, idx) in sponsors"
+      <slot
+          v-for="(item, idx) in items"
           :key="idx"
-          :sponsor="sponsor"
+          :item="item"
+          :index="idx"
       />
     </div>
     <div
         aria-hidden="true"
         v-show="isOverflowing"
-        class="sponsors-track"
+        class="carousel-track"
     >
-      <MoleculeSponsorItem
-          v-for="(sponsor, idx) in sponsors"
+      <slot
+          v-for="(item, idx) in items"
           :key="`duplicate-${idx}`"
-          :sponsor="sponsor"
+          :item="item"
+          :index="idx"
       />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-@keyframes scrolling {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-}
-
-.sponsors {
+.carousel {
   display: flex;
   overflow: hidden;
   position: relative;
   justify-content: center;
 
-  .sponsors-track {
+  .carousel-track {
     display: flex;
-    gap: 2rem;
-    padding: 0 1rem;
+    gap: v-bind('gap');
+    padding: v-bind('padding');
   }
 
   &.carousel-enabled {
     justify-content: flex-start;
 
-    .sponsors-track {
+    .carousel-track {
       will-change: transform;
       animation: scrolling v-bind('carouselDuration') linear infinite;
     }

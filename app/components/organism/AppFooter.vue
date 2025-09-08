@@ -41,8 +41,12 @@ const companyDetails = [
 
 <template>
   <footer class="app-footer">
-    <OrganismSponsorCarousel :sponsors="sponsorItems" />
-    <OrganismFooterInfo
+    <MoleculeResponsiveCarousel :items="sponsorItems" gap="2rem" :speed="80">
+      <template #default="{ item }">
+        <MoleculeSponsorItem :sponsor="item" />
+      </template>
+    </MoleculeResponsiveCarousel>
+    <MoleculeFooterInfo
         :navigation-links="navigationLinks"
         :social-links="socialLinks"
         :contact-links="contactLinks"
