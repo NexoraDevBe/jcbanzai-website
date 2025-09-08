@@ -30,8 +30,7 @@ span {
 }
 
 .fill {
-  color: var(--secondary);
-  opacity: .5;
+  color: var(--secondary-10);
 }
 
 .vertical {
@@ -61,6 +60,12 @@ span {
 
   &.outline {
     -webkit-text-stroke-width: 1px;
+  }
+}
+
+@media screen and (width >= 40rem) {
+  .size--2 {
+    font-size: 3rem;
   }
 }
 
