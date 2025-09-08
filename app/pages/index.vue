@@ -14,9 +14,7 @@ const cta = () => {
       <AtomCallToAction :on-click="cta">
         Starten?
       </AtomCallToAction>
-      <div aria-hidden="true" class="scroll-indicator">
-        <div class="scroll-dot"/>
-      </div>
+      <AtomScrollIndicator/>
     </section>
     <section class="intro">
       <MoleculeStyledParagraph class="paragraph" :max-width="'30rem'">
@@ -43,27 +41,6 @@ const cta = () => {
     align-items: center;
     height: 100dvh;
     padding-bottom: 3rem;
-
-    $size: 12px;
-
-    .scroll-indicator {
-      position: absolute;
-      bottom: 10vh;
-      display: flex;
-      justify-content: center;
-      height: 80px;
-      width: 16px;
-      border-radius: 1rem;
-      background: linear-gradient(var(--secondary-70), transparent);
-
-      .scroll-dot {
-        width: $size;
-        height: $size;
-        background-color: var(--accent);
-        border-radius: 50%;
-        animation: scrollIndicator 7s infinite cubic-bezier(0.25, 0.40, 0.50, 0.94);
-      }
-    }
 
     .hero-title {
       margin: 0;
@@ -98,7 +75,7 @@ const cta = () => {
       align-items: start;
       height: 100dvh;
 
-      .scroll-indicator {
+      :deep(.scroll-indicator) {
         display: none;
       }
 
