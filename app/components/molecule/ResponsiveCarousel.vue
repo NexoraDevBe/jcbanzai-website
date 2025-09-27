@@ -1,15 +1,13 @@
 <script setup lang="ts">
 interface Props {
   items: any[]
-  gap?: string
-  padding?: string
   speed?: number // pixels per second
+  interactive?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  gap: '2rem',
-  padding: '1rem',
-  speed: 100
+  speed: 100,
+  interactive: false,
 })
 
 const carouselContainer = ref<HTMLElement>()
@@ -17,12 +15,23 @@ const carouselTrack = ref<HTMLElement>()
 const carouselDuration = ref<string>('')
 const isOverflowing = ref(false)
 
+const isDragging = ref(false)
+const startX = ref(0)
+const scrollLeft = ref(0)
+const currentTranslateX = ref(0)
+const targetTranslateX = ref(0) // new target position for smoothing
+const maxTranslateX = ref(0)
+
 const checkOverflow = () => {
   if (carouselContainer.value && carouselTrack.value) {
     const containerWidth = carouselContainer.value.offsetWidth
     const trackWidth = carouselTrack.value.scrollWidth
     carouselDuration.value = trackWidth / props.speed + 's'
     isOverflowing.value = trackWidth > containerWidth
+
+    if (props.interactive && isOverflowing.value) {
+      maxTranslateX.value = trackWidth - containerWidth
+    }
   }
 }
 
@@ -44,14 +53,113 @@ const waitForImagesToLoad = async () => {
   await Promise.all(imagePromises)
 }
 
+// Interactive drag handlers
+const handleMouseDown = (e: MouseEvent) => {
+  if (!props.interactive || !isOverflowing.value) return
+
+  isDragging.value = true
+  startX.value = e.pageX - (carouselContainer.value?.offsetLeft || 0)
+  scrollLeft.value = targetTranslateX.value
+
+  e.preventDefault()
+}
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isDragging.value || !props.interactive) return
+
+  e.preventDefault()
+  const x = e.pageX - (carouselContainer.value?.offsetLeft || 0)
+  const walk = (x - startX.value)
+  const newTranslateX = scrollLeft.value + walk
+
+  targetTranslateX.value = Math.max(
+      -maxTranslateX.value,
+      Math.min(0, newTranslateX)
+  )
+}
+
+const handleMouseUp = () => {
+  if (isDragging.value) {
+    // Snap immediately to the final position, no smoothing after release
+    currentTranslateX.value = targetTranslateX.value
+  }
+  isDragging.value = false
+}
+
+const handleMouseLeave = () => {
+  if (isDragging.value) {
+    currentTranslateX.value = targetTranslateX.value
+  }
+  isDragging.value = false
+}
+
+// Touch handlers for mobile support
+const handleTouchStart = (e: TouchEvent) => {
+  if (!props.interactive || !isOverflowing.value || !e.touches[0]) return
+
+  isDragging.value = true
+  startX.value = e.touches[0].pageX - (carouselContainer.value?.offsetLeft || 0)
+  scrollLeft.value = targetTranslateX.value
+}
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!isDragging.value || !props.interactive || !e.touches[0]) return
+
+  const x = e.touches[0].pageX - (carouselContainer.value?.offsetLeft || 0)
+  const walk = (x - startX.value)
+  const newTranslateX = scrollLeft.value + walk
+
+  targetTranslateX.value = Math.max(
+      -maxTranslateX.value,
+      Math.min(0, newTranslateX)
+  )
+}
+
+const handleTouchEnd = () => {
+  if (isDragging.value) {
+    currentTranslateX.value = targetTranslateX.value
+  }
+  isDragging.value = false
+}
+
+// Smoothing loop (only while dragging)
+const smoothFactor = 0.12
+let rafId: number
+
+const animate = () => {
+  if (isDragging.value) {
+    currentTranslateX.value += (targetTranslateX.value - currentTranslateX.value) * smoothFactor
+  }
+  rafId = requestAnimationFrame(animate)
+}
+
 onMounted(async () => {
   await waitForImagesToLoad()
   checkOverflow()
   window.addEventListener('resize', checkOverflow)
+
+  if (props.interactive) {
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  rafId = requestAnimationFrame(animate)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkOverflow)
+  if (props.interactive) {
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }
+  cancelAnimationFrame(rafId)
+})
+
+const trackTransform = computed(() => {
+  if (props.interactive && isOverflowing.value) {
+    return `translateX(${currentTranslateX.value}px)`
+  }
+  return ''
 })
 </script>
 
@@ -59,11 +167,18 @@ onUnmounted(() => {
   <div
       ref="carouselContainer"
       class="carousel"
-      :class="{ 'carousel-enabled': isOverflowing }"
+      :class="{
+        'carousel-enabled': isOverflowing && !interactive,
+        'carousel-interactive': interactive && isOverflowing,
+        'carousel-dragging': isDragging
+      }"
+      @mousedown="handleMouseDown"
+      @mouseleave="handleMouseLeave"
   >
     <div
         ref="carouselTrack"
         class="carousel-track"
+        :style="{ transform: trackTransform }"
     >
       <slot
           v-for="(item, idx) in items"
@@ -72,9 +187,10 @@ onUnmounted(() => {
           :index="idx"
       />
     </div>
+    <!-- Duplicate track for auto-scroll -->
     <div
         aria-hidden="true"
-        v-show="isOverflowing"
+        v-show="isOverflowing && !interactive"
         class="carousel-track"
     >
       <slot
@@ -96,16 +212,87 @@ onUnmounted(() => {
 
   .carousel-track {
     display: flex;
-    gap: v-bind('gap');
-    padding: v-bind('padding');
+    gap: 2rem;
+    padding: 1rem;
+    flex-shrink: 0;
+    z-index: 1;
+    will-change: transform;
+    transition: transform 0.3s ease;
   }
 
   &.carousel-enabled {
     justify-content: flex-start;
 
     .carousel-track {
-      will-change: transform;
       animation: scrolling v-bind('carouselDuration') linear infinite;
+    }
+  }
+
+  &.carousel-interactive {
+    justify-content: flex-start;
+    cursor: grab;
+    margin: 0 calc(var(--page-margin) * -1);
+    padding-left: var(--page-margin);
+
+    overflow-x: scroll;
+    padding-right: calc(var(--page-margin));
+    scrollbar-color: transparent transparent;
+
+    &.carousel-dragging {
+      cursor: grabbing;
+
+      .carousel-track {
+        transition: none;
+      }
+    }
+
+    .carousel-track {
+      filter: brightness(1);
+      transition: filter 0.3s ease;
+      transition-delay: 3s;
+    }
+  }
+}
+
+@media screen and (width >= 64rem) {
+  .carousel {
+    &.carousel-interactive {
+      overflow-x: hidden;
+
+      &:hover::before,
+      &:not(:hover)::before {
+        content: 'versleep';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 0.6rem 1rem;
+        border-radius: 5rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        z-index: 2;
+        transition: opacity 0.3s ease;
+      }
+
+      &:hover::before {
+        background: var(--accent-80);
+        opacity: 0;
+      }
+
+      &:not(:hover)::before {
+        background: var(--accent);
+        opacity: 0.9;
+        transition-delay: 3s;
+      }
+
+      .carousel-track {
+        filter: brightness(0.8);
+      }
+
+      &:hover .carousel-track {
+        filter: brightness(1);
+        transition-delay: 0s;
+      }
     }
   }
 }
