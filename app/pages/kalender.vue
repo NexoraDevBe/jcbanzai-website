@@ -1,5 +1,10 @@
 <script setup lang="ts">
-
+useHead({
+  title: 'Judoclub Banzai - Kalender',
+  meta: [
+    { name: 'description', content: 'Blijf op de hoogte van alle activiteiten, verlof en judowedstrijden van Judoclub Banzai. Bekijk onze actuele kalender voor trainingsschema\'s en belangrijke data.' }
+  ],
+})
 </script>
 
 <template>

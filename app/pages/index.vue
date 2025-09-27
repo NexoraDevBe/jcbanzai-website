@@ -1,4 +1,11 @@
 <script setup lang="ts">
+useHead({
+  title: 'Judoclub Banzai',
+  meta: [
+    { name: 'description', content: 'Judoclub Banzai - De uitdagende judosport voor alle leeftijden. Ontwikkel fysiek en mentaal, bouw zelfvertrouwen op en ontdek je eigen mogelijkheden. Start vandaag nog!' }
+  ],
+})
+
 const router = useRouter();
 
 const cta = () => {
@@ -14,7 +21,6 @@ const cta = () => {
       <AtomCallToAction :on-click="cta">
         Starten?
       </AtomCallToAction>
-      <AtomScrollIndicator/>
     </section>
     <section class="intro">
       <MoleculeStyledParagraph class="paragraph" :max-width="'30rem'">

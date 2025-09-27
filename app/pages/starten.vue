@@ -2,7 +2,7 @@
 useHead({
   title: 'Judoclub Banzai - Starten?',
   meta: [
-    { name: 'description', content: 'My amazing site.' }
+    { name: 'description', content: 'Start met judo bij Judoclub Banzai! Gratis proeflessen voor alle leeftijden, geen vaste instapdatum. Ontdek onze tarieven en schrijf je het hele jaar door in voor kleuterjudo of judolessen.' }
   ],
 })
 
@@ -46,7 +46,7 @@ const membershipGroups = [
     ageGroup: '2020 - 2021',
     cards: [
       { japText: 'ファミリー', title: 'Leden v/h gezin', starred: true, content: 'Totaal', subContent: 'incl. verzekering' },
-      { japText: 'シーズン', title: 'Volledig seizoen', price: 150.00 }
+      { japText: 'シーズン', title: 'Alle leden', price: 150.00 }
     ]
   },
   {

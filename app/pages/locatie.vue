@@ -1,5 +1,10 @@
 <script setup lang="ts">
-
+useHead({
+  title: 'Judoclub Banzai - Locatie',
+  meta: [
+    { name: 'description', content: 'Vind Judoclub Banzai trainingslocaties in Gavere (Sporthal Scaldis) en Nazareth (Sporthal Nazareth). Bekijk onze kaarten en plan je bezoek aan onze judolessen.' }
+  ],
+})
 </script>
 
 <template>
