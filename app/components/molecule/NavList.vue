@@ -35,7 +35,7 @@ defineProps<Props>()
   margin: 0;
   padding: 1rem 0;
   list-style: none;
-  z-index: 5;
+  z-index: 1005;
 
   li {
     position: relative;
