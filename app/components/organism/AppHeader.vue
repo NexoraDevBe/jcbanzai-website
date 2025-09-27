@@ -44,7 +44,7 @@ header {
   width: 100dvw;
   height: 100dvh;
   margin: 0;
-  z-index: 1;
+  z-index: 1000;
   pointer-events: none;
   transition: none;
 
