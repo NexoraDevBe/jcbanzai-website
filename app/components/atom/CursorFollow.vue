@@ -24,13 +24,12 @@ document.body.onpointermove = event => {
 @media screen and (width >= 64rem) {
   #cursor {
     display: block;
-    background-color: transparent;
+    background-color: var(--accent);
     height: 1.25rem;
     border-radius: 50%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
     position: fixed;
-    backdrop-filter: invert(1);
     pointer-events: none;
   }
 }
