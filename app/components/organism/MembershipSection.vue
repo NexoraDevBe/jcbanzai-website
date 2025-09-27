@@ -27,7 +27,6 @@ const shouldShowTitle = (index: number) => {
 
 <template>
   <section class="lidgeld">
-    <h2>Lidgeld</h2>
     <template v-for="(group, index) in groups" :key="index">
       <h3 v-if="shouldShowTitle(index)">{{ group.title }}</h3>
       <h4>{{ group.ageGroup }}</h4>

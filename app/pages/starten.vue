@@ -18,7 +18,7 @@ const infoSections = [
   {
     japText: 'ドキュメント',
     title: 'Initiatie document',
-    content: `Om alles vlot te laten verlopen, vragen we je om de <b>gegevens van het lid</b> in <NuxtLink to="/pdf/Initiatieformulier.pdf" target="_blank" external>dit document</NuxtLink> in te vullen en onderaan te tekenen.
+    content: `Om alles vlot te laten verlopen, vragen we je om de <b>gegevens van het lid</b> in <a href="/pdf/Initiatieformulier.pdf" target="_blank">dit document</a> in te vullen en onderaan te tekenen.
     De trainers zorgen zelf voor het invullen van de datums.
     Vergeet niet om het ingevulde document <b>mee te brengen naar de eerste les</b> en het aan de trainer af te geven.`,
     right: true
@@ -88,6 +88,7 @@ const membershipGroups = [
       Starten<span>?</span>
     </h1>
     <OrganismInfoSection :sections="infoSections" />
+    <h2>Lidgeld</h2>
     <OrganismMembershipSection :groups="membershipGroups" />
   </main>
 </template>
