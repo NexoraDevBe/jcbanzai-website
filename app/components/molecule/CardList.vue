@@ -29,7 +29,7 @@ const itemCount = ref<number>(props.cards.length)
 <template>
 <ul>
   <li v-for="(card, idx) in cards" :key="idx">
-    <MoleculeCardItem :image="card.image" :jap-text="card.japText" :title="card.title" :starred="card.starred" :content="card.content" :sub-content="card.subContent" :price="card.price"/>
+    <MoleculeCardItem :card="card"/>
   </li>
 </ul>
 </template>
