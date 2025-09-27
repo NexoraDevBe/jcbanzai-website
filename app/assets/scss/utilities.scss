@@ -74,6 +74,10 @@
   fill: var(--secondary);
 }
 
+.fill-secondary-10 {
+  fill: var(--secondary-10);
+}
+
 .fill-accent {
   fill: var(--accent);
 }
@@ -86,6 +90,34 @@
   fill: var(--dark);
 }
 
+.fill-white {
+  fill: var(--white);
+}
+
+.fill-yellow {
+  fill: var(--yellow);
+}
+
+.fill-orange {
+  fill: var(--orange);
+}
+
+.fill-green {
+  fill: var(--green);
+}
+
+.fill-blue {
+  fill: var(--blue);
+}
+
+.fill-brown {
+  fill: var(--brown);
+}
+
+.fill-transparent {
+  fill: transparent;
+}
+
 .stroke-primary {
   stroke-width: 1px;
   stroke: var(--primary);
@@ -96,9 +128,24 @@
   stroke: var(--secondary);
 }
 
+.stroke-secondary-10 {
+  stroke-width: 1px;
+  stroke: var(--secondary-10);
+}
+
+.stroke-secondary-70 {
+  stroke-width: 1px;
+  stroke: var(--secondary-70);
+}
+
 .stroke-accent {
   stroke-width: 1px;
   stroke: var(--accent);
+}
+
+.stroke-transparent {
+  stroke-width: 1px;
+  stroke: transparent;
 }
 
 // COLORS
