@@ -9,9 +9,9 @@ const sponsorItems = [
 ]
 
 const navigationLinks = [
-  { text: 'Privacy', href: '', external: true },
+  { text: 'Privacy', href: '/pdf/Privacyverklaring.pdf', external: true },
   { text: 'Verzekeringsformulier', href: 'https://www.judovlaanderen.be/clubbeheer/verzekering/', external: true },
-  { text: 'Initiatieformulier', href: '', external: true },
+  { text: 'Initiatieformulier', href: '/pdf/Initiatieformulier.pdf', external: true },
   { text: 'International Judo Federation', href: 'https://www.ijf.org/', external: true },
   { text: 'Judo Vlaanderen', href: 'https://www.judovlaanderen.be/', external: true },
   { text: 'Bestuur', href: '/bestuur', external: false },
