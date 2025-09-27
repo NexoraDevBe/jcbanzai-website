@@ -34,18 +34,16 @@ defineProps<Props>()
   &:hover {
     :deep(.sponsor-image) {
       opacity: 1;
+      z-index: 1;
       filter: grayscale(0%);
     }
   }
 
   .sponsor-link {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     border-radius: .6rem;
-    z-index: 0;
+    z-index: 2;
     text-decoration: none;
   }
 }
