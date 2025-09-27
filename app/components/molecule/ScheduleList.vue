@@ -3,6 +3,12 @@ type BeltColors = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | '
 type BeltStatus = Record<BeltColors, boolean>
 type ScheduleRow = [string, number[], string[], string, string, BeltStatus]
 
+interface Props {
+  scheduleData: ScheduleRow[]
+}
+
+defineProps<Props>()
+
 const scheduleTitles = ['Groep', 'Geboren in', 'Weekdag', 'Uren', 'Locatie', 'Gordels']
 const allBeltColors: BeltColors[] = ['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']
 const currentYear = new Date().getFullYear()
@@ -34,19 +40,6 @@ const listFieldConfig = [
     fields: [5],
     primary: false
   }
-]
-
-const scheduleData: ScheduleRow[] = [
-  ['Kleuters', [4, 5], ['Zaterdag'], '09u00 - 09u45', 'Gavere',
-    { white: true, yellow: false, orange: false, green: false, blue: false, brown: false, black: false }],
-  ['Jeugd', [5, 12], ['Maandag', 'Donderdag'], '18u30 - 19u30', 'Nazareth',
-    { white: true, yellow: true, orange: true, green: true, blue: false, brown: false, black: false }],
-  ['Gezamenlijk', [5, 18], ['Zondag'], '09u00 - 10u45', 'Gavere',
-    { white: true, yellow: true, orange: true, green: true, blue: true, brown: true, black: true }],
-  ['Wedstrijd', [8, 99], ['Woensdag'], '18u00 - 19u30', 'Gavere',
-    { white: false, yellow: true, orange: true, green: true, blue: true, brown: true, black: true }],
-  ['Volwassenen', [12, 99], ['Maandag', 'Donderdag'], '19u30 - 21u00', 'Nazareth',
-    { white: true, yellow: true, orange: true, green: true, blue: true, brown: true, black: true }]
 ]
 
 const agesToBirthYears = (ages: number[]): string => {
