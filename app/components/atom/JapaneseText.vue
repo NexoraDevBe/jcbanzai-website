@@ -21,6 +21,7 @@ span {
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
+  pointer-events: none;
 }
 
 .outline {
@@ -41,6 +42,7 @@ span {
 
 .horizontal {
   writing-mode: lr;
+  width: max-content;
 }
 
 .size--1 {
