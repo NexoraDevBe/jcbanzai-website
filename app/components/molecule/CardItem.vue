@@ -3,10 +3,10 @@ import {useCurrencyConverter} from "~/composables/exchange";
 
 interface Image {
   src: string
-  alt: string
+  alt?: string
 }
 
-interface Props {
+interface PropItems {
   image?: Image
   title?: string
   starred?: boolean
@@ -16,36 +16,40 @@ interface Props {
   subContent?: string
 }
 
+interface Props {
+  card: PropItems
+}
+
 const props = defineProps<Props>()
 const exPrice = ref<number>(0)
 const { convertCurrency, isLoading, error } = useCurrencyConverter()
-if (props.price) {
-  exPrice.value = await convertCurrency(props.price)
+if (props.card.price) {
+  exPrice.value = await convertCurrency(props.card.price)
 }
 </script>
 
 <template>
-<div class="card">
-  <div v-if="japText" class="style-element">
-    <AtomJapaneseText :vertical="true" :size="2" :outline="false">{{ japText }}</AtomJapaneseText>
+<div class="card" :class="{'contains-image': card.image}">
+  <div v-if="card.japText" class="style-element">
+    <AtomJapaneseText :vertical="true" :size="2" :outline="false">{{ card.japText }}</AtomJapaneseText>
   </div>
-  <div v-if="image" class="card-img">
-    <img :src="image.src" :alt="image.alt"/>
+  <div v-if="card.image" class="card-img">
+    <img :src="card.image.src" :alt="card.image.alt"/>
   </div>
-  <h5 v-if="title" class="card-title">
-    {{ title }}<span v-if="starred" class="color-accent">*</span>
+  <h5 v-if="card.title" class="card-title">
+    {{ card.title }}<span v-if="card.starred" class="color-accent">*</span>
   </h5>
-  <div v-if="content || price"  class="card-content">
-    <p v-if="content" class="main-content">
-      {{ content }}
+  <div v-if="card.content || card.price || card.subContent"  class="card-content">
+    <p v-if="card.content" class="main-content">
+      {{ card.content }}
     </p>
-    <p v-if="subContent" class="sub-content color-accent">
-      {{ subContent }}
+    <p v-if="card.subContent" class="sub-content color-accent">
+      {{ card.subContent }}
     </p>
-    <p v-if="price" class="price">
-      <span>€</span>{{ price.toFixed(2).replace('.', ',') }}
+    <p v-if="card.price" class="price">
+      <span>€</span>{{ card.price.toFixed(2).replace('.', ',') }}
     </p>
-    <p v-if="price && exPrice" class="ex-price">
+    <p v-if="card.price && exPrice" class="ex-price">
       ¥ {{ exPrice }}
     </p>
   </div>
@@ -68,6 +72,14 @@ if (props.price) {
   overflow: hidden;
   z-index: 1;
 
+  &.contains-image {
+    width: 12rem;
+    height: 100%;
+    aspect-ratio: 0;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+
   .style-element {
     position: absolute;
     top: 0;
@@ -76,10 +88,22 @@ if (props.price) {
     z-index: -1;
   }
 
+  .card-img {
+    height: 8rem;
+
+    img {
+      height: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  }
+
   .card-title {
     margin: 0;
     font-size: 1.5rem;
     text-align: center;
+    white-space: pre-line;
   }
 
   .card-content {
@@ -90,6 +114,7 @@ if (props.price) {
 
     .main-content, .sub-content, .price, .ex-price {
       margin: 0;
+      text-align: center;
     }
 
     .main-content, .price {
@@ -108,6 +133,7 @@ if (props.price) {
     .sub-content {
       font-size: 1rem;
       font-weight: 700;
+      white-space: pre-line;
     }
 
     .ex-price {
@@ -141,6 +167,10 @@ if (props.price) {
   .card {
     width: 12rem;
 
+    &.contains-image {
+      width: 14rem;
+    }
+
     .style-element {
       padding: .5rem;
     }
@@ -168,6 +198,10 @@ if (props.price) {
 @media screen and (width >= 48rem) {
   .card {
     width: 15rem;
+
+    &.contains-image {
+      width: 15rem;
+    }
 
     .style-element {
       padding: 1rem;
