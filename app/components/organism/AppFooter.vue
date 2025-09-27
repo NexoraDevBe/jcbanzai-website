@@ -27,7 +27,6 @@ const contactLinks = [
   { text: 'Drapstraat 76, 9810 Nazareth', href: 'https://maps.app.goo.gl/Tbbnr8PGE5wXWp5b9', external: true },
   { text: 'info@judoclubbanzai.be', href: 'mailto:info@judoclubbanzai.be', external: true },
   { text: 'secretaris@judoclubbanzai.be', href: 'mailto:secretaris@judoclubbanzai.be', external: true },
-  { text: 'inschrijvingen.wedstrijden@judoclubbanzai.be', href: 'mailto:inschrijvingen.wedstrijden@judoclubbanzai.be', external: true },
 ]
 
 const companyDetails = [
