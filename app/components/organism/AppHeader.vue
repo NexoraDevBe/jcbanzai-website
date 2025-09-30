@@ -14,7 +14,7 @@ const state = ref<boolean>(false)
 const hasInteracted = ref<boolean>(false)
 const route = useRoute()
 
-watch(() => route.path, (newPath) => {
+watch(() => route.path, () => {
   state.value = false
 }, { immediate: true })
 
