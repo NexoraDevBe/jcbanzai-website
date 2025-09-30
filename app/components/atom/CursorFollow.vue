@@ -25,7 +25,7 @@ document.body.onpointermove = event => {
   #cursor {
     display: block;
     background-color: var(--accent);
-    height: 1.25rem;
+    height: 20px;
     border-radius: 50%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
