@@ -40,7 +40,7 @@ const shouldShowTitle = (index: number) => {
         <span>*</span> Leden van het gezin = aantal leden van hetzelfde gezin (gedomicilieerd op hetzelfde adres dat is ingeschreven in onze judoclub)
       </p>
       <p>
-        Sociaal tarief-doelgroep meer info <NuxtLink :to="'mailto:secretaris@judoclubbanzai.be'" :external="true">secretaris@judoclubbanzai.be</NuxtLink>
+        Sociaal tarief-doelgroep meer info <a href="mailto:secretaris@judoclubbanzai.be" >secretaris@judoclubbanzai.be</a>
       </p>
       <ul>
         <li>
