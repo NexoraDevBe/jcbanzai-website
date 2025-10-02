@@ -35,16 +35,68 @@ const scheduleData: ScheduleRow[] = [
     { white: true, yellow: true, orange: true, green: true, blue: false, brown: false, black: false }],
   ['Volwassenen', [12, 99], ['Maandag', 'Donderdag'], '19u30 - 21u00', 'Nazareth',
     { white: true, yellow: true, orange: true, green: true, blue: true, brown: true, black: true }],
-  ['Wedstrijd', [8, 99], ['Woensdag'], '18u00 - 19u30', 'Gavere',
+  ['Wedstrijd*', [8, 99], ['Woensdag'], '18u00 - 19u30', 'Gavere',
     { white: false, yellow: true, orange: true, green: true, blue: true, brown: true, black: true }],
 ]
+
+const scheduleInfo = [
+    'Is de indeling in leeftijdsgroepen voor jouw gezin niet praktisch, contacteer ons dan om samen een gepaste oplossing te vinden. Opgegeven leeftijden zijn indicatief, overgang van de ene naar de andere groep is steeds bespreekbaar met de trainer.',
+    '*Wedstrijd trainingen zijn enkel op uitnodiging.'
+]
+
+const scheduleStyledInfo = [
+  {
+    japText: 'トドラー',
+    title: 'Kleuterjudo',
+    content: `Laat uw zoon of dochter in de leeftijd van 4 tot 5 jaar kennismaken met kleuterjudo, een unieke mix van judo lichaamsvorming! In de kleuter judolessen staat plezier voorop. Veel oefeningen worden aangeboden in fantasievormen. Deze jonge judoka's leren de basis van het judospel op een voor hun aansprekende manier. Daarnaast worden hun lichamelijke en geestelijke ontwikkeling sterk gestimuleerd. Er is in de les veel aandacht voor oefeningen die coördinatie, snelheid, leren vallen en samenwerken bevorderen.`,
+    right: false
+  },
+  {
+    japText: 'ラーレン',
+    title: 'Volgende Gordel',
+    content: `Ben jij klaar voor de volgende stap in jouw judotraject? Op deze pagina vind je alles wat je nodig hebt om je voor te bereiden op jouw volgende gordel: overzicht van de vereiste technieken, duidelijke uitleg en demonstraties om je examen met vertrouwen tegemoet te gaan. Klik hieronder en ontdek alle informatie die je helpt om sterker, vaardiger en met trots jouw nieuwe gordel te behalen!`,
+    right: true
+  }
+]
+
+const router = useRouter();
+
+const cta = () => {
+  router.push({path: '/leerplan'});
+}
 </script>
 
 <template>
 <main id="trainging-page">
   <h1>Trainingen</h1>
-  <section class="trainings">
-    <MoleculeScheduleList :schedule-data="scheduleData"/>
+  <section class="trainingschedule">
+    <MoleculeScheduleList class="schedule" :schedule-data="scheduleData" :schedule-info="scheduleInfo"/>
+    <div class="paragraph-container">
+      <MoleculeStyledParagraph
+          v-for="(info, idx) in scheduleStyledInfo"
+          :key="idx"
+          class="paragraph"
+          :right="info.right"
+          :max-width="'45rem'"
+      >
+        <template #styleElement>
+          <AtomJapaneseText :vertical="true" :size="3" :outline="true">
+            {{ info.japText }}
+          </AtomJapaneseText>
+        </template>
+        <template #title>
+          {{ info.title }}
+        </template>
+        <template #content>
+          <div v-html="info.content" />
+        </template>
+      </MoleculeStyledParagraph>
+      <div class="button-wrapper">
+        <AtomCallToAction :on-click="cta">
+          Leren?
+        </AtomCallToAction>
+      </div>
+    </div>
   </section>
   <h2>Trainers</h2>
   <section class="trainers">
@@ -58,5 +110,44 @@ const scheduleData: ScheduleRow[] = [
 </template>
 
 <style scoped lang="scss">
+#trainging-page {
+  .trainingschedule {
+    &:deep(.schedule-table) {
+      margin-bottom: 3rem;
+    }
 
+    .paragraph-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 4rem;
+
+      &:deep(.right) {
+        margin-left: auto;
+        margin-top: 3rem;
+      }
+
+      .button-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+
+@media screen and (width >= 64rem) {
+  #trainging-page {
+    .trainingschedule {
+      .paragraph-container {
+        margin: 2rem var(--page-margin) 0;
+
+        &:deep(.right) {
+          margin-top: 0;
+        }
+      }
+    }
+  }
+}
 </style>
