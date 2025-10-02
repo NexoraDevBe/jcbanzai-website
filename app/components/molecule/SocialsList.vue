@@ -15,12 +15,12 @@ defineProps<Props>()
   <ul class="socials-list">
     <li>
       <NuxtLink to="https://www.instagram.com/judoclubbanzai/" external>
-        <IconInstagram :size="40" :stroke-width="1.5"/>
+        <IconInstagramLogo :size="40" :stroke-width="1.5"/>
       </NuxtLink>
     </li>
     <li>
       <NuxtLink to="https://www.facebook.com/judoclubbanzai" external>
-        <IconFacebook :size="40" :stroke-width="1.5"/>
+        <IconFacebookLogo :size="40" :stroke-width="1.5"/>
       </NuxtLink>
     </li>
   </ul>
