@@ -4,7 +4,8 @@ type BeltStatus = Record<BeltColors, boolean>
 type ScheduleRow = [string, number[], string[], string, string, BeltStatus]
 
 interface Props {
-  scheduleData: ScheduleRow[]
+  scheduleData: ScheduleRow[],
+  scheduleInfo: string[]
 }
 
 defineProps<Props>()
@@ -85,25 +86,30 @@ const handleClick = (idx: number) => {
 
 <template>
   <div class="schedule-table">
-    <div class="tr">
-      <div v-for="(th, idx) in scheduleTitles" :key="idx" class="th">
-        <h4>{{ th }}</h4>
+    <div class="table">
+      <div class="tr">
+        <div v-for="(th, idx) in scheduleTitles" :key="idx" class="th">
+          <h4>{{ th }}</h4>
+        </div>
       </div>
-    </div>
-    <div v-for="(tr, rowIdx) in scheduleData" :key="rowIdx" class="tr">
-      <div v-for="(td, colIdx) in tr" :key="colIdx" class="td">
-        <p v-if="colIdx < 5">{{ formatCellContent(td) }}</p>
-        <div v-else class="belts-container">
-          <IconJudoBelt
-              v-for="beltColor in allBeltColors"
-              :key="beltColor"
-              class="belt"
-              :class-name="getBeltClasses(beltColor, (td as BeltStatus)[beltColor])"
-              :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
-          />
+      <div v-for="(tr, rowIdx) in scheduleData" :key="rowIdx" class="tr">
+        <div v-for="(td, colIdx) in tr" :key="colIdx" class="td">
+          <p v-if="colIdx < 5">{{ formatCellContent(td) }}</p>
+          <div v-else class="belts-container">
+            <IconJudoBelt
+                v-for="beltColor in allBeltColors"
+                :key="beltColor"
+                class="belt"
+                :class-name="getBeltClasses(beltColor, (td as BeltStatus)[beltColor])"
+                :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
+            />
+          </div>
         </div>
       </div>
     </div>
+    <p class="schedule-info" v-for="(text, idx) in scheduleInfo" :key="idx">
+      {{ text }}
+    </p>
   </div>
 
   <div class="schedule-list">
@@ -133,6 +139,9 @@ const handleClick = (idx: number) => {
         </div>
       </div>
     </div>
+    <p class="schedule-info" v-for="(text, idx) in scheduleInfo" :key="idx">
+      {{ text }}
+    </p>
   </div>
 </template>
 
@@ -145,6 +154,10 @@ const handleClick = (idx: number) => {
   display: flex;
   flex-direction: column;
   gap: .5rem;
+
+  .schedule-info {
+    margin-bottom: 0;
+  }
 
   .schedule-list-item {
     display: grid;
@@ -236,41 +249,51 @@ const handleClick = (idx: number) => {
 
 @media screen and (width >= 64rem) {
   .schedule-table {
-    display: table;
+    display: block;
+    width: min-content;
     margin: 0 auto;
-    min-width: max-content;
 
-    .tr {
-      display: table-row;
-      gap: 1rem;
+    .schedule-info {
+      padding: 0 1rem;
+    }
 
-      .th, .td {
-        display: table-cell;
-        padding: .5rem 1rem;
-        vertical-align: middle;
+    .table {
+      display: table;
+      min-width: max-content;
+      margin-bottom: 2rem;
 
-        p {
-          margin: 0;
+      .tr {
+        display: table-row;
+        gap: 1rem;
+
+        .th, .td {
+          display: table-cell;
+          padding: .5rem 1rem;
+          vertical-align: middle;
+
+          p {
+            margin: 0;
+          }
         }
-      }
 
-      .th {
-        h4 {
-          margin: 0;
-          color: var(--secondary);
-          text-transform: uppercase;
-          font-weight: 700;
-          font-size: 1.5rem;
+        .th {
+          h4 {
+            margin: 0;
+            color: var(--secondary);
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 1.5rem;
+          }
         }
-      }
 
-      .belts-container {
-        display: flex;
-        gap: .25rem;
-        align-items: flex-end;
+        .belts-container {
+          display: flex;
+          gap: .25rem;
+          align-items: flex-end;
 
-        .belt {
-          display: inline-block;
+          .belt {
+            display: inline-block;
+          }
         }
       }
     }
