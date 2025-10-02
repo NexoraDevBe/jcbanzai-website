@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useCurrencyConverter} from "~/composables/exchange";
+import {useCurrencyConverter} from "~/utils/exchange";
 
 interface Image {
   src: string
