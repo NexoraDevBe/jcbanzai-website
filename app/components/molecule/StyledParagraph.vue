@@ -26,6 +26,9 @@ withDefaults(defineProps<Props>(), {
 <style scoped lang="scss">
 .styled-paragraph {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
   h3 {
     font-size: 2rem;
