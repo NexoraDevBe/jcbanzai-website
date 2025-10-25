@@ -48,7 +48,15 @@
   --secondary-80: rgba(26, 26, 26, 0.8);
   --secondary-90: rgba(26, 26, 26, 0.9);
 
+  --accent-10: rgba(203, 22, 30, 0.1);
+  --accent-20: rgba(203, 22, 30, 0.2);
+  --accent-30: rgba(203, 22, 30, 0.3);
+  --accent-40: rgba(203, 22, 30, 0.4);
+  --accent-50: rgba(203, 22, 30, 0.5);
+  --accent-60: rgba(203, 22, 30, 0.6);
+  --accent-70: rgba(203, 22, 30, 0.7);
   --accent-80: rgba(203, 22, 30, 0.8);
+  --accent-90: rgba(203, 22, 30, 0.9);
 
   // SPACERS
   --page-margin: 1rem;
@@ -91,6 +99,11 @@
 ::-moz-selection, ::selection {
   color: var(--primary);
   background: var(--accent);
+}
+
+:focus-visible {
+  transition: none;
+  outline: var(--accent) solid 2px;
 }
 
 * {
