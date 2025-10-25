@@ -1,14 +1,32 @@
 <script setup lang="ts">
-import {supabase} from '~/utils/supabase'
+import { supabase, getTechniques } from '~/utils/supabase'
+import type { Technique } from "~/types";
 
-interface Technique {
-  name: string,
-  belt: string,
-  category: string,
-  translation: string,
-  video: string,
-  id: number
-}
+useHead({
+  title: 'Judoclub Banzai - Leerplan & Judo Technieken',
+  meta: [
+    {
+      name: 'description',
+      content: 'Ontdek het leerplan en de judo-technieken van Judoclub Banzai. Filter op gordelkleur, categorie of naam en bekijk video’s van worpen, grepen en meer. Ideaal voor elke judoka die zijn kennis wil verdiepen.'
+    },
+    {
+      name: 'keywords',
+      content: 'judo technieken, leerplan, Judoclub Banzai, worpen, grepen, judo video’s, judo gordels, judo oefenen, judo leerplan, Gavere, Nazareth'
+    },
+    {
+      property: 'og:title',
+      content: 'Judoclub Banzai - Leerplan & Judo Technieken'
+    },
+    {
+      property: 'og:description',
+      content: 'Bekijk het volledige leerplan van Judoclub Banzai: technieken per gordel, categorie en met video-uitleg. Voor judoka’s van alle niveaus.'
+    },
+    {
+      property: 'og:type',
+      content: 'website'
+    }
+  ],
+})
 
 const techniques = ref<Technique[]>([]);
 const availableBelts = ref<string[]>(['yellow', 'orange', 'green', 'blue', 'brown', 'black']);

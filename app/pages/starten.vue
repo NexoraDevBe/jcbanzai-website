@@ -1,8 +1,31 @@
 <script setup lang="ts">
 useHead({
-  title: 'Judoclub Banzai - Starten?',
+  title: 'Judoclub Banzai - Starten met Judo',
   meta: [
-    { name: 'description', content: 'Start met judo bij Judoclub Banzai! Gratis proeflessen voor alle leeftijden, geen vaste instapdatum. Ontdek onze tarieven en schrijf je het hele jaar door in voor kleuterjudo of judolessen.' }
+    {
+      name: 'description',
+      content: 'Wil je starten met judo bij Judoclub Banzai? Volg gratis proeflessen in Gavere of Nazareth! Ontdek hoe je je inschrijft, wat je nodig hebt voor de eerste les en bekijk onze lidgelden voor alle leeftijden.'
+    },
+    {
+      name: 'keywords',
+      content: 'judo starten, proeflessen judo, judo inschrijving, judoclub Banzai, judo Gavere, judo Nazareth, kleuterjudo, judo lidgeld, judo lessen, judo beginners'
+    },
+    {
+      property: 'og:title',
+      content: 'Judoclub Banzai - Starten met Judo'
+    },
+    {
+      property: 'og:description',
+      content: 'Begin met judo bij Judoclub Banzai! Gratis proeflessen, flexibele instap, duidelijke tarieven en begeleiding door ervaren trainers. Ideaal voor jong en oud.'
+    },
+    {
+      property: 'og:type',
+      content: 'website'
+    },
+    {
+      property: 'og:image',
+      content: '/assets/images/judoclub-banzai-starten.jpg' // optioneel: afbeelding voor social previews
+    }
   ],
 })
 

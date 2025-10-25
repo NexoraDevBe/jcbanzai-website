@@ -1,8 +1,35 @@
 <script setup lang="ts">
 useHead({
-  title: 'Judoclub Banzai',
+  title: 'Judoclub Banzai - Judo in Gavere & Nazareth',
   meta: [
-    { name: 'description', content: 'Judoclub Banzai - De uitdagende judosport voor alle leeftijden. Ontwikkel fysiek en mentaal, bouw zelfvertrouwen op en ontdek je eigen mogelijkheden. Start vandaag nog!' }
+    {
+      name: 'description',
+      content: 'Welkom bij Judoclub Banzai! Ontdek de uitdagende judosport voor jong en oud. Versterk je lichaam, geest en zelfvertrouwen in een warme club in Gavere en Nazareth. Start vandaag nog met judo!'
+    },
+    {
+      name: 'keywords',
+      content: 'Judoclub Banzai, judo Gavere, judo Nazareth, judo Oost-Vlaanderen, judo lessen, judo club, kleuterjudo, judo volwassenen, judo zelfvertrouwen, sportclub Gavere, sportclub Nazareth'
+    },
+    {
+      property: 'og:title',
+      content: 'Judoclub Banzai - Judo in Gavere & Nazareth'
+    },
+    {
+      property: 'og:description',
+      content: 'Word lid van Judoclub Banzai! Judo voor kinderen, jongeren en volwassenen in Gavere en Nazareth. Gratis proeflessen en een sterke, hechte clubwerking.'
+    },
+    {
+      property: 'og:type',
+      content: 'website'
+    },
+    {
+      property: 'og:image',
+      content: '/assets/images/judoclub-banzai-hero.jpg' // optioneel: hero-afbeelding met judoka’s of clublogo
+    },
+    {
+      name: 'author',
+      content: 'Judoclub Banzai'
+    }
   ],
 })
 

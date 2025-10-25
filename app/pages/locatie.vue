@@ -1,8 +1,31 @@
 <script setup lang="ts">
 useHead({
-  title: 'Judoclub Banzai - Locatie',
+  title: 'Judoclub Banzai - Locaties in Gavere & Nazareth',
   meta: [
-    { name: 'description', content: 'Vind Judoclub Banzai trainingslocaties in Gavere (Sporthal Scaldis) en Nazareth (Sporthal Nazareth). Bekijk onze kaarten en plan je bezoek aan onze judolessen.' }
+    {
+      name: 'description',
+      content: 'Vind de trainingslocaties van Judoclub Banzai in Gavere (Sporthal Scaldis) en Nazareth (Sporthal Nazareth). Bekijk onze interactieve kaarten, ontdek waar je kunt trainen en plan eenvoudig je bezoek.'
+    },
+    {
+      name: 'keywords',
+      content: 'judo locatie, judoclub Banzai, judo Gavere, judo Nazareth, sporthal Scaldis, sporthal Nazareth, judo lessen, judo training, judo dichtbij, judo Oost-Vlaanderen'
+    },
+    {
+      property: 'og:title',
+      content: 'Judoclub Banzai - Locaties in Gavere & Nazareth'
+    },
+    {
+      property: 'og:description',
+      content: 'Ontdek waar Judoclub Banzai traint! Bekijk de locaties in Gavere en Nazareth, inclusief route en kaartweergave. Kom gerust langs voor een proefles.'
+    },
+    {
+      property: 'og:type',
+      content: 'website'
+    },
+    {
+      property: 'og:image',
+      content: '/assets/images/judoclub-banzai-locaties.jpg' // optioneel: sociale preview-afbeelding van beide sporthallen of een judoka met kaart
+    }
   ],
 })
 </script>

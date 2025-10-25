@@ -1,8 +1,31 @@
 <script setup lang="ts">
 useHead({
-  title: 'Judoclub Banzai - Trainingen',
+  title: 'Judoclub Banzai - Trainingen & Lesuren',
   meta: [
-    { name: 'description', content: 'Ontdek de trainingsschema\'s van Judoclub Banzai in Gavere en Nazareth. Van kleuterjudo tot wedstrijdtraining, voor alle leeftijden en niveaus. Leer onze ervaren trainers kennen.' }
+    {
+      name: 'description',
+      content: 'Ontdek het trainingsschema van Judoclub Banzai in Gavere en Nazareth. Van kleuterjudo tot wedstrijdtraining: bekijk de lesuren, leeftijden en locaties. Maak kennis met onze gediplomeerde trainers en vind de training die bij jou past.'
+    },
+    {
+      name: 'keywords',
+      content: 'judo trainingen, judoles Gavere, judoles Nazareth, judo schema, kleuterjudo, jeugdjudo, wedstrijdtraining, judo volwassenen, judo club Banzai, judo trainers'
+    },
+    {
+      property: 'og:title',
+      content: 'Judoclub Banzai - Trainingen & Lesuren'
+    },
+    {
+      property: 'og:description',
+      content: 'Bekijk de trainingsuren van Judoclub Banzai in Gavere en Nazareth. Voor alle leeftijden en niveaus, onder begeleiding van ervaren trainers.'
+    },
+    {
+      property: 'og:type',
+      content: 'website'
+    },
+    {
+      property: 'og:image',
+      content: '/assets/images/judoclub-banzai-trainingszaal.jpg' // optioneel: voeg hier je social preview-afbeelding toe
+    }
   ],
 })
 
@@ -122,6 +145,7 @@ const cta = () => {
       justify-content: space-between;
       gap: 1rem;
       margin-top: 4rem;
+      padding: 0 var(--page-margin);
 
       &:deep(.right) {
         margin-left: auto;
@@ -142,6 +166,7 @@ const cta = () => {
     .trainingschedule {
       .paragraph-container {
         margin: 2rem var(--page-margin) 0;
+        padding: 0;
 
         &:deep(.right) {
           margin-top: 0;
