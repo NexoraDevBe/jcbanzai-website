@@ -1,86 +1,106 @@
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Technique } from "~/types";
-import type {RuntimeConfig} from "nuxt/schema";
+import type { RuntimeConfig } from "nuxt/schema";
 
-const config: RuntimeConfig = useRuntimeConfig()
-const supabaseUrl: string = config.public.supabaseUrl;
-const supabaseKey: string = config.public.supabasePublishableKey;
-const cacheDuration: number = 60 * 60 * 1000
-let cacheName: string
-let cacheKey: string
-let supabaseClient: any = null
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+let supabaseClient: SupabaseClient | null = null;
 
-const supabase = () => {
+const getSupabaseClient = (): SupabaseClient => {
     if (!supabaseClient) {
-        supabaseClient = createClient(supabaseUrl, supabaseKey);
-        console.log('client created');
-    }
-    console.log('client returned');
-    return supabaseClient;
-}
+        const config: RuntimeConfig = useRuntimeConfig();
+        const supabaseUrl: string = config.public.supabaseUrl;
+        const supabaseKey: string = config.public.supabasePublishableKey;
 
-const getCache = async (CACHE_NAME: string, CACHE_KEY: string, CACHE_DURATION: number): Promise<any[]> => {
+        supabaseClient = createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase client created');
+    }
+    return supabaseClient;
+};
+
+const getCache = async (
+    cacheName: string,
+    cacheKey: string,
+    cacheDuration: number
+): Promise<any[] | null> => {
+    if (!import.meta.client) return null;
+
     try {
-        const cache = await caches.open(CACHE_NAME)
-        const cachedResponse = await cache.match(CACHE_KEY)
+        const cache = await caches.open(cacheName);
+        const cachedResponse = await cache.match(cacheKey);
 
         if (cachedResponse) {
-            const { data, timestamp } = await cachedResponse.json()
-            const now = Date.now()
+            const { data, timestamp } = await cachedResponse.json();
+            const now = Date.now();
 
-            if (now - timestamp < CACHE_DURATION) {
-                console.log('get cache data')
-                return data
+            if (now - timestamp < cacheDuration) {
+                console.log(`Cache hit for ${cacheKey}`);
+                return data;
             } else {
-                await cache.delete(CACHE_KEY)
+                console.log(`Cache expired for ${cacheKey}`);
+                await cache.delete(cacheKey);
             }
         }
     } catch (error) {
-        console.error('Cache API error:', error)
+        console.error('Cache API error:', error);
     }
-    return []
-}
+    return null;
+};
 
-const setCache = async (CACHE_NAME: string, CACHE_KEY: string, data: any) => {
+const setCache = async (
+    cacheName: string,
+    cacheKey: string,
+    data: any
+): Promise<void> => {
+    if (!import.meta.client) return;
+
     try {
-        const cache = await caches.open(CACHE_NAME)
+        const cache = await caches.open(cacheName);
         const cacheData = {
             data,
             timestamp: Date.now()
-        }
+        };
 
         const response = new Response(JSON.stringify(cacheData), {
             headers: { 'Content-Type': 'application/json' }
-        })
+        });
 
-        await cache.put(CACHE_KEY, response)
-        console.log('set cache data')
+        await cache.put(cacheKey, response);
+        console.log(`Cache set for ${cacheKey}`);
     } catch (error) {
-        console.error('Failed to cache data:', error)
+        console.error('Failed to cache data:', error);
     }
-}
+};
 
+const getTechniques = async (): Promise<Technique[]> => {
+    const CACHE_NAME = 'techniques-cache';
+    const CACHE_KEY = 'techniques-data';
 
-const getTechniques = async (sb: any): Promise<Technique[]> => {
-    let techniques : Technique[]
-    cacheName = 'techniques-cache'
-    cacheKey = 'techniques-data'
-
-    if (import.meta.client) {
-        techniques = await getCache(cacheName, cacheKey, cacheDuration)
-        console.log('got data from cache:', techniques)
-        if (techniques.length > 0) return techniques
+    const cachedData = await getCache(CACHE_NAME, CACHE_KEY, CACHE_DURATION);
+    if (cachedData && cachedData.length > 0) {
+        console.log('Returning techniques from cache');
+        return cachedData as Technique[];
     }
 
-    const { data } = await sb.from('Techniques').select('*')
-    techniques = data as Technique[]
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.from('Techniques').select('*');
 
-    if (import.meta.client && data) {
-        console.log('got data from API:', techniques)
-        await setCache(cacheName, cacheKey, data)
+    if (error) {
+        console.error('Error fetching techniques:', error);
+        throw error;
     }
 
-    return techniques
-}
+    const techniques = (data || []) as Technique[];
+    console.log('Fetched techniques from Supabase:', techniques.length);
 
-export {getTechniques, supabase}
+    if (techniques.length > 0) {
+        await setCache(CACHE_NAME, CACHE_KEY, techniques);
+    }
+
+    return techniques;
+};
+
+export {
+    getSupabaseClient,
+    getTechniques
+};

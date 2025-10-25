@@ -63,7 +63,7 @@ const filterRecordsCategory = (category: string) => {
 }
 
 onMounted(async () => {
-  techniques.value = await getTechniques(supabase())
+  techniques.value = await getTechniques()
   getRecord(Math.ceil(Math.random() * techniques.value.length))
   availableCategories.value = extractUniqueValues(techniques.value);
 })
