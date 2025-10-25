@@ -43,6 +43,8 @@ withDefaults(defineProps<Props>(), {
     .style-element {
       position: absolute;
       top: 50%;
+      text-align: center;
+      width: 3.2rem;
       z-index: -1;
     }
   }
