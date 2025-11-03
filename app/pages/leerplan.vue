@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { supabase, getTechniques } from '~/utils/supabase'
+import { getTechniques } from '~/utils/supabase'
 import type { Technique } from "~/types";
 
 useHead({
@@ -35,6 +35,7 @@ const selectedRecord = ref<Technique>()
 const beltFilter = ref<string>('')
 const categoryFilter = ref<string>('')
 const searchFilter = ref<string>('')
+const detailRef = ref<HTMLInputElement | null>(null)
 
 function extractUniqueValues(techniques: Technique[]) {
   return [...new Set(techniques.map(t => t.category))].filter(Boolean);
@@ -42,6 +43,10 @@ function extractUniqueValues(techniques: Technique[]) {
 
 const getRecord = (id: number) => {
   selectedRecord.value = techniques.value.find((value: any) => value.id === id)
+  const remInPixels = 64 * parseFloat(getComputedStyle(document.documentElement).fontSize)
+  if (window.innerWidth < remInPixels) {
+    scrollTo(0, 0)
+  }
 }
 
 const filteredTechniques = computed(() => {
@@ -91,47 +96,68 @@ onMounted(async () => {
           </button>
         </div>
       </div>
-      <div class="techniques">
-        <div class="technique-list">
-          <div class="technique-item" v-for="t in filteredTechniques" @click="getRecord(t.id)" :key="t.id">
-            <div class="icon-wrapper">
-              <IconJudoBelt :size="36" :class-name="(t.belt === '' ? 'fill-secondary-10' : 'fill-' + t.belt)"/>
-            </div>
-            <div class="title-wrapper">
-              <h4>{{ t.name }}</h4>
-              <p>{{ t.translation }}</p>
-            </div>
+      <div class="technique-list">
+        <div class="technique-item" v-for="t in filteredTechniques" @click="getRecord(t.id)" :key="t.id">
+          <div class="icon-wrapper">
+            <IconJudoBelt :size="36" :class-name="(t.belt === '' ? 'fill-secondary-10' : 'fill-' + t.belt)"/>
+          </div>
+          <div class="title-wrapper">
+            <h4>{{ t.name }}</h4>
+            <p>{{ t.translation }}</p>
           </div>
         </div>
-        <div class="technique-container">
-          <article v-if="selectedRecord" class="technique-detail">
-            <ScriptYouTubePlayer :key="selectedRecord.id" class="video-player" :video-id="selectedRecord.video.replace('https://www.youtube.com/watch?v=', '')">
-              <template #awaitingLoad>
-                <div class="play-button-wrapper">
-                  <div class="play-button">
-                    <IconPlayTriangle :size="36"/>
-                  </div>
+      </div>
+      <div class="technique-container">
+        <article v-if="selectedRecord" class="technique-detail">
+          <ScriptYouTubePlayer :key="selectedRecord.id" class="video-player" :video-id="selectedRecord.video.replace('https://www.youtube.com/watch?v=', '')">
+            <template #awaitingLoad>
+              <div class="play-button-wrapper">
+                <div class="play-button">
+                  <IconPlayTriangle :size="36"/>
                 </div>
-              </template>
-            </ScriptYouTubePlayer>
-            <div class="technique-detail-info">
-              <div class="technique-detail-tags">
-                <div class="icon-wrapper">
-                  <IconJudoBelt :size="24" :class-name="(selectedRecord.belt === '' ? 'fill-secondary-10' : 'fill-' + selectedRecord.belt)"/>
-                </div>
-                <p>{{ selectedRecord.category }}</p>
               </div>
-              <h3>{{ selectedRecord.name }}</h3>
-              <p>{{ selectedRecord.translation }}</p>
+            </template>
+          </ScriptYouTubePlayer>
+          <div class="technique-detail-info">
+            <div class="technique-detail-tags">
+              <div class="icon-wrapper">
+                <IconJudoBelt :size="24" :class-name="(selectedRecord.belt === '' ? 'fill-secondary-10' : 'fill-' + selectedRecord.belt)"/>
+              </div>
+              <p>{{ selectedRecord.category }}</p>
             </div>
-          </article>
-        </div>
+            <h3>{{ selectedRecord.name }}</h3>
+            <p>{{ selectedRecord.translation }}</p>
+          </div>
+        </article>
       </div>
     </section>
   </main>
 </template>
 
 <style scoped lang="scss">
+@mixin card-base {
+  border-radius: 1rem;
+  background-color: var(--secondary-10);
+  backdrop-filter: blur(5px);
+  z-index: 1;
+}
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin clickable-filter {
+  cursor: pointer;
+  background-color: var(--secondary-10);
+  border-radius: .6rem;
+
+  &.active {
+    background-color: var(--secondary-40);
+  }
+}
+
 .icon-wrapper {
   display: flex;
   width: fit-content;
@@ -140,67 +166,51 @@ onMounted(async () => {
 
 #leerplan-page {
   section {
+    position: relative;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--page-margin);
     z-index: 1;
+
     .technique-form {
+      @include card-base;
       position: relative;
       display: flex;
       flex-direction: column;
+      order: 1;
       gap: 1rem;
       width: 100%;
       max-width: 64rem;
       height: fit-content;
-      margin: 0 auto var(--page-margin);
+      margin: var(--page-margin) auto;
       padding: 1rem;
-      border-radius: 1rem;
-      background-color: var(--secondary-10);
-      backdrop-filter: blur(5px);
-      z-index: 1;
 
       .belt-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        @include flex-center;
+        flex-wrap: wrap;
         gap: 1rem;
 
         .icon-wrapper {
-          display: flex;
-          width: fit-content;
-          aspect-ratio: 1;
-          background-color: var(--secondary-10);
+          @include clickable-filter;
           padding: .6rem;
-          border-radius: .6rem;
-          cursor: pointer;
-
-          &.active {
-            background-color: var(--secondary-40);
-          }
         }
       }
 
       .category-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        @include flex-center;
+        flex-wrap: wrap;
         gap: 1rem;
 
         .category-wrapper {
+          @include clickable-filter;
           width: fit-content;
           min-width: 5rem;
           padding: .5rem 1rem;
-          background-color: var(--secondary-10);
-          border-radius: .6rem;
-          cursor: pointer;
 
           p {
             text-align: center;
             margin: 0;
             user-select: none;
-            -ms-user-select: none;
-            -moz-user-select: none;
-          }
-
-          &.active {
-            background-color: var(--secondary-40);
           }
         }
       }
@@ -210,10 +220,8 @@ onMounted(async () => {
         gap: 1rem;
         width: 100%;
 
-        input {
-          width: 100%;
+        input, button {
           padding: .5rem 1rem;
-          background-color: var(--secondary-30);
           border: none;
           font-family: 'Rokkitt', Arial, serif;
           font-size: 1.2rem;
@@ -221,16 +229,15 @@ onMounted(async () => {
           color: var(--secondary);
         }
 
+        input {
+          width: 100%;
+          background-color: var(--secondary-30);
+        }
+
         button {
           min-width: max-content;
-          padding: .5rem 1rem;
-          border: none;
-          font-family: 'Rokkitt', Arial, serif;
-          font-size: 1.2rem;
-          border-radius: .6rem;
-          color: var(--secondary);
-          cursor: pointer;
           background-color: var(--secondary-10);
+          cursor: pointer;
 
           &:hover {
             background-color: var(--accent-60);
@@ -239,119 +246,118 @@ onMounted(async () => {
       }
     }
 
-    .techniques {
-      position: relative;
+    .technique-list {
       display: flex;
-      gap: var(--page-margin);
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
 
-      .technique-list {
+      .technique-item {
+        @include card-base;
         display: flex;
-        flex-direction: column;
+        align-items: center;
         gap: 1rem;
-        width: 40rem;
-        min-width: 40rem;
+        padding: .8rem 1rem;
+        cursor: pointer;
 
-        .technique-item {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: .8rem 1rem;
-          border-radius: 1rem;
-          background-color: var(--secondary-10);
-          backdrop-filter: blur(5px);
-          cursor: pointer;
-          z-index: 1;
+        &:nth-of-type(even) {
+          background-color: var(--secondary-20);
+        }
 
-          &:nth-of-type(even) {
-            background-color: var(--secondary-20);
+        .title-wrapper {
+          h4 {
+            margin: 0;
+            color: var(--secondary);
+            font-weight: 500;
+            font-size: 1.4rem;
           }
 
-          .title-wrapper {
-            h4 {
-              margin: 0;
-              color: var(--secondary);
-              font-weight: 500;
-              font-size: 2rem;
-            }
-
-            p {
-              color: var(--accent);
-              margin: 0;
-            }
+          p {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.2rem;
           }
         }
       }
+    }
 
-      .technique-container {
+    .technique-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      order: 2;
+
+      .technique-detail {
+        @include card-base;
+        top: 5rem;
         display: flex;
         flex-direction: column;
         gap: 1rem;
         width: 100%;
+        height: fit-content;
+        padding: 1rem;
+        background-color: var(--secondary-20);
 
-        .technique-detail {
-          position: sticky;
-          top: 5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
+        .video-player {
           width: 100%;
-          height: fit-content;
-          padding: 1rem;
-          border-radius: 1rem;
-          background-color: var(--secondary-20);
-          backdrop-filter: blur(5px);
-          z-index: 1;
+          border-radius: .8rem;
+          overflow: hidden;
 
-          .video-player {
-            border-radius: .8rem;
-            width: 100%;
-            overflow: hidden;
+          .play-button-wrapper {
+            @include flex-center;
+            position: absolute;
+            inset: 0;
+            backdrop-filter: brightness(.6);
 
-            .play-button-wrapper {
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              backdrop-filter: brightness(.6);
+            .play-button {
+              @include flex-center;
+              background-color: var(--accent);
+              border-radius: 1.2rem;
+              padding: .6rem;
 
-              .play-button {
-                background-color: var(--accent);
-                border-radius: 1.2rem;
-                padding: .6rem;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-
-                svg {
-                  margin-left: .1rem;
-                }
+              svg {
+                margin-left: .1rem;
               }
             }
           }
+        }
 
-          .technique-detail-info {
+        .technique-detail-info {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
+
+          h3, p {
+            margin: 0;
+          }
+
+          .technique-detail-tags {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
             gap: 1rem;
-            padding: 1rem;
-
-            h3, p {
-              margin: 0;
-            }
-
-            .technique-detail-tags {
-              display: flex;
-              align-items: center;
-              gap: 1rem;
-            }
           }
         }
       }
+    }
+  }
+}
+
+// Desktop layout
+@media screen and (min-width: 64rem) {
+  #leerplan-page section {
+    display: grid;
+    grid-template-columns: minmax(35%, 40rem) minmax(50%, 70%);
+
+    .technique-form {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      margin: 0 auto;
+    }
+
+    .technique-container .technique-detail {
+      position: sticky;
     }
   }
 }
