@@ -41,9 +41,9 @@ const infoSections = [
   {
     japText: 'ドキュメント',
     title: 'Initiatie document',
-    content: `Om alles vlot te laten verlopen, vragen we je om de <b>gegevens van het lid</b> in <a href="/pdf/Initiatieformulier.pdf" target="_blank">dit document</a> in te vullen en onderaan te tekenen.
-    De trainers zorgen zelf voor het invullen van de datums.
-    Vergeet niet om het ingevulde document <b>mee te brengen naar de eerste les</b> en het aan de trainer af te geven.`,
+    content: `Om alles vlot te laten verlopen, vragen we je om het formulier via de knop bovenaan in te vullen met de <b>gegevens van het lid</b>.
+    Dit helpt ons om alles goed voor te bereiden.
+    Gelieve het formulier bij voorkeur <b>vóór de eerste les</b> in te vullen.`,
     right: true
   },
   {
@@ -103,13 +103,23 @@ const membershipGroups = [
     ]
   }
 ]
+
+const handleClick = () => {
+  navigateTo('/inschrijven')
+}
 </script>
 
 <template>
   <main id="starten-page">
-    <h1>
-      Starten<span>?</span>
-    </h1>
+    <h2 class="sr-only">Info</h2>
+    <div class="heading">
+      <h1>
+        Starten<span>?</span>
+      </h1>
+      <AtomCallToAction class-name="cta" :on-click="handleClick">
+        Inschrijven
+      </AtomCallToAction>
+    </div>
     <OrganismInfoSection :sections="infoSections" />
     <h2>Lidgeld</h2>
     <OrganismMembershipSection :groups="membershipGroups" />
@@ -118,9 +128,39 @@ const membershipGroups = [
 
 <style scoped lang="scss">
 #starten-page {
-  h1 {
-    span {
-      color: var(--accent);
+  .heading {
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+      span {
+        color: var(--accent);
+      }
+      margin-bottom: 3rem;
+    }
+
+    .cta {
+      align-self: center;
+      margin-bottom: 2rem;
+    }
+  }
+}
+
+@media screen and (width >= 64rem) {
+  #starten-page {
+    .heading {
+      flex-wrap: wrap;
+      flex-direction: row;
+      justify-content: space-between;
+
+      h1 {
+        margin-bottom: 5rem;
+      }
+
+      .cta {
+        align-self: flex-end;
+        margin-right: calc(var(--page-margin)*3);
+      }
     }
   }
 }
