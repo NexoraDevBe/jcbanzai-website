@@ -1,3 +1,5 @@
+import type {Session, User} from "@supabase/supabase-js";
+
 interface Technique {
     name: string,
     belt: string,
@@ -7,4 +9,13 @@ interface Technique {
     id: number
 }
 
-export type {Technique}
+interface UserData {
+    user: User | null,
+    session: Session | null,
+    role: string | null,
+}
+
+export type {
+    Technique,
+    UserData
+}
