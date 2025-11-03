@@ -33,10 +33,8 @@ useHead({
   ],
 })
 
-const router = useRouter();
-
 const cta = () => {
-  router.push({path: '/starten'});
+  navigateTo('/starten')
 }
 </script>
 
