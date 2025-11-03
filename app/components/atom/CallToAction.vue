@@ -26,6 +26,7 @@ button {
   align-items: center;
   gap: 1rem;
   width: fit-content;
+  height: fit-content;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 5rem;
