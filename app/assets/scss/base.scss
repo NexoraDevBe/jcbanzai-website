@@ -19,6 +19,9 @@
   --blue: #2265F7;
   --brown: #7B5533;
 
+  --danger: #dc2626;
+  --success: #16a34a;
+
   // GENERAL COLORS
   --primary: var(--gray-100);
   --secondary: var(--gray-900);
@@ -187,6 +190,48 @@ h4 {
   color: var(--accent);
   font-size: 1.8rem;
   font-weight: 400;
+}
+
+input, select, textarea {
+  padding: .4rem .6rem;
+  border-radius: .8rem;
+  border: 2px solid var(--secondary-50);
+  background-color: var(--primary-60);
+  color: var(--secondary);
+  font-size: 1.3rem;
+  font-weight: 400;
+  font-family: 'Rokkitt', Arial, serif;
+  accent-color: var(--accent);
+  transition: none;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  &[type="checkbox"] {
+    cursor: pointer;
+  }
+
+  &[type="checkbox"]:focus {
+    outline: var(--accent) solid 2px;
+  }
+}
+
+label {
+  font-size: 1.2rem;
+}
+
+option {
+  font-size: 1rem;
+}
+
+input:required + label::after,
+select:required + label::after,
+label:has(+ input:required)::after,
+label:has(+ select:required)::after {
+  content: " *";
+  color: var(--accent);
 }
 
 // BREAKPOINTS
