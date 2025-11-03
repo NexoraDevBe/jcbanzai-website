@@ -15,7 +15,6 @@ defineProps<Props>()
 
 <template>
   <section class="info">
-    <h2 class="sr-only">Info</h2>
     <div class="paragraph-container">
       <MoleculeStyledParagraph
           v-for="(section, index) in sections"
