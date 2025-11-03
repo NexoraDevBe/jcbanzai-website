@@ -51,6 +51,10 @@ const companyDetails = [
         :contact-links="contactLinks"
         :company-details="companyDetails"
     />
+    <div class="small-text">
+      <p>©2025</p>
+      <p>website by SiteArt.</p>
+    </div>
   </footer>
 </template>
 
@@ -58,5 +62,18 @@ const companyDetails = [
 .app-footer {
   max-width: 1920px;
   margin: 0 auto;
+
+  .small-text {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 var(--page-margin) calc(var(--page-margin) / 2);
+    padding: .5rem .5rem 0;
+    font-size: 1rem;
+    color: var(--gray-800);
+
+    p {
+      margin: 0;
+    }
+  }
 }
 </style>

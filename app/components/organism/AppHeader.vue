@@ -40,7 +40,7 @@ const toggle = () => {
 <style scoped lang="scss">
 header {
   position: fixed;
-  top: 0;
+  inset: 0;
   width: 100dvw;
   height: 100dvh;
   margin: 0;
