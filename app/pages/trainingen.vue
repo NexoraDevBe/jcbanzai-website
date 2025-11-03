@@ -82,10 +82,8 @@ const scheduleStyledInfo = [
   }
 ]
 
-const router = useRouter();
-
 const cta = () => {
-  router.push({path: '/leerplan'});
+  navigateTo('/leerplan')
 }
 </script>
 
