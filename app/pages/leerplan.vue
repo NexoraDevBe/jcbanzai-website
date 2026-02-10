@@ -188,7 +188,7 @@ onMounted(async () => {
       .belt-container {
         @include flex-center;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: .5rem;
 
         .icon-wrapper {
           @include clickable-filter;
@@ -199,7 +199,7 @@ onMounted(async () => {
       .category-container {
         @include flex-center;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: .5rem;
 
         .category-wrapper {
           @include clickable-filter;
@@ -217,7 +217,7 @@ onMounted(async () => {
 
       .search-container {
         display: flex;
-        gap: 1rem;
+        gap: .5rem;
         width: 100%;
 
         input, button {
@@ -354,6 +354,18 @@ onMounted(async () => {
       grid-column: 1 / -1;
       grid-row: 1;
       margin: 0 auto;
+
+      .belt-container {
+        gap: 1rem;
+      }
+
+      .category-container {
+        gap: 1rem;
+      }
+
+      .search-container {
+        gap: 1rem;
+      }
     }
 
     .technique-container .technique-detail {

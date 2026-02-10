@@ -1,25 +1,41 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import {logout} from "~/utils/supabase";
+
 interface NavItem {
   to: string
   label: string
   external?: boolean
+  locked?: boolean
 }
 
 interface Props {
   items: NavItem[]
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const visibleItems = computed(() =>
+    props.items.filter(item => !item.locked)
+)
+const route = useRoute()
+const store = useUserStore()
+const path = computed(() => route.path.split('/')[1])
 </script>
 
 <template>
   <ul class="nav-list">
-    <li v-for="item in items" :key="item.to">
+    <li v-for="item in visibleItems" :key="item.to">
       <AtomNavLink
           :to="item.to"
           :label="item.label"
           :external="item.external"
       />
+    </li>
+    <li v-if="store.userData && path === 'dashboard'" @click="logout">
+      <span class="logout">
+        uitloggen
+      </span>
     </li>
   </ul>
 </template>
@@ -40,6 +56,21 @@ defineProps<Props>()
   li {
     position: relative;
     pointer-events: all;
+
+    .logout {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    @media screen and (width >= 80rem) {
+      .logout {
+        font-size: 1.5rem;
+      }
+    }
 
     &:has(.router-link-active) {
       &::before {

@@ -43,8 +43,9 @@ withDefaults(defineProps<Props>(), {
     .style-element {
       position: absolute;
       top: 50%;
-      text-align: center;
-      width: 3.2rem;
+      width: 3rem;
+      display: flex;
+      justify-content: center;
       z-index: -1;
     }
   }
@@ -52,14 +53,14 @@ withDefaults(defineProps<Props>(), {
   &.left {
     .style-element {
       left: 0;
-      transform: translateX(-50%) translateY(-50%);
+      transform: translateX(-1.5rem) translateY(-50%);
     }
   }
 
   &.right {
     .style-element {
       right: 0;
-      transform: translateX(50%) translateY(-50%);
+      transform: translateX(1.5rem) translateY(-50%);
     }
 
     h3, p {

@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import { useUserStore } from "~/stores/user";
+
+const store = useUserStore();
+const userRole = store.userRole;
+
 const navigationItems = [
+  { to: '/dashboard', label: 'Dashboard', locked: userRole === '' },
   { to: '/', label: 'Home' },
   { to: '/starten', label: 'Starten?' },
   { to: '/trainingen', label: 'Trainingen' },
@@ -7,12 +13,22 @@ const navigationItems = [
   { to: '/kalender', label: 'Kalender' },
   { to: '/nieuws', label: 'Nieuws' },
   { to: '/gallerij', label: 'Gallerij' },
-  { to: 'https://judoclubbanzai.inker.be/', label: 'Webshop', external: true }
+  { to: 'https://judoclubbanzai.inker.be/', label: 'Webshop', external: true },
+]
+
+const dashboardItems = [
+  { to: '/', label: 'Website' },
+  { to: '/dashboard', label: 'Overzicht' },
+  { to: '/dashboard/ledenlijst', label: 'Ledenlijst' },
+  { to: '/dashboard/leerlijn', label: 'Leerlijn' },
+  { to: '/dashboard/trainers', label: 'Planning' },
 ]
 
 const state = ref<boolean>(false)
 const hasInteracted = ref<boolean>(false)
 const route = useRoute()
+const dashboardpath = computed(() => route.path.split('/')[1])
+const authpath = computed(() => route.path === '/dashboard/auth')
 
 watch(() => route.path, () => {
   state.value = false
@@ -27,7 +43,8 @@ const toggle = () => {
 <template>
   <header>
     <nav :class="{ 'nav-open': state }">
-      <MoleculeNavList :items="navigationItems" />
+      <MoleculeNavList v-if="!authpath && dashboardpath === 'dashboard'" :items="dashboardItems"/>
+      <MoleculeNavList v-else-if="!authpath && dashboardpath !== 'dashboard'" :items="navigationItems"/>
     </nav>
     <AtomBurgerMenu
         :is-open="state"

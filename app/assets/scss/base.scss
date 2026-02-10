@@ -4,6 +4,7 @@
   // BASE COLORS
   --white: #fff;
   --gray-100: #E6E6E6;
+  --gray-150: #d2d2d2;
   --gray-200: #C8C8C8;
   --gray-300: #A9A9A9;
   --gray-500: #808080;
@@ -20,6 +21,7 @@
   --brown: #7B5533;
 
   --danger: #dc2626;
+  --warning: #ffc107;
   --success: #16a34a;
 
   // GENERAL COLORS
@@ -61,6 +63,17 @@
   --accent-80: rgba(203, 22, 30, 0.8);
   --accent-90: rgba(203, 22, 30, 0.9);
 
+  --red-50: rgb(203, 22, 30, 0.5);
+  --orange-50: rgb(253, 148, 56, 0.5);
+  --yellow-50: rgb(255, 230, 45, 0.5);
+  --green-50: rgb(32, 172, 32, 0.5);
+  --blue-50: rgb(34, 101, 247, 0.5);
+  --brown-50: rgb(123, 85, 51, 0.5);
+
+  --danger-50: rgb(220, 38, 38, 0.5);
+  --warning-50: rgb(255, 193, 7, 0.5);
+  --success-50: rgb(22, 163, 74, 0.5);
+
   // SPACERS
   --page-margin: 1rem;
 }
@@ -69,6 +82,7 @@
   :root {
     // BASE COLORS
     --gray-100: #1A1A1A;
+    --gray-150: #2e2e2e;
     --gray-200: #383838;
     --gray-300: #575757;
     --gray-500: #808080;
@@ -99,9 +113,18 @@
   }
 }
 
-::-moz-selection, ::selection {
+::-moz-selection {
   color: var(--primary);
   background: var(--accent);
+}
+
+::selection {
+  color: var(--primary);
+  background: var(--accent);
+}
+
+img::selection, svg::selection {
+  background: transparent;
 }
 
 :focus-visible {
@@ -232,6 +255,71 @@ label:has(+ input:required)::after,
 label:has(+ select:required)::after {
   content: " *";
   color: var(--accent);
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  width: fit-content;
+  height: fit-content;
+  padding: .3rem 1rem;
+  border-radius: 5rem;
+  font:inherit;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &.warning {
+    background-color: var(--warning);
+    color: var(--dark);
+    border: 2px solid var(--warning);
+
+    &:hover {
+      background-color: var(--warning-50);
+    }
+  }
+
+  &.danger {
+    background-color: var(--danger);
+    color: var(--dark);
+    border: 2px solid var(--danger);
+
+    &:hover {
+      background-color: var(--danger-50);
+    }
+  }
+
+  &.success {
+    background-color: var(--success);
+    color: var(--dark);
+    border: 2px solid var(--success);
+
+    &:hover {
+      background-color: var(--success-50);
+    }
+  }
+
+  &.secondary {
+    background-color: var(--secondary);
+    color: var(--primary);
+    border: 2px solid var(--secondary);
+
+    &:hover {
+      background-color: var(--secondary-50);
+    }
+  }
+
+  &:disabled {
+    background-color: var(--gray-700);
+    border: 2px solid var(--gray-700);
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--gray-700);
+    }
+  }
 }
 
 // BREAKPOINTS

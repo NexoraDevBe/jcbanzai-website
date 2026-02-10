@@ -33,8 +33,12 @@ useHead({
   ],
 })
 
-const cta = () => {
+const ctaStarten = () => {
   navigateTo('/starten')
+}
+
+const ctaInschrijven = () => {
+  navigateTo('/inschrijven')
 }
 </script>
 
@@ -43,9 +47,14 @@ const cta = () => {
     <section class="hero">
       <AtomJapaneseText :outline="true" :size="4" :vertical="false">バーンザイ</AtomJapaneseText>
       <h1 class="hero-title">Judoclub<br> <span>Banzai</span></h1>
-      <AtomCallToAction :on-click="cta">
-        Starten?
-      </AtomCallToAction>
+      <div class="cta-container">
+        <AtomCallToAction :on-click="ctaStarten">
+          Starten?
+        </AtomCallToAction>
+        <AtomCallToAction :class-name="'outline'" :on-click="ctaInschrijven">
+          Inschrijven?
+        </AtomCallToAction>
+      </div>
     </section>
     <section class="intro">
       <MoleculeStyledParagraph class="paragraph" :max-width="'30rem'">
@@ -85,6 +94,13 @@ const cta = () => {
         font-size: 25vw;
       }
     }
+
+    .cta-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
   }
 
   .intro {
@@ -110,8 +126,11 @@ const cta = () => {
         display: none;
       }
 
-      button {
-        margin-left: 2rem;
+      .cta-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
       }
     }
 
@@ -152,10 +171,6 @@ const cta = () => {
           font-size: 11.2rem;
         }
       }
-
-      button {
-        margin-left: 2rem;
-      }
     }
 
     .intro {
@@ -194,10 +209,6 @@ const cta = () => {
         span {
           font-size: 11.2rem;
         }
-      }
-
-      button {
-        margin-left: 2rem;
       }
 
       &::after {
@@ -253,7 +264,7 @@ const cta = () => {
         }
       }
 
-      button {
+      .cta-container {
         margin-left: 4rem;
       }
 

@@ -55,6 +55,22 @@ span {
 
 .size--3 {
   font-size: 3rem;
+
+  &.outline {
+    width: 5rem;
+    min-width: 5rem;
+    text-align: center;
+    -webkit-text-stroke-color: var(--accent-40);
+
+    @media(prefers-color-scheme: dark) {
+      -webkit-text-stroke-color: var(--accent-70);
+    }
+
+    @supports (-moz-appearance: none) {
+      width: fit-content;
+      min-width: fit-content;
+    }
+  }
 }
 
 .size--4 {

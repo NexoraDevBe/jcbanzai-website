@@ -28,7 +28,6 @@ button {
   width: fit-content;
   height: fit-content;
   padding: 0.5rem 1rem;
-  border: none;
   border-radius: 5rem;
   background-color: var(--accent);
   color: var(--light);
@@ -37,5 +36,14 @@ button {
   font-family: 'Rokkitt', Arial, serif;
   text-transform: uppercase;
   cursor: pointer;
+  border: 2px solid var(--accent);
+
+  &.outline {
+    background-color: transparent;
+  }
+
+  &:hover {
+    background-color: var(--accent-50);
+  }
 }
 </style>

@@ -81,9 +81,13 @@ if (props.card.price) {
   }
 
   .style-element {
+    box-sizing: content-box;
     position: absolute;
     top: 0;
     left: 0;
+    width: 3.2rem;
+    display: flex;
+    justify-content: center;
     padding: .5rem;
     z-index: -1;
   }

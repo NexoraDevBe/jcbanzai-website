@@ -104,6 +104,20 @@ const handleSubmit = () => {
   )
 
   success.value = 'Inschrijving succesvol verzonden!'
+  name.value = '';
+  lastname.value = '';
+  email2.value = '';
+  email.value = '';
+  gender.value = '';
+  phone.value = '';
+  birthdate.value = '';
+  nation.value = 'BE';
+  street.value = '';
+  city.value = '';
+  zipcode.value = '';
+  uitpas.value = '';
+
+  scrollTo(0,0)
 }
 </script>
 
@@ -336,7 +350,7 @@ const handleSubmit = () => {
     font-weight: 500;
     margin: 0 auto 2rem;
     padding: 1rem 1.5rem;
-    background-color: #fee2e2;
+    background-color: var(--danger-50);
     border-radius: 0.5rem;
     width: fit-content;
   }
@@ -347,7 +361,7 @@ const handleSubmit = () => {
     font-weight: 500;
     margin: 0 auto 2rem;
     padding: 1rem 1.5rem;
-    background-color: #dcfce7;
+    background-color: var(--success-50);
     border-radius: 0.5rem;
     width: fit-content;
   }

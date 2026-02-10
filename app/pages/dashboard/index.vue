@@ -2,22 +2,23 @@
 import {logout} from "~/utils/supabase";
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  layout: 'dashboard',
 })
 </script>
 
 <template>
-<main>
+<main id="dashboard-page">
+  <h1>Dashboard overzicht</h1>
   <section>
-    <h1>Hello World!</h1>
-    <div class="toggle-mode">
-      <button @click="logout" class="link-btn">
-        logout
-      </button>
-    </div>
   </section>
 </main>
 </template>
 
 <style scoped lang="scss">
+#dashboard-page {
+  h1 {
+    font-size: 3rem;
+  }
+}
 </style>

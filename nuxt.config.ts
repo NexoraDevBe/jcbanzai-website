@@ -13,7 +13,7 @@ export default defineNuxtConfig({
       },
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-      ]
+      ],
     },
     pageTransition: { name: 'page', mode: 'out-in' }
   },
@@ -25,5 +25,9 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxt/scripts'],
+  modules: ['@nuxt/scripts', '@pinia/nuxt'],
+
+  pinia: {
+    storesDirs: ['./stores/**'],
+  },
 })

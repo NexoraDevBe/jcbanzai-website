@@ -1,0 +1,124 @@
+<script setup lang="ts">
+import SortableTableHead from './SortableTableHead.vue'
+import EditableTableCell from './EditableTableCell.vue'
+import type {Column} from "~/types";
+
+interface Props {
+  columns: Column[]
+  data: any[]
+  sortKey: string
+  sortOrder: 'asc' | 'desc'
+  changedCoords: {rowId: number, field: string}[]
+  height?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  height: '80vh'
+})
+
+const emit = defineEmits<{
+  sort: [key: string]
+  update: [rowId: number, field: string, value: any, arrayIndex?: number]
+  addArrayItem: [rowId: number, field: string]
+  removeArrayItem: [rowId: number, field: string, index: number]
+}>()
+
+const handleUpdate = (rowId: number, field: string, value: any, arrayIndex?: number) => {
+  emit('update', rowId, field, value, arrayIndex)
+}
+
+const handleAddArrayItem = (rowId: number, field: string) => {
+  emit('addArrayItem', rowId, field)
+}
+
+const handleRemoveArrayItem = (rowId: number, field: string, index: number) => {
+  emit('removeArrayItem', rowId, field, index)
+}
+
+const checkIfChanged = (rowId: number, field: string) => {
+  return props.changedCoords.some(
+      (coord) => coord.rowId === rowId && coord.field === field
+  )
+};
+</script>
+
+<template>
+  <div class="table">
+    <!-- Header Row -->
+    <div class="table-row header-row">
+      <SortableTableHead
+          v-for="column in columns"
+          :key="column.key"
+          :label="column.label"
+          :sort-key="column.key"
+          :current-sort-key="sortKey"
+          :sort-order="sortOrder"
+          :class-name="column.className"
+          :sticky="column.sticky"
+          @sort="emit('sort', $event)"
+      />
+    </div>
+
+    <!-- Data Rows -->
+    <div
+        v-for="row in data"
+        :key="row.id"
+        class="table-row"
+    >
+      <EditableTableCell
+          v-for="column in columns"
+          :key="`${row.id}-${column.key}`"
+          :value="row[column.key]"
+          :type="column.type || 'text'"
+          :disabled="column.disabled ? column.disabled(row) : false"
+          :class-name="(column.className ? column.className : '')"
+          :changed="checkIfChanged(row.id, column.key)"
+          :options="column.options"
+          @update="handleUpdate(row.id, column.key as string, $event.value, $event.index)"
+          @add-array-item="handleAddArrayItem(row.id, column.key as string)"
+          @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
+      />
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.data-table-container {
+  position: relative;
+  overflow: scroll;
+  contain: layout style paint;
+
+  .table {
+    display: table;
+    min-width: 100%;
+
+    .table-row {
+      display: table-row;
+      font-size: 1.1rem;
+
+      .id {
+        background-color: var(--gray-100);
+      }
+
+      &:nth-of-type(even):not(.header-row) {
+        background-color: var(--secondary-10);
+
+        .id {
+          background-color: var(--gray-150);
+        }
+
+        :deep(.table-cell) {
+          &:has(select),
+          select {
+            background-color: var(--gray-150);
+          }
+
+          .array-item select {
+            background-color: var(--gray-200);
+          }
+        }
+      }
+    }
+  }
+}
+</style>

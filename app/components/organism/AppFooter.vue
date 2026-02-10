@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {onMounted} from "vue";
+
 const sponsorItems = [
   { path: '/assets/images/cbl-welding.png', link: 'https://cbl-welding.com/', name: 'CBL Welding' },
   { path: '/assets/images/d-bro.png', link: 'https://d-bro.eu/', name: 'D-Bro' },

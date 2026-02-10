@@ -48,7 +48,7 @@ const agesToBirthYears = (ages: number[]): string => {
   if (ages.length === 1) return `${currentYear - ages[0]!}`
 
   const [minAge, maxAge] = ages.sort((a, b) => a - b)
-  if (maxAge! >= 99) return `${currentYear - minAge!} of vroeger`
+  if (maxAge! >= 99) return `${currentYear - minAge!} of ouder`
 
   return `${currentYear - maxAge!} - ${currentYear - minAge!}`
 }
@@ -85,63 +85,64 @@ const handleClick = (idx: number) => {
 </script>
 
 <template>
-  <div class="schedule-table">
-    <div class="table">
-      <div class="tr">
-        <div v-for="(th, idx) in scheduleTitles" :key="idx" class="th">
-          <h4>{{ th }}</h4>
+  <div>
+    <div class="schedule-table">
+      <div class="table">
+        <div class="tr">
+          <div v-for="(th, idx) in scheduleTitles" :key="idx" class="th">
+            <h4>{{ th }}</h4>
+          </div>
+        </div>
+        <div v-for="(tr, rowIdx) in scheduleData" :key="rowIdx" class="tr">
+          <div v-for="(td, colIdx) in tr" :key="colIdx" class="td">
+            <p v-if="colIdx < 5">{{ formatCellContent(td) }}</p>
+            <div v-else class="belts-container">
+              <IconJudoBelt
+                  v-for="beltColor in allBeltColors"
+                  :key="beltColor"
+                  class="belt"
+                  :class-name="getBeltClasses(beltColor, (td as BeltStatus)[beltColor])"
+                  :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
+              />
+            </div>
+          </div>
         </div>
       </div>
-      <div v-for="(tr, rowIdx) in scheduleData" :key="rowIdx" class="tr">
-        <div v-for="(td, colIdx) in tr" :key="colIdx" class="td">
-          <p v-if="colIdx < 5">{{ formatCellContent(td) }}</p>
-          <div v-else class="belts-container">
+      <p class="schedule-info" v-for="(text, idx) in scheduleInfo" :key="idx">
+        {{ text }}
+      </p>
+    </div>
+    <div class="schedule-list">
+      <div v-for="(item, idx) in scheduleData" :key="idx" @click="handleClick(idx)" class="schedule-list-item">
+        <div
+            v-for="(section, sectionIdx) in listFieldConfig"
+            :key="sectionIdx"
+            class="field-section"
+            :class="[{ 'primary-section': section.primary }, { 'active' : !section.primary && activeId === idx }, { 'belts-section': section.fields.includes(5)}]"
+        >
+          <h4 v-if="!section.primary">{{ section.title }}</h4>
+          <div v-if="section.fields.includes(5)" class="belts-container">
             <IconJudoBelt
                 v-for="beltColor in allBeltColors"
                 :key="beltColor"
                 class="belt"
-                :class-name="getBeltClasses(beltColor, (td as BeltStatus)[beltColor])"
-                :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
+                :class-name="getBeltClasses(beltColor, (item[5] as BeltStatus)[beltColor])"
+                :aria-label="`gordel kleur: ${beltColor}${(item[5] as BeltStatus)[beltColor] ? ' (kan deelnemen)' : ' (kan niet deelnemen)'}`"
             />
+          </div>
+          <div class="field-content">
+            <p v-for="(fieldContent, contentIdx) in renderFieldGroup(item, section.fields)"
+               :key="contentIdx"
+            >
+              {{ fieldContent }}
+            </p>
           </div>
         </div>
       </div>
+      <p class="schedule-info" v-for="(text, idx) in scheduleInfo" :key="idx">
+        {{ text }}
+      </p>
     </div>
-    <p class="schedule-info" v-for="(text, idx) in scheduleInfo" :key="idx">
-      {{ text }}
-    </p>
-  </div>
-
-  <div class="schedule-list">
-    <div v-for="(item, idx) in scheduleData" :key="idx" @click="handleClick(idx)" class="schedule-list-item">
-      <div
-          v-for="(section, sectionIdx) in listFieldConfig"
-          :key="sectionIdx"
-          class="field-section"
-          :class="[{ 'primary-section': section.primary }, { 'active' : !section.primary && activeId === idx }, { 'belts-section': section.fields.includes(5)}]"
-      >
-        <h4 v-if="!section.primary">{{ section.title }}</h4>
-        <div v-if="section.fields.includes(5)" class="belts-container">
-          <IconJudoBelt
-              v-for="beltColor in allBeltColors"
-              :key="beltColor"
-              class="belt"
-              :class-name="getBeltClasses(beltColor, (item[5] as BeltStatus)[beltColor])"
-              :aria-label="`gordel kleur: ${beltColor}${(item[5] as BeltStatus)[beltColor] ? ' (kan deelnemen)' : ' (kan niet deelnemen)'}`"
-          />
-        </div>
-        <div class="field-content">
-          <p v-for="(fieldContent, contentIdx) in renderFieldGroup(item, section.fields)"
-             :key="contentIdx"
-          >
-            {{ fieldContent }}
-          </p>
-        </div>
-      </div>
-    </div>
-    <p class="schedule-info" v-for="(text, idx) in scheduleInfo" :key="idx">
-      {{ text }}
-    </p>
   </div>
 </template>
 

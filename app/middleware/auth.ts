@@ -1,19 +1,20 @@
-import { getUserData } from "~/utils/supabase";
+import { useUserStore } from "~/stores/user";
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
+    const userstore = useUserStore();
     const requiredRole = to.meta.requiredRole as keyof typeof roles | undefined
-    const userData = await getUserData()
+    await userstore.getUser()
     const roles = {
         user: 0,
         admin: 1,
         superadmin: 2,
     }
 
-    if (!userData) {
-        return navigateTo('/dashboard/login')
+    if (!userstore.userData) {
+        return navigateTo('/dashboard/auth')
     }
 
-    const userRole = userData.role as keyof typeof roles | undefined
+    const userRole = userstore.userData.role as keyof typeof roles | undefined
     if (!userRole || !(userRole in roles)) {
         return navigateTo('/unauthorized', {
             redirectCode: 403,
