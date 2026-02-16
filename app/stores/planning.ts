@@ -159,7 +159,8 @@ export const usePlanningStore = defineStore('planning', () => {
             }
 
             // Update original to match current state
-            originalPlanning.value = editablePlanning.value.map(t => ({ ...t }))
+            const rawPlanning = toRaw(editablePlanning.value)
+            originalPlanning.value = markRaw(structuredClone(rawPlanning))
 
             // Clear changed coords after successful save
             changedCoords.value = []

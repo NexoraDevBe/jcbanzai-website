@@ -151,7 +151,8 @@ export const useTechniquesStore = defineStore('techniques', () => {
             }
 
             // Update original to match current state
-            originalTechniques.value = editableTechniques.value.map(t => ({ ...t }))
+            const rawPlanning = toRaw(editableTechniques.value)
+            originalTechniques.value = markRaw(structuredClone(rawPlanning))
 
             // Clear changed coords after successful save
             changedCoords.value = []

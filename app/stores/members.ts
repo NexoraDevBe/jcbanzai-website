@@ -190,7 +190,9 @@ export const useMembersStore = defineStore('members', () => {
             }
 
             // Update original to match current state
-            originalMembers.value = markRaw(JSON.parse(JSON.stringify(editableMembers.value)))
+            const rawPlanning = toRaw(editableMembers.value)
+            originalMembers.value = markRaw(structuredClone(rawPlanning))
+
             changedCoords.value = [] // Clear changed coords after successful save
 
             console.log('All changes saved successfully')
