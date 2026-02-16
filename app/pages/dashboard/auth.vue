@@ -178,8 +178,6 @@ const toggleMode = () => {
       }
     }
 
-
-
     .error-message, .success-message {
       text-align: center;
       width: 100%;
@@ -201,6 +199,10 @@ const toggleMode = () => {
       text-align: center;
       font-size: 1rem;
 
+      p {
+        margin: 0;
+      }
+
       .link-btn {
         background: none;
         border: none;
@@ -209,6 +211,9 @@ const toggleMode = () => {
         color: var(--secondary);
         text-decoration: none;
         cursor: pointer;
+        text-transform: capitalize;
+        padding: .3rem;
+        margin: 0 .3rem;
 
         &::after {
           position: absolute;
