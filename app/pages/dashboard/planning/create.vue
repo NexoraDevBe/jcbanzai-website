@@ -112,17 +112,17 @@ const toggleAllArrays = () => {
           Maand Toevoegen
         </button>
         <button
-            @click="navigateTo('/dashboard/planning')"
-            class="secondary"
-        >
-          Terug
-        </button>
-        <button
             @click="toggleAllArrays"
             class="secondary"
         >
           <IconCollapse v-show="allExpanded" :size="20" :stroke-width="2" :color="'primary'"/>
           <IconExpand v-show="!allExpanded" :size="20" :stroke-width="2" :color="'primary'"/>
+        </button>
+        <button
+            @click="navigateTo('/dashboard/planning')"
+            class="secondary"
+        >
+          Terug
         </button>
       </template>
     </MoleculePageHeader>
