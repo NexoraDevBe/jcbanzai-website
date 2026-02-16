@@ -167,9 +167,9 @@ const register = async (email: string, password: string): Promise<AuthTokenRespo
 }
 
 const logout = async () => {
+    navigateTo('/dashboard/auth')
     userData = null;
     userDataPromise = null;
-    navigateTo('/dashboard/auth')
     useUserStore().clearData();
     await getSupabaseClient().auth.signOut();
 }
@@ -524,9 +524,6 @@ const getPlanningByMonth = async (year: number, month: number): Promise<Planning
         `).gte('day', `${year}-${month}-01`)
         .lt('day', `${year}-${(month === 12 ? '01' : month+1)}-01`);
 
-    console.log(`${year}-${month}-01`)
-    console.log(`${(month === 12 ? year+1 : year)}-${(month === 12 ? '01' : month+1)}-01`)
-
     if (error) {
         consoleErr('Error fetching planning:', error);
         throw error;
@@ -536,6 +533,53 @@ const getPlanningByMonth = async (year: number, month: number): Promise<Planning
     consoleLog('Fetched planning from Supabase:', planning.length);
 
     return planning as unknown as Planning[];
+};
+
+const getDistinctPlanningMonths = async (): Promise<{ year: number; month: number }[]> => {
+    const { data, error } = await getSupabaseClient()
+        .from('Planning')
+        .select('day');
+
+    if (error) {
+        consoleErr('Error fetching planning dates:', error);
+        throw error;
+    }
+
+    if (!data || data.length === 0) {
+        consoleLog('No planning data found');
+        return [];
+    }
+
+    // Extract unique year-month combinations
+    const monthYearSet = new Set<string>();
+
+    data.forEach((item) => {
+        if (item.day) {
+            const date = new Date(item.day);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1; // getMonth() returns 0-11
+            monthYearSet.add(`${year}-${month}`);
+        }
+    });
+
+    // Convert set to array of objects and sort
+    const distinctMonths: { year: number; month: number }[] =
+        Array.from(monthYearSet)
+            .map((yearMonth) => {
+                const [year, month] = yearMonth
+                    .split('-')
+                    .map(Number) as [number, number];
+
+                return { year, month };
+            })
+            .sort((a, b) =>
+                a.year !== b.year
+                    ? a.year - b.year
+                    : a.month - b.month
+            );
+
+    consoleLog('Distinct months from planning:', distinctMonths.length);
+    return distinctMonths;
 };
 
 const insertPlanning = async (planning: Planning) => {
@@ -684,6 +728,7 @@ export {
 
     getPlanning,
     getPlanningByMonth,
+    getDistinctPlanningMonths,
     insertPlanning,
     updatePlanning,
     deletePlanning,
