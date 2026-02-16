@@ -37,8 +37,8 @@ const trainerOptions = computed(() => {
       })
 
   return [
-    { value: '', label: '' },
-    ...mapped
+    ...mapped,
+    { value: '', label: ' ' }
   ]
 })
 
@@ -98,7 +98,7 @@ onBeforeRouteLeave((to, from, next) => {
       </template>
       <template #right-actions>
         <button
-            @click="navigateTo('/dashboard/trainers')"
+            @click="navigateTo('/dashboard/planning')"
             class="secondary"
         >
           Terug

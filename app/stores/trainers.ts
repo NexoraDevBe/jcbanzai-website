@@ -64,7 +64,8 @@ export const useTrainersStore = defineStore('trainers', () => {
             const trainers = await getTrainers()
             originalTrainers.value = markRaw(structuredClone(trainers))
             editableTrainers.value = structuredClone(trainers)
-            changedCoords.value = [] // Reset changed coords
+            changedCoords.value = []
+
         } catch (error) {
             console.error('Failed to fetch Trainers:', error)
             throw error

@@ -21,7 +21,7 @@ const dashboardItems = [
   { to: '/dashboard', label: 'Overzicht' },
   { to: '/dashboard/ledenlijst', label: 'Ledenlijst' },
   { to: '/dashboard/leerlijn', label: 'Leerlijn' },
-  { to: '/dashboard/trainers', label: 'Planning' },
+  { to: '/dashboard/planning', label: 'Planning' },
 ]
 
 const state = ref<boolean>(false)

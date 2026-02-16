@@ -39,7 +39,7 @@ const trainerOptions = computed(() => {
 
   return [
     ...mapped,
-    { value: 'Custom Name', label: 'Custom Name' }
+    { value: '', label: ' ' }
   ]
 })
 
@@ -94,13 +94,13 @@ onBeforeRouteLeave((to, from, next) => {
         <button
             v-if="userStore.allowAccess('admin')"
             class="warning"
-            @click="() => navigateTo('/dashboard/trainers/planning')"
+            @click="() => navigateTo('/dashboard/planning/create')"
         >
           Maak planning
         </button>
         <button
             class="secondary"
-            @click="() => navigateTo('/dashboard/trainers/beschikbaarheden')"
+            @click="() => navigateTo('/dashboard/planning/beschikbaarheden')"
         >
           Beschikbaarheden
         </button>

@@ -19,24 +19,30 @@ const month = now.getMonth() + 1
 const allExpanded = ref(false)
 
 const trainerOptions = computed(() => {
-  return trainersStore.trainerNames.map((trainer) => {
-    if (trainer.Naam && trainer.Voornaam) {
-      const achternaam = trainer.Naam.split(' ')
-          .map((deelnaam) => deelnaam.substring(0, 1))
-          .join('')
+  const mapped = trainersStore.trainerNames
+      .filter((trainer) => trainer.Naam && trainer.Voornaam)
+      .map((trainer) => {
+        if (trainer.Naam && trainer.Voornaam) {
+          const achternaam = trainer.Naam.split(' ')
+              .map((deelnaam) => deelnaam.substring(0, 1))
+              .join('')
+          const naam = trainer.Voornaam + ' ' + achternaam
 
-      const naam = trainer.Voornaam + ' ' + achternaam
+          return {
+            value: naam,
+            label: naam,
+          }
+        }
+        return {
+          value: 'NA',
+          label: 'NA',
+        }
+      })
 
-      return {
-        value: naam,
-        label: naam,
-      }
-    }
-    return {
-      value: '',
-      label: '',
-    }
-  })
+  return [
+    ...mapped,
+    { value: '', label: ' ' }
+  ]
 })
 
 const typeOptions = [
@@ -106,7 +112,7 @@ const toggleAllArrays = () => {
           Maand Toevoegen
         </button>
         <button
-            @click="navigateTo('/dashboard/trainers')"
+            @click="navigateTo('/dashboard/planning')"
             class="secondary"
         >
           Terug
