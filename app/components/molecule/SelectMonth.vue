@@ -78,6 +78,7 @@ const handleChange = () => {
     <option v-for="dm in filteredMonths" :key="dm.year + dm.month" :value="dm.year + '-' + dm.month">
       {{ dm.year + ' ' + months[dm.month - 1]!.label }}
     </option>
+    <option v-if="filteredMonths.length === 0" disabled>Geen planning beschikbaar</option>
   </select>
 </template>
 

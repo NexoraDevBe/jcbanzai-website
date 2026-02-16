@@ -43,6 +43,42 @@ const trainerOptions = computed(() => {
   ]
 })
 
+const plannedMonths = computed(() => {
+  let filtered = planningStore.sortedPlanning
+
+  // Group by year-month
+  const grouped = filtered.reduce((acc, dm) => {
+    const year = dm.day.substr(0, 4)
+    const month = dm.day.substr(5, 2)
+    const key = `${year}-${month}`
+
+    if (!acc[key]) {
+      acc[key] = []
+    }
+    acc[key].push(dm)
+
+    return acc
+  }, {})
+
+  // Check if all days in each month meet the criteria
+  const validMonths = Object.entries(grouped)
+      .filter(([key, days]) => {
+        return days.every(dm => {
+          return dm.type === 'geen-les'
+              ? dm.planning.length <= 1 || dm.planning[0] === ''
+              : dm.planning.length > 0 && dm.planning[0] !== ''
+        })
+      })
+      .map(([key, days]) => {
+        return {
+          year: key.substring(0, 4),
+          month: key.substring(5, 7)
+        }
+      })
+
+  return validMonths
+})
+
 const typeOptions = [
   { value: 'jeugd', label: 'jeugd' },
   { value: 'volwassenen', label: 'volwassenen' },
@@ -88,7 +124,7 @@ onBeforeRouteLeave((to, from, next) => {
   <main id="trainers-page">
     <MoleculePageHeader title="Planning">
       <template #left-actions>
-        <MoleculeSelectMonth :distinct-months="planningStore.distinctMonths" :limit-months="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
+        <MoleculeSelectMonth :distinct-months="plannedMonths" :limit-months="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
       </template>
       <template #right-actions>
         <button
