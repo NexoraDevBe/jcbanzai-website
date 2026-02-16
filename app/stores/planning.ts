@@ -1,7 +1,7 @@
 // stores/planning.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import {getPlanning, updatePlanning, insertPlanning, getPlanningByMonth} from '~/utils/supabase'
+import {getPlanning, updatePlanning, insertPlanning, getPlanningByMonth, getDistinctPlanningMonths} from '~/utils/supabase'
 import type {Planning} from '~/types'
 
 interface WeeklySchedule {
@@ -24,6 +24,7 @@ export const usePlanningStore = defineStore('planning', () => {
     // State
     const originalPlanning = shallowRef<Planning[]>([])
     const editablePlanning = ref<Planning[]>([])
+    const distinctMonths = ref<{year:number, month:number}[]>([])
     const sortKey = ref<string>('')
     const sortOrder = ref<'asc' | 'desc'>('asc')
     const isLoading = ref(false)
@@ -77,7 +78,7 @@ export const usePlanningStore = defineStore('planning', () => {
             originalPlanning.value = markRaw(structuredClone(planning))
             editablePlanning.value = structuredClone(planning)
             changedCoords.value = [] // Reset changed coords
-            setSort('id')
+            setSort('id', 'asc')
         } catch (error) {
             console.error('Failed to fetch Planning:', error)
             throw error
@@ -87,15 +88,38 @@ export const usePlanningStore = defineStore('planning', () => {
     }
 
     async function fetchPlanningByMonth(year: number, month: number) {
+        if (hasUnsavedChanges.value) {
+            discardChanges()
+        }
         isLoading.value = true
         try {
             const planning = await getPlanningByMonth(year, month)
-            originalPlanning.value = markRaw(structuredClone(planning))
-            editablePlanning.value = structuredClone(planning)
-            changedCoords.value = [] // Reset changed coords
-            setSort('id')
+
+            if (planning.length === 0) {
+                await insertMonthPlanning(year, month)
+            }
+            else {
+                originalPlanning.value = markRaw(structuredClone(planning))
+                editablePlanning.value = structuredClone(planning)
+                changedCoords.value = []
+                setSort('id', 'asc')
+            }
         } catch (error) {
             console.error('Failed to fetch Planning:', error)
+            throw error
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function fetchDistinctMonths() {
+        isLoading.value = true
+        try {
+            const distinctMonthsRes = await getDistinctPlanningMonths()
+            distinctMonths.value = structuredClone(distinctMonthsRes)
+
+        } catch (error) {
+            console.error('Failed to fetch Distinct Months:', error)
             throw error
         } finally {
             isLoading.value = false
@@ -136,11 +160,15 @@ export const usePlanningStore = defineStore('planning', () => {
         }
     }
 
-    function setSort(key: string) {
-        if (sortKey.value === key) {
+    function setSort(key: string, direction?: 'asc' | 'desc') {
+        if (direction) {
+            sortKey.value = key
+            sortOrder.value = direction
+        }
+        else if (sortKey.value === key) {
             sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
         } else {
-            sortKey.value = key as keyof Planning
+            sortKey.value = key
             sortOrder.value = 'asc'
         }
     }
@@ -245,8 +273,8 @@ export const usePlanningStore = defineStore('planning', () => {
                 await insertPlanning(item as Planning)
             }
 
-            // Refresh the planning data
-            await fetchPlanning()
+        // Refresh the planning data
+            await fetchPlanningByMonth(year, month)
 
             console.log('Month planning inserted successfully')
             return planningItems.length
@@ -318,6 +346,7 @@ export const usePlanningStore = defineStore('planning', () => {
         // State
         originalPlanning,
         editablePlanning,
+        distinctMonths,
         sortKey,
         sortOrder,
         isLoading,
@@ -333,6 +362,7 @@ export const usePlanningStore = defineStore('planning', () => {
         // Actions
         fetchPlanning,
         fetchPlanningByMonth,
+        fetchDistinctMonths,
         updatePlanningField,
         setSort,
         saveChanges,
