@@ -40,7 +40,7 @@ interface Member {
 interface Planning {
     id: number
     day: string
-    type: 'jeugd' | 'volwassenen' | 'gezamenlijk' | 'wedstrijd' | 'kleuters'
+    type: 'jeugd' | 'volwassenen' | 'gezamenlijk' | 'wedstrijd' | 'kleuters' | 'geen-les'
     beschikbaar: string[]
     planning: string[]
     updated_at: string,
