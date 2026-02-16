@@ -85,5 +85,6 @@ const handleChange = () => {
 select {
   padding: .3rem .6rem;
   font-size: 1.1rem;
+  border-radius: .5rem;
 }
 </style>
