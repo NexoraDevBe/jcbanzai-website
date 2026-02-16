@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import SortableTableHead from './SortableTableHead.vue'
-import EditableTableCell from './EditableTableCell.vue'
 import type {Column} from "~/types";
 
 interface Props {
@@ -10,6 +8,7 @@ interface Props {
   sortOrder: 'asc' | 'desc'
   changedCoords: {rowId: number, field: string}[]
   height?: string
+  expandAll?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,7 +45,7 @@ const checkIfChanged = (rowId: number, field: string) => {
   <div class="table">
     <!-- Header Row -->
     <div class="table-row header-row">
-      <SortableTableHead
+      <MoleculeSortableTableHead
           v-for="column in columns"
           :key="column.key"
           :label="column.label"
@@ -65,7 +64,7 @@ const checkIfChanged = (rowId: number, field: string) => {
         :key="row.id"
         class="table-row"
     >
-      <EditableTableCell
+      <MoleculeEditableTableCell
           v-for="column in columns"
           :key="`${row.id}-${column.key}`"
           :value="row[column.key]"
@@ -74,6 +73,7 @@ const checkIfChanged = (rowId: number, field: string) => {
           :class-name="(column.className ? column.className : '')"
           :changed="checkIfChanged(row.id, column.key)"
           :options="column.options"
+          :expand-all="expandAll"
           @update="handleUpdate(row.id, column.key as string, $event.value, $event.index)"
           @add-array-item="handleAddArrayItem(row.id, column.key as string)"
           @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
@@ -113,7 +113,7 @@ const checkIfChanged = (rowId: number, field: string) => {
             background-color: var(--gray-150);
           }
 
-          .array-item select {
+          .array-item select, .array-horizontal-item select {
             background-color: var(--gray-200);
           }
         }

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 interface Props {
   value: any
-  type: 'text' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'readonly'
+  type: 'text' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'array-select-horizontal' | 'readonly'
   disabled?: boolean
   className?: string
   options?: Array<{ value: string | number; label: string }>
   changed?: boolean
   arrayIndex?: number
+  expandAll?: boolean
 }
 
 const props = defineProps<Props>()
@@ -40,11 +41,20 @@ const handleRemoveItem = (index: number) => {
 }
 
 const arrayShow = ref<boolean>(false)
+const horizontalDropdownOpen = ref<boolean>(false)
+
+watch(() => props.expandAll, (newVal) => {
+  if (newVal !== undefined && (props.type === 'array-text' || props.type === 'array-select')) {
+    if (props.value.length > 1) {
+      arrayShow.value = newVal
+    }
+  }
+})
 </script>
 
 <template>
   <div class="table-cell" :class="[className, {'changed': changed}] ">
-    <!-- Readonly (zoals ID) -->
+    <!-- Readonly -->
     <p v-if="type === 'readonly'">{{ value }}</p>
 
     <!-- Checkbox -->
@@ -81,7 +91,54 @@ const arrayShow = ref<boolean>(false)
       </option>
     </select>
 
-    <!-- Arrays -->
+    <!-- Horizontal Array Select -->
+    <div v-else-if="type === 'array-select-horizontal'" class="array-horizontal-container">
+      <div class="array-horizontal-wrapper" :class="{'expanded': horizontalDropdownOpen}">
+        <div class="array-horizontal-items">
+          <div
+              v-for="(item, index) in value"
+              :key="index"
+              class="array-horizontal-item"
+          >
+            <select
+                :value="item"
+                :disabled="disabled"
+                @change="emit('update', {value: ($event.target as HTMLSelectElement).value, index: index})"
+            >
+              <option
+                  v-for="option in options"
+                  :key="option.value"
+                  :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+
+            <button
+                v-if="!disabled && value.length > 1"
+                type="button"
+                class="btn btn-remove"
+                @click="handleRemoveItem(index)"
+                title="Verwijder item"
+            >
+              <IconDeleteCross :size="16" :stroke-width="2.5" :color="'danger'"/>
+            </button>
+          </div>
+
+          <button
+              v-if="!disabled"
+              type="button"
+              class="btn btn-add"
+              @click="handleAddItem"
+              title="Voeg item toe"
+          >
+            <IconAddCross :size="16" :stroke-width="2.5" :color="'success'"/>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrays (Vertical) -->
     <div v-else-if="type.includes('array')" class="array-container">
       <div
           v-for="(item, index) in value"
@@ -235,6 +292,12 @@ const arrayShow = ref<boolean>(false)
     width: 5rem;
   }
 
+  &.beschikbaar:has(.array-horizontal-container), &.planning:has(.array-horizontal-container) {
+    min-width: 45vw;
+    width: 55vw;
+    max-width: 65rem;
+  }
+
   p {
     margin: 0;
     padding: 0.3rem 0.5rem;
@@ -244,6 +307,103 @@ const arrayShow = ref<boolean>(false)
     vertical-align: top;
   }
 
+  // Horizontal Array Select Styles
+  .array-horizontal-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    width: 100%;
+
+    .array-horizontal-wrapper {
+      flex: 1;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+
+      .array-horizontal-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+
+        .array-horizontal-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          border-radius: 0.4rem;
+
+          select {
+            min-width: 8rem;
+            width: auto;
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.4rem;
+            background-color: var(--gray-150);
+            font-size: 1rem;
+          }
+        }
+
+        .btn{
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 1.8rem;
+          height: 1.8rem;
+          padding: 0;
+          background-color: transparent;
+          border-radius: .4rem;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &.hidden {
+            visibility: hidden;
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
+
+          &-remove {
+            border: 2px solid var(--danger);
+            color: var(--danger);
+
+            &:hover {
+              background-color: var(--danger-50);
+            }
+          }
+
+          &-show {
+            border: 2px solid var(--gray-800);
+            color: var(--gray-800);
+
+            .flip {
+              scale: 1 -1;
+            }
+
+            &:hover {
+              background-color: var(--secondary-30);
+            }
+          }
+
+          &-add {
+            width: 1.8rem;
+            margin: 0;
+            border: 2px dashed var(--success);
+            color: var(--success);
+
+            .flip {
+              rotate: 180deg;
+            }
+
+            &:hover {
+              background-color: var(--success-50);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Vertical Array Styles
   .array-container {
     display: flex;
     flex-direction: column;
