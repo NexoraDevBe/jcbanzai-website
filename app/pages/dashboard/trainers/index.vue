@@ -16,58 +16,31 @@ const now = new Date()
 const year = now.getFullYear()
 const month = now.getMonth() + 1
 
-// Fetch planning on mount
-onMounted(async () => {
-  if (trainersStore.trainerNames.length === 0) {
-    await trainersStore.fetchTrainerNames()
-  }
-  if (planningStore.originalPlanning.length === 0) {
-    await planningStore.fetchPlanningByMonth(2025, 11)
-  }
-})
-
-const years = [
-  { value: year - 1, label: year - 1 },
-  { value: year, label: year },
-  { value: year + 1, label: year + 1 },
-]
-
-const months = [
-  { value: 1, label: 'Jan' },
-  { value: 2, label: 'Feb' },
-  { value: 3, label: 'Maa' },
-  { value: 4, label: 'Apr' },
-  { value: 5, label: 'Mei' },
-  { value: 6, label: 'Jun' },
-  { value: 7, label: 'Jul' },
-  { value: 8, label: 'Aug' },
-  { value: 9, label: 'Sep' },
-  { value: 10, label: 'Okt' },
-  { value: 11, label: 'Nov' },
-  { value: 12, label: 'Dec' },
-]
-
 const trainerOptions = computed(() => {
-  return trainersStore.trainerNames.map((trainer) => {
-    if (trainer.Naam && trainer.Voornaam) {
-      const achternaam = trainer.Naam.split(' ')
-          .map((deelnaam) => deelnaam.substring(0, 1))
-          .join('')
+  const mapped = trainersStore.trainerNames
+      .filter((trainer) => trainer.Naam && trainer.Voornaam)
+      .map((trainer) => {
+        if (trainer.Naam && trainer.Voornaam) {
+          const achternaam = trainer.Naam.split(' ')
+              .map((deelnaam) => deelnaam.substring(0, 1))
+              .join('')
+          const naam = trainer.Voornaam + ' ' + achternaam
 
-      const naam = trainer.Voornaam + ' ' + achternaam
+          return {
+            value: naam,
+            label: naam,
+          }
+        }
+        return {
+          value: 'NA',
+          label: 'NA',
+        }
+      })
 
-      console.log(naam)
-
-      return {
-        value: naam,
-        label: naam,
-      }
-    }
-    return {
-      value: '',
-      label: '',
-    }
-  })
+  return [
+    ...mapped,
+    { value: 'Custom Name', label: 'Custom Name' }
+  ]
 })
 
 const typeOptions = [
@@ -79,18 +52,44 @@ const typeOptions = [
   { value: 'geen-les', label: 'geen les' },
 ]
 
-const columns: Column[] = [
-  { key: 'id', label: 'ID', type: 'readonly', className: 'id', sticky: true },
+const columns = computed<Column[]>(() => [
+  { key: 'id', label: 'ID', type: 'readonly', className: 'dnone' },
   { key: 'day', label: 'datum', type: 'readonly', className: 'datum', disabled: () => true },
   { key: 'type', label: 'type', type: 'readonly', options: typeOptions, className: 'type', disabled: () => true },
-  { key: 'planning', label: 'planning', type: 'array-select', options: trainerOptions.value, className: 'planning', disabled: () => true },
+  { key: 'planning', label: 'planning', type: 'array-select-horizontal', options: trainerOptions.value, className: 'planning', disabled: () => true },
   { key: 'beschikbaar', label: 'beschikbaar', type: 'readonly', className: 'dnone', disabled: () => true },
-]
+])
+
+// Fetch planning on mount
+onMounted(async () => {
+  if (trainersStore.trainerNames.length === 0) {
+    await trainersStore.fetchTrainerNames()
+  }
+  if (planningStore.originalPlanning.length === 0) {
+    await planningStore.fetchPlanningByMonth(year, month)
+  }
+  if (planningStore.distinctMonths.length === 0) {
+    await planningStore.fetchDistinctMonths()
+  }
+})
+
+onBeforeRouteLeave((to, from, next) => {
+  if (planningStore.hasUnsavedChanges) {
+    const answer = window.confirm(
+        `Je hebt ${planningStore.changedCount} niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?`
+    )
+    if (answer) { planningStore.discardChanges(); next() }
+    else next(false)
+  } else next()
+})
 </script>
 
 <template>
   <main id="trainers-page">
     <MoleculePageHeader title="Planning">
+      <template #left-actions>
+        <MoleculeSelectMonth :distinct-months="planningStore.distinctMonths" :limit-months="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
+      </template>
       <template #right-actions>
         <button
             v-if="userStore.allowAccess('admin')"
