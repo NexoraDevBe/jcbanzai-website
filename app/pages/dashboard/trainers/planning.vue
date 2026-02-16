@@ -15,36 +15,8 @@ const now = new Date()
 const year = now.getFullYear()
 const month = now.getMonth() + 1
 
-// Fetch planning on mount
-onMounted(async () => {
-  if (trainersStore.trainerNames.length === 0) {
-    await trainersStore.fetchTrainerNames()
-  }
-  if (planningStore.originalPlanning.length === 0) {
-    await planningStore.fetchPlanningByMonth(2025, 11)
-  }
-})
-
-const years = [
-  { value: year - 1, label: year - 1 },
-  { value: year, label: year },
-  { value: year + 1, label: year + 1 },
-]
-
-const months = [
-  { value: 1, label: 'Jan' },
-  { value: 2, label: 'Feb' },
-  { value: 3, label: 'Maa' },
-  { value: 4, label: 'Apr' },
-  { value: 5, label: 'Mei' },
-  { value: 6, label: 'Jun' },
-  { value: 7, label: 'Jul' },
-  { value: 8, label: 'Aug' },
-  { value: 9, label: 'Sep' },
-  { value: 10, label: 'Okt' },
-  { value: 11, label: 'Nov' },
-  { value: 12, label: 'Dec' },
-]
+// Add state for collapse/expand all
+const allExpanded = ref(false)
 
 const trainerOptions = computed(() => {
   return trainersStore.trainerNames.map((trainer) => {
@@ -54,8 +26,6 @@ const trainerOptions = computed(() => {
           .join('')
 
       const naam = trainer.Voornaam + ' ' + achternaam
-
-      console.log(naam)
 
       return {
         value: naam,
@@ -78,39 +48,75 @@ const typeOptions = [
   { value: 'geen-les', label: 'geen les' },
 ]
 
-const columns: Column[] = [
-  { key: 'id', label: 'ID', type: 'readonly', className: 'id', sticky: true },
+const columns = computed<Column[]>(() => [
+  { key: 'id', label: 'ID', type: 'readonly', className: 'dnone' },
   { key: 'day', label: 'datum', type: 'readonly', className: 'datum' },
   { key: 'type', label: 'type', type: 'select', options: typeOptions, className: 'type' },
   { key: 'planning', label: 'Planning', type: 'array-select', options: trainerOptions.value, className: 'planning' },
   { key: 'beschikbaar', label: 'Beschikbaar', type: 'array-select', options: trainerOptions.value, className: 'beschikbaar' },
-]
+])
+
+// Fetch planning on mount
+onMounted(async () => {
+  if (trainersStore.trainerNames.length === 0) {
+    await trainersStore.fetchTrainerNames()
+  }
+  if (planningStore.originalPlanning.length === 0) {
+    await planningStore.fetchPlanningByMonth(year, month)
+  }
+  if (planningStore.distinctMonths.length === 0) {
+    await planningStore.fetchDistinctMonths()
+  }
+})
+
+onBeforeRouteLeave((to, from, next) => {
+  if (planningStore.hasUnsavedChanges) {
+    const answer = window.confirm(
+        `Je hebt ${planningStore.changedCount} niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?`
+    )
+    if (answer) { planningStore.discardChanges(); next() }
+    else next(false)
+  } else next()
+})
+
+// Toggle all arrays function
+const toggleAllArrays = () => {
+  allExpanded.value = !allExpanded.value
+}
 </script>
 
 <template>
   <main id="planning-page">
-    <MoleculePageHeader title="Planning create">
+    <MoleculePageHeader title="Maak planning">
       <template #left-actions>
+        <MoleculeSelectMonth :distinct-months="planningStore.distinctMonths" :limit-years="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
         <button
             @click="planningStore.saveChanges"
             class="warning"
-            :disabled="!planningStore.hasUnsavedChanges || planningStore.isSaving || userStore.allowAccess('admin')"
+            :disabled="!planningStore.hasUnsavedChanges || planningStore.isSaving || !userStore.allowAccess('admin')"
         >
           {{ planningStore.isSaving ? 'Bezig...' : `Opslaan${planningStore.changedCount > 0 ? ` (${planningStore.changedCount})` : ''}` }}
         </button>
       </template>
       <template #right-actions>
         <button
-            :disabled="userStore.allowAccess('admin')"
+            :disabled="!userStore.allowAccess('admin')"
             class="success"
         >
-          Toevoegen
+          Maand Toevoegen
         </button>
         <button
-            :disabled="userStore.allowAccess('admin')"
-            class="danger"
+            @click="navigateTo('/dashboard/trainers')"
+            class="secondary"
         >
-          Verwijderen
+          Terug
+        </button>
+        <button
+            @click="toggleAllArrays"
+            class="secondary"
+        >
+          <IconCollapse v-show="allExpanded" :size="20" :stroke-width="2" :color="'primary'"/>
+          <IconExpand v-show="!allExpanded" :size="20" :stroke-width="2" :color="'primary'"/>
         </button>
       </template>
     </MoleculePageHeader>
@@ -123,6 +129,7 @@ const columns: Column[] = [
           :sort-key="planningStore.sortKey"
           :sort-order="planningStore.sortOrder"
           :changed-coords="planningStore.changedCoords"
+          :expand-all="allExpanded"
           @sort="planningStore.setSort"
           @update="planningStore.updatePlanningField"
           @add-array-item="planningStore.addArrayItem"
@@ -136,7 +143,6 @@ const columns: Column[] = [
 <style scoped lang="scss">
 #planning-page {
   margin-bottom: var(--page-margin);
-
 
   .data-table-container {
     position: relative;
