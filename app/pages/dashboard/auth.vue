@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { login, register, logout } from "~/utils/supabase";
+import { login, register } from "~/utils/supabase";
 
 definePageMeta({
   layout: 'dashboard',
