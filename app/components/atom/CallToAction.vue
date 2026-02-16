@@ -16,7 +16,7 @@ const handleClick = () => {
 <button :class="className" @click="handleClick">
   <slot>
   </slot>
-  <IconArrowExtd aria-label="arrow pointing right" :class-name="'fill-light'" :height="24"/>
+  <IconArrowExtd aria-label="arrow pointing right" :class-name="className === 'outline' ? 'fill-secondary' : 'fill-light'" :height="24"/>
 </button>
 </template>
 
@@ -40,6 +40,7 @@ button {
 
   &.outline {
     background-color: transparent;
+    color: var(--secondary);
   }
 
   &:hover {
