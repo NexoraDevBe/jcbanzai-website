@@ -92,9 +92,12 @@ onMounted(async () => {
   if (planningStore.originalPlanning.length === 0) {
     await planningStore.fetchPlanningByMonth(year, month)
   }
-  if (planningStore.distinctMonths.length === 0) {
-    await planningStore.fetchDistinctMonths()
+  else {
+    if (planningStore.originalPlanning[0]?.day.substring(0, 4) !== year.toString() || planningStore.originalPlanning[0]?.day.substring(5, 7) !== month.toString()) {
+      await planningStore.fetchPlanningByMonth(year, month)
+    }
   }
+  await planningStore.fetchDistinctMonths()
 })
 
 onBeforeRouteLeave((to, from, next) => {
