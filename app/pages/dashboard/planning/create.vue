@@ -18,6 +18,28 @@ const month = now.getMonth() + 1
 // Add state for collapse/expand all
 const allExpanded = ref(false)
 
+const allowedMonths = computed(() => {
+  const generated = [...planningStore.distinctMonths]
+
+  for (let i = 1; i <= 12; i++) {
+    if (month + i > 12) {
+      const ty = year + 1;
+      const tm = (month + i) - 12;
+
+      if (!generated.some(g => g.year === ty && g.month === tm)) {
+        generated.push({year: ty, month: tm})
+      }
+    }
+    else {
+      if (!generated.some(g => g.year === year && g.month === month + i)) {
+        generated.push({year, month: month + i})
+      }
+    }
+  }
+
+  return generated
+})
+
 const trainerOptions = computed(() => {
   const mapped = trainersStore.trainerNames
       .filter((trainer) => trainer.Naam && trainer.Voornaam)
@@ -89,13 +111,28 @@ onBeforeRouteLeave((to, from, next) => {
 const toggleAllArrays = () => {
   allExpanded.value = !allExpanded.value
 }
+
+const cMonth = ref<number>()
+const cYear = ref<number>()
+
+const setCreateMonth = (year: number, month: number) => {
+  cMonth.value = month
+  cYear.value = year
+}
+
+const createMonth = async () => {
+  if (cMonth.value && cYear.value) {
+    await planningStore.fetchPlanningByMonth(cYear.value, cMonth.value)
+    await planningStore.fetchDistinctMonths()
+  }
+}
 </script>
 
 <template>
   <main id="planning-page">
     <MoleculePageHeader title="Maak planning">
       <template #left-actions>
-        <MoleculeSelectMonth :distinct-months="planningStore.distinctMonths" :limit-years="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
+        <MoleculeSelectMonth :distinct-months="allowedMonths" :limit-years="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
         <button
             @click="planningStore.saveChanges"
             class="warning"
@@ -105,12 +142,6 @@ const toggleAllArrays = () => {
         </button>
       </template>
       <template #right-actions>
-        <button
-            :disabled="!userStore.allowAccess('admin')"
-            class="success"
-        >
-          Maand Toevoegen
-        </button>
         <button
             @click="toggleAllArrays"
             class="secondary"
