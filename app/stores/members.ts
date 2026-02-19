@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getMembers, updateMember } from '~/utils/supabase'
-import type { Member } from '~/types'
+import type {Member, Planning} from '~/types'
 
 export const useMembersStore = defineStore('members', () => {
     // State
@@ -13,8 +13,67 @@ export const useMembersStore = defineStore('members', () => {
     const isLoading = ref(false)
     const isSaving = ref(false)
     const changedCoords = ref<{rowId: number, field:string}[]>([])
+    const activeFilters = ref<Record<string, any[]>>({})
 
     // Getters
+    const filteredMembers = computed(() => {
+        let data = editableMembers.value
+
+        // Apply filters
+        const filterKeys = Object.keys(activeFilters.value)
+        if (filterKeys.length > 0) {
+            data = data.filter(member => {
+                return filterKeys.every(key => {
+                    const filterValues = activeFilters.value[key]
+
+                    // Skip if no filter values for this key
+                    if (!filterValues || filterValues.length === 0) {
+                        return true
+                    }
+
+                    const memberValue = member[key as keyof Member]
+
+                    // Handle array fields (like availability days)
+                    if (Array.isArray(memberValue)) {
+                        return filterValues.some(filterVal =>
+                            memberValue.includes(filterVal)
+                        )
+                    }
+
+                    // Handle regular fields
+                    return filterValues.includes(memberValue)
+                })
+            })
+        }
+
+        return data
+    })
+
+    const filterItems = computed(() => {
+        const filters: Record<string, Set<any>> = {}
+
+        originalMembers.value.forEach((item) => {
+            Object.entries(item).forEach(([key, value]) => {
+                if (key === 'id' || key === 'updated_at') return
+
+                if (!filters[key]) {
+                    filters[key] = new Set()
+                }
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => filters[key]?.add(v))
+                } else {
+                    filters[key].add(value)
+                }
+            })
+        })
+
+        // Convert Sets back to arrays
+        return Object.fromEntries(
+            Object.entries(filters).map(([key, set]) => [key, Array.from(set)])
+        )
+    })
+
     const sortedMembers = computed(() => {
         if (!sortKey.value || sortKey.value === '') {
             return editableMembers.value  // ← Return directly, no copy needed
@@ -62,6 +121,10 @@ export const useMembersStore = defineStore('members', () => {
     const hasUnsavedChanges = computed(() => changedCoords.value.length > 0)
 
     const changedCount = computed(() => new Set(changedCoords.value.map(c => c.rowId)).size)
+
+    const hasActiveFilters = computed(() => {
+        return Object.values(activeFilters.value).some(arr => arr.length > 0)
+    })
 
     // Actions
     async function fetchMembers() {
@@ -222,6 +285,40 @@ export const useMembersStore = defineStore('members', () => {
         }
     }
 
+    function setFilter(field: string, values: any[]) {
+        if (values.length === 0) {
+            delete activeFilters.value[field]
+        } else {
+            activeFilters.value[field] = values
+        }
+    }
+
+    function clearFilter(field: string) {
+        delete activeFilters.value[field]
+    }
+
+    function clearAllFilters() {
+        activeFilters.value = {}
+    }
+
+    function toggleFilterValue(field: string, value: any) {
+        if (!activeFilters.value[field]) {
+            activeFilters.value[field] = []
+        }
+
+        const index = activeFilters.value[field].indexOf(value)
+        if (index === -1) {
+            activeFilters.value[field].push(value)
+        } else {
+            activeFilters.value[field].splice(index, 1)
+
+            // Clean up empty filters
+            if (activeFilters.value[field].length === 0) {
+                delete activeFilters.value[field]
+            }
+        }
+    }
+
     return {
         // State
         originalMembers,
@@ -230,13 +327,17 @@ export const useMembersStore = defineStore('members', () => {
         sortOrder,
         isLoading,
         isSaving,
+        activeFilters,
 
         // Getters
+        filteredMembers,
+        filterItems,
         sortedMembers,
         changedMembers,
         hasUnsavedChanges,
         changedCount,
         changedCoords,
+        hasActiveFilters,
 
         // Actions
         fetchMembers,
@@ -248,5 +349,9 @@ export const useMembersStore = defineStore('members', () => {
         discardChanges,
         addMember,
         removeMember,
+        setFilter,
+        clearFilter,
+        clearAllFilters,
+        toggleFilterValue,
     }
 })

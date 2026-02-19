@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getTechniques, updateTechnique } from '~/utils/supabase'
-import type {Technique} from '~/types'
+import type {Technique, Trainer} from '~/types'
 
 export const useTechniquesStore = defineStore('techniques', () => {
     // State
@@ -13,14 +13,73 @@ export const useTechniquesStore = defineStore('techniques', () => {
     const isLoading = ref(false)
     const isSaving = ref(false)
     const changedCoords = ref<{rowId: number, field:string }[]>([])
+    const activeFilters = ref<Record<string, any[]>>({})
 
     // Getters
+    const filteredTechniques = computed(() => {
+        let data = editableTechniques.value
+
+        // Apply filters
+        const filterKeys = Object.keys(activeFilters.value)
+        if (filterKeys.length > 0) {
+            data = data.filter(technique => {
+                return filterKeys.every(key => {
+                    const filterValues = activeFilters.value[key]
+
+                    // Skip if no filter values for this key
+                    if (!filterValues || filterValues.length === 0) {
+                        return true
+                    }
+
+                    const techniqueValue = technique[key as keyof Technique]
+
+                    // Handle array fields (like availability days)
+                    if (Array.isArray(techniqueValue)) {
+                        return filterValues.some(filterVal =>
+                            techniqueValue.includes(filterVal)
+                        )
+                    }
+
+                    // Handle regular fields
+                    return filterValues.includes(techniqueValue)
+                })
+            })
+        }
+
+        return data
+    })
+
+    const filterItems = computed(() => {
+        const filters: Record<string, Set<any>> = {}
+
+        originalTechniques.value.forEach((item) => {
+            Object.entries(item).forEach(([key, value]) => {
+                if (key === 'id' || key === 'updated_at') return
+
+                if (!filters[key]) {
+                    filters[key] = new Set()
+                }
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => filters[key]?.add(v))
+                } else {
+                    filters[key].add(value)
+                }
+            })
+        })
+
+        // Convert Sets back to arrays
+        return Object.fromEntries(
+            Object.entries(filters).map(([key, set]) => [key, Array.from(set)])
+        )
+    })
+
     const sortedTechniques = computed(() => {
         if (!sortKey.value || sortKey.value === '') {
             return editableTechniques.value  // ← Return directly, no copy needed
         }
 
-        const data = [...editableTechniques.value]
+        const data = [...filteredTechniques.value]
         return data.sort((a, b) => {
             const aVal = a[sortKey.value as keyof Technique]
             const bVal = b[sortKey.value as keyof Technique]
@@ -81,6 +140,10 @@ export const useTechniquesStore = defineStore('techniques', () => {
         })
 
         return grouped
+    })
+
+    const hasActiveFilters = computed(() => {
+        return Object.values(activeFilters.value).some(arr => arr.length > 0)
     })
 
     // Actions
@@ -194,6 +257,40 @@ export const useTechniquesStore = defineStore('techniques', () => {
         return sortedTechniques.value.filter(t => t.category === category)
     }
 
+    function setFilter(field: string, values: any[]) {
+        if (values.length === 0) {
+            delete activeFilters.value[field]
+        } else {
+            activeFilters.value[field] = values
+        }
+    }
+
+    function clearFilter(field: string) {
+        delete activeFilters.value[field]
+    }
+
+    function clearAllFilters() {
+        activeFilters.value = {}
+    }
+
+    function toggleFilterValue(field: string, value: any) {
+        if (!activeFilters.value[field]) {
+            activeFilters.value[field] = []
+        }
+
+        const index = activeFilters.value[field].indexOf(value)
+        if (index === -1) {
+            activeFilters.value[field].push(value)
+        } else {
+            activeFilters.value[field].splice(index, 1)
+
+            // Clean up empty filters
+            if (activeFilters.value[field].length === 0) {
+                delete activeFilters.value[field]
+            }
+        }
+    }
+
     return {
         // State
         originalTechniques,
@@ -202,8 +299,11 @@ export const useTechniquesStore = defineStore('techniques', () => {
         sortOrder,
         isLoading,
         isSaving,
+        activeFilters,
 
         // Getters
+        filteredTechniques,
+        filterItems,
         sortedTechniques,
         changedTechniques,
         hasUnsavedChanges,
@@ -211,6 +311,7 @@ export const useTechniquesStore = defineStore('techniques', () => {
         techniquesByBelt,
         techniquesByCategory,
         changedCoords,
+        hasActiveFilters,
 
         // Actions
         fetchTechniques,
@@ -223,5 +324,9 @@ export const useTechniquesStore = defineStore('techniques', () => {
         getTechniqueById,
         getTechniquesByBelt,
         getTechniquesByCategory,
+        setFilter,
+        clearFilter,
+        clearAllFilters,
+        toggleFilterValue,
     }
 })
