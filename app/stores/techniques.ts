@@ -76,7 +76,7 @@ export const useTechniquesStore = defineStore('techniques', () => {
 
     const sortedTechniques = computed(() => {
         if (!sortKey.value || sortKey.value === '') {
-            return editableTechniques.value  // ← Return directly, no copy needed
+            return filteredTechniques.value  // ← Return directly, no copy needed
         }
 
         const data = [...filteredTechniques.value]

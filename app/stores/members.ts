@@ -21,6 +21,7 @@ export const useMembersStore = defineStore('members', () => {
 
         // Apply filters
         const filterKeys = Object.keys(activeFilters.value)
+        console.log(filterKeys)
         if (filterKeys.length > 0) {
             data = data.filter(member => {
                 return filterKeys.every(key => {
@@ -76,10 +77,10 @@ export const useMembersStore = defineStore('members', () => {
 
     const sortedMembers = computed(() => {
         if (!sortKey.value || sortKey.value === '') {
-            return editableMembers.value  // ← Return directly, no copy needed
+            return filteredMembers.value  // ← Return directly, no copy needed
         }
 
-        const data = [...editableMembers.value]
+        const data = [...filteredMembers.value]
         return data.sort((a, b) => {
             const aVal = a[sortKey.value as keyof Member]
             const bVal = b[sortKey.value as keyof Member]

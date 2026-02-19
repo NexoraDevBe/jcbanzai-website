@@ -93,7 +93,7 @@ export const usePlanningStore = defineStore('planning', () => {
 
     const sortedPlanning = computed(() => {
         if (!sortKey.value || sortKey.value === '') {
-            return editablePlanning.value  // ← Return directly, no copy needed
+            return filteredPlanning.value  // ← Return directly, no copy needed
         }
 
         const data = [...filteredPlanning.value]
