@@ -46,8 +46,7 @@ const trainerOptions = computed(() => {
 const plannedMonths = computed(() => {
   let filtered = planningStore.sortedPlanning
 
-  // Group by year-month
-  const grouped = filtered.reduce((acc, dm) => {
+  const grouped = filtered.reduce((acc: any, dm) => {
     const year = dm.day.substr(0, 4)
     const month = dm.day.substr(5, 2)
     const key = `${year}-${month}`
@@ -60,10 +59,9 @@ const plannedMonths = computed(() => {
     return acc
   }, {})
 
-  // Check if all days in each month meet the criteria
   const validMonths = Object.entries(grouped)
       .filter(([key, days]) => {
-        return days.every(dm => {
+        return (days as any).every((dm: any) => {
           return dm.type === 'geen-les'
               ? dm.planning.length <= 1 || dm.planning[0] === ''
               : dm.planning.length > 0 && dm.planning[0] !== ''
@@ -148,10 +146,12 @@ onBeforeRouteLeave((to, from, next) => {
           v-if="!planningStore.isLoading"
           :columns="columns"
           :data="planningStore.sortedPlanning"
+          :filter-items="planningStore.filterItems"
           :sort-key="planningStore.sortKey"
           :sort-order="planningStore.sortOrder"
           :changed-coords="planningStore.changedCoords"
           @sort="planningStore.setSort"
+          @filter="planningStore.setFilter"
           @update="planningStore.updatePlanningField"
           @add-array-item="planningStore.addArrayItem"
           @remove-array-item="planningStore.removeArrayItem"

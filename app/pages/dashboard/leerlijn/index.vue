@@ -80,10 +80,12 @@ const columns: Column[] = [
           v-if="!techniquesStore.isLoading"
           :columns="columns"
           :data="techniquesStore.sortedTechniques"
+          :filter-items="techniquesStore.filterItems"
           :sort-key="techniquesStore.sortKey"
           :sort-order="techniquesStore.sortOrder"
           :changed-coords="techniquesStore.changedCoords"
           @sort="techniquesStore.setSort"
+          @filter="techniquesStore.setFilter"
           @update="techniquesStore.updateTechniqueField"
       />
       <div class="loading" v-else>Laden...</div>
@@ -94,7 +96,6 @@ const columns: Column[] = [
 <style scoped lang="scss">
 #leerlijn-page {
   margin-bottom: var(--page-margin);
-
 
   .data-table-container {
     position: relative;

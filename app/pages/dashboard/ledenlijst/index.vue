@@ -147,10 +147,12 @@ const columns = computed(() => [
           v-if="!membersStore.isLoading"
           :columns="columns"
           :data="membersStore.sortedMembers"
+          :filter-items="membersStore.filterItems"
           :sort-key="membersStore.sortKey"
           :sort-order="membersStore.sortOrder"
           :changed-coords="membersStore.changedCoords"
           @sort="membersStore.setSort"
+          @filter="membersStore.setFilter"
           @update="membersStore.updateMemberField"
           @add-array-item="membersStore.addArrayItem"
           @remove-array-item="membersStore.removeArrayItem"
@@ -163,7 +165,6 @@ const columns = computed(() => [
 <style scoped lang="scss">
 #leden-page {
   margin-bottom: var(--page-margin);
-
 
   .data-table-container {
     position: relative;
