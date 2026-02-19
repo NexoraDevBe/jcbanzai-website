@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type {Member} from "~/types";
+import type { Member, Planning, Trainer } from "~/types";
 
 interface Props {
   label: string
@@ -9,30 +9,67 @@ interface Props {
   sortOrder: 'asc' | 'desc'
   className?: string
   sticky?: boolean
+  filterItems?: any[]
 }
 
 const props = defineProps<Props>()
 
+const asc = computed(() => props.sortOrder === 'asc' && props.currentSortKey === props.sortKey)
+const desc = computed(() => props.sortOrder === 'desc' && props.currentSortKey === props.sortKey)
+
 const emit = defineEmits<{
-  sort: [key: keyof Member]
+  sort: [key: keyof Member | keyof Planning | keyof Trainer ]
+  filter: [filterKey: string, items: any[]]
 }>()
 
-const sortIcon = computed(() => {
-  if (props.currentSortKey !== props.sortKey) return '↕'
-  return props.sortOrder === 'asc' ? '↑' : '↓'
-})
+const selectedFilters = ref<any[]>(props.filterItems ? [...props.filterItems] : [])
+const showFilterIcon = computed(() => props.filterItems && props.filterItems.length > 0)
+const showFilters = ref<boolean>(false)
+
+const handleFilterClick = (item: any) => {
+  const index = selectedFilters.value.findIndex(filter => filter === item)
+
+  if (index !== -1) {
+    selectedFilters.value.splice(index, 1)
+  }
+  else {
+    selectedFilters.value.push(item)
+  }
+  emit('filter', props.sortKey, selectedFilters.value)
+}
+
+const handleEmptyClick = (item: any) => {
+  selectedFilters.value = []
+  emit('filter', props.sortKey, selectedFilters.value)
+}
+
+const handleFillClick = (item: any) => {
+  if (props.filterItems && props.filterItems.length > 0) {
+    selectedFilters.value = [...props.filterItems]
+    emit('filter', props.sortKey, selectedFilters.value)
+  }
+}
 </script>
 
 <template>
   <div
       class="table-cell table-head"
       :class="[className, { sticky }]"
-      @click="emit('sort', sortKey as keyof Member)"
   >
-    <p>
-      {{ label }}
-      <span class="sort-icon">{{ sortIcon }}</span>
-    </p>
+    <div class="table-head-wrapper">
+      <IconSort class="clickable" @click="emit('sort', sortKey as keyof Member)" :stroke-width="2" :color="'secondary'" :size="20" :asc="asc" :desc="desc"/>
+      <p>
+        {{ label }}
+      </p>
+      <IconChevron v-if="showFilterIcon" @click="showFilters = !showFilters" class="clickable" :class="{ opened: showFilters }" :stroke-width="3" :color="'secondary'" :size="12"/>
+      <div class="filter-container" :class="{ visible: showFilters }">
+        <label v-for="item in filterItems" :for="item">
+          <input @click="handleFilterClick(item)" :checked="selectedFilters.findIndex(filter => filter === item) !== -1" type="checkbox" :id="item" class="filter-checkbox" />
+          {{ item }}
+        </label>
+        <p><span class="clickable" @click="handleFillClick">Alle {{ filterItems?.length }} selecteren</span> - <span class="clickable" @click="handleEmptyClick">wissen</span></p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -46,7 +83,6 @@ const sortIcon = computed(() => {
   text-transform: uppercase;
   white-space: nowrap;
   z-index: 1;
-  cursor: pointer;
   user-select: none;
   will-change: transform;
   display: table-cell;
@@ -67,16 +103,61 @@ const sortIcon = computed(() => {
     display: none;
   }
 
-  p {
-    margin: 0;
-    padding: .3rem .5rem;
+  .clickable {
+    cursor: pointer;
+    user-select: none;
   }
 
-  .sort-icon {
-    display: inline-block;
-    margin-left: 0.25rem;
-    font-size: 0.9em;
-    opacity: 0.7;
+  .opened {
+    transform: scaleY(-1);
+  }
+
+  .table-head-wrapper {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.2rem 1fr 1.2rem;
+    align-items: center;
+    gap: .3rem;
+    padding: .3rem;
+
+    p {
+      margin: 0;
+      padding-right: .2rem;
+    }
+
+    .filter-container {
+      position: absolute;
+      top: calc(100% + .7rem);
+      right: .5rem;
+      display: none;
+      flex-direction: column;
+      gap: .5rem;
+      padding: 1rem;
+      width: fit-content;
+      max-height: 60vh;
+      overflow: scroll;
+      background: var(--primary-80);
+      border-radius: .6rem;
+      border: 1px solid var(--secondary-10);
+      text-transform: capitalize;
+
+      &.visible {
+        display: flex;
+      }
+
+      label {
+        cursor: pointer;
+      }
+
+      p {
+        margin-top: 1rem;
+        font-size: 1rem;
+
+        span {
+          text-decoration: underline;
+        }
+      }
+    }
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Column} from "~/types";
+import type {Column, Member, Planning, Trainer} from "~/types";
 
 interface Props {
   columns: Column[]
@@ -7,6 +7,7 @@ interface Props {
   sortKey: string
   sortOrder: 'asc' | 'desc'
   changedCoords: {rowId: number, field: string}[]
+  filterItems?: Record<string, any[]>
   height?: string
   expandAll?: boolean
 }
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   update: [rowId: number, field: string, value: any, arrayIndex?: number]
   addArrayItem: [rowId: number, field: string]
   removeArrayItem: [rowId: number, field: string, index: number]
+  filter: [key: string, items: any[]]
 }>()
 
 const handleUpdate = (rowId: number, field: string, value: any, arrayIndex?: number) => {
@@ -32,6 +34,10 @@ const handleAddArrayItem = (rowId: number, field: string) => {
 
 const handleRemoveArrayItem = (rowId: number, field: string, index: number) => {
   emit('removeArrayItem', rowId, field, index)
+}
+
+const handleFilter = (key: string, items: any[]) => {
+  emit('filter', key, items)
 }
 
 const checkIfChanged = (rowId: number, field: string) => {
@@ -54,7 +60,9 @@ const checkIfChanged = (rowId: number, field: string) => {
           :sort-order="sortOrder"
           :class-name="column.className"
           :sticky="column.sticky"
+          :filter-items="filterItems?.[column.key]"
           @sort="emit('sort', $event)"
+          @filter="handleFilter"
       />
     </div>
 
