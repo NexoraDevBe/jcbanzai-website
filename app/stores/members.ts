@@ -119,7 +119,12 @@ export const useMembersStore = defineStore('members', () => {
         }
 
         filterItems.value = Object.fromEntries(
-            Object.entries(filters).map(([k, s]) => [k, Array.from(s)])
+            Object.entries(filters).map(([k, s]) => [
+                k,
+                Array.from(s).sort((a, b) =>
+                    String(a).localeCompare(String(b))
+                )
+            ])
         )
     }
 

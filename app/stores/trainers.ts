@@ -107,7 +107,12 @@ export const useTrainersStore = defineStore('trainers', () => {
         }
 
         filterItems.value = Object.fromEntries(
-            Object.entries(filters).map(([k, s]) => [k, Array.from(s)])
+            Object.entries(filters).map(([k, s]) => [
+                k,
+                Array.from(s).sort((a, b) =>
+                    String(a).localeCompare(String(b))
+                )
+            ])
         )
     }
 
