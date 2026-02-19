@@ -224,6 +224,7 @@ watch(() => props.expandAll, (newVal) => {
   display: table-cell;
   vertical-align: middle;
   border: 1px solid var(--secondary-10);
+  min-width: 10rem;
 
   &.dnone {
     display: none;
@@ -261,7 +262,7 @@ watch(() => props.expandAll, (newVal) => {
   }
 
   &.id {
-    width: 3rem;
+    min-width: 3rem;
     text-align: center;
     position: sticky;
     left: 0;
