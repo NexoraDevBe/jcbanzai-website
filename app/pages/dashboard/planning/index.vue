@@ -59,22 +59,20 @@ const plannedMonths = computed(() => {
     return acc
   }, {})
 
-  const validMonths = Object.entries(grouped)
-      .filter(([key, days]) => {
-        return (days as any).every((dm: any) => {
-          return dm.type === 'geen-les'
-              ? dm.planning.length <= 1 || dm.planning[0] === ''
-              : dm.planning.length > 0 && dm.planning[0] !== ''
-        })
+  return Object.entries(grouped)
+    .filter(([key, days]) => {
+      return (days as any).every((dm: any) => {
+        return dm.type === 'geen-les'
+            ? dm.planning.length <= 1 || dm.planning[0] === ''
+            : dm.planning.length > 0 && dm.planning[0] !== ''
       })
-      .map(([key, days]) => {
-        return {
-          year: key.substring(0, 4),
-          month: key.substring(5, 7)
-        }
-      })
-
-  return validMonths
+    })
+    .map(([key, days]) => {
+      return {
+        year: +key.substring(0, 4),
+        month: +key.substring(5, 7)
+      }
+    })
 })
 
 const typeOptions = [
@@ -102,9 +100,12 @@ onMounted(async () => {
   if (planningStore.originalPlanning.length === 0) {
     await planningStore.fetchPlanningByMonth(year, month)
   }
-  if (planningStore.distinctMonths.length === 0) {
-    await planningStore.fetchDistinctMonths()
+  else {
+    if (planningStore.originalPlanning[0]?.day.substring(0, 4) !== year.toString() || planningStore.originalPlanning[0]?.day.substring(5, 7) !== month.toString()) {
+      await planningStore.fetchPlanningByMonth(year, month)
+    }
   }
+  await planningStore.fetchDistinctMonths()
 })
 
 onBeforeRouteLeave((to, from, next) => {
@@ -127,7 +128,7 @@ onBeforeRouteLeave((to, from, next) => {
       <template #right-actions>
         <button
             v-if="userStore.allowAccess('admin')"
-            class="warning"
+            class="success"
             @click="() => navigateTo('/dashboard/planning/create')"
         >
           Maak planning
