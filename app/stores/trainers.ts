@@ -1,10 +1,7 @@
 // stores/trainers.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import {
-    getTrainerNames,
-    getTrainers
-} from '~/utils/supabase'
+import { getTrainerNames, getTrainers } from '~/utils/supabase'
 import type {Trainer} from '~/types'
 
 export const useTrainersStore = defineStore('trainers', () => {
@@ -19,72 +16,45 @@ export const useTrainersStore = defineStore('trainers', () => {
     const changedCoords = ref<{rowId: number, field:string }[]>([])
     const activeFilters = ref<Record<string, any[]>>({})
 
+    // Cached filter items — built once after fetch
+    const filterItems = ref<Record<string, any[]>>({})
+
+    // O(1) lookups
+    const editableTrainersMap = computed(() =>
+        new Map(editableTrainers.value.map(t => [t.id, t]))
+    )
+    const originalTrainersMap = computed(() =>
+        new Map(originalTrainers.value.map(t => [t.id, t]))
+    )
+
     // Getters
     const filteredTrainers = computed(() => {
-        let data = editableTrainers.value
-
-        // Apply filters
         const filterKeys = Object.keys(activeFilters.value)
-        if (filterKeys.length > 0) {
-            data = data.filter(trainer => {
-                return filterKeys.every(key => {
-                    const filterValues = activeFilters.value[key]
 
-                    // Skip if no filter values for this key
-                    if (!filterValues || filterValues.length === 0) {
-                        return true
-                    }
+        if (filterKeys.length === 0) return editableTrainers.value
 
-                    const trainerValue = trainer[key as keyof Trainer]
+        return editableTrainers.value.filter(trainer => {
+            return filterKeys.every(key => {
+                const filterValues = activeFilters.value[key]
+                if (!filterValues || filterValues.length === 0) return true
 
-                    // Handle array fields (like availability days)
-                    if (Array.isArray(trainerValue)) {
-                        return filterValues.some(filterVal =>
-                            trainerValue.includes(filterVal)
-                        )
-                    }
+                const trainerValue = trainer[key as keyof Trainer]
 
-                    // Handle regular fields
-                    return filterValues.includes(trainerValue)
-                })
-            })
-        }
-
-        return data
-    })
-
-    const filterItems = computed(() => {
-        const filters: Record<string, Set<any>> = {}
-
-        originalTrainers.value.forEach((item) => {
-            Object.entries(item).forEach(([key, value]) => {
-                if (key === 'id' || key === 'updated_at') return
-
-                if (!filters[key]) {
-                    filters[key] = new Set()
+                if (Array.isArray(trainerValue)) {
+                    return filterValues.some(filterVal => trainerValue.includes(filterVal))
                 }
 
-                if (Array.isArray(value)) {
-                    value.forEach(v => filters[key]?.add(v))
-                } else {
-                    filters[key].add(value)
-                }
+                return filterValues.includes(trainerValue)
             })
         })
-
-        // Convert Sets back to arrays
-        return Object.fromEntries(
-            Object.entries(filters).map(([key, set]) => [key, Array.from(set)])
-        )
     })
 
     const sortedTrainers = computed(() => {
-        if (!sortKey.value || sortKey.value === '') {
-            return filteredTrainers.value
-        }
+        const data = filteredTrainers.value
 
-        const data = [...filteredTrainers.value]
-        return data.sort((a, b) => {
+        if (!sortKey.value) return data
+
+        return [...data].sort((a, b) => {
             const aVal = a[sortKey.value as keyof Trainer]
             const bVal = b[sortKey.value as keyof Trainer]
 
@@ -105,22 +75,54 @@ export const useTrainersStore = defineStore('trainers', () => {
         })
     })
 
+    // Uses changedCoords Set instead of JSON.stringify on every item
     const changedTrainers = computed(() => {
-        return editableTrainers.value.filter(edited => {
-            const original = originalTrainers.value.find(r => r.id === edited.id)
-            return JSON.stringify(edited) !== JSON.stringify(original)
-        })
+        const changedIds = new Set(changedCoords.value.map(c => c.rowId))
+        return editableTrainers.value.filter(t => changedIds.has(t.id))
     })
 
     const hasUnsavedChanges = computed(() => changedCoords.value.length > 0)
 
     const changedCount = computed(() => new Set(changedCoords.value.map(c => c.rowId)).size)
 
-    const hasActiveFilters = computed(() => {
-        return Object.values(activeFilters.value).some(arr => arr.length > 0)
-    })
+    const hasActiveFilters = computed(() =>
+        Object.values(activeFilters.value).some(arr => arr.length > 0)
+    )
 
     // Actions
+    function buildFilterItems() {
+        const filters: Record<string, Set<any>> = {}
+
+        for (const item of originalTrainers.value) {
+            for (const [key, value] of Object.entries(item)) {
+                if (key === 'id' || key === 'updated_at') continue
+                if (!filters[key]) filters[key] = new Set()
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => filters[key]?.add(v))
+                } else {
+                    filters[key].add(value)
+                }
+            }
+        }
+
+        filterItems.value = Object.fromEntries(
+            Object.entries(filters).map(([k, s]) => [k, Array.from(s)])
+        )
+    }
+
+    function _updateChangedCoords(rowId: number, field: string, isBackToOriginal: boolean) {
+        const coordIndex = changedCoords.value.findIndex(
+            coord => coord.rowId === rowId && coord.field === field
+        )
+
+        if (isBackToOriginal) {
+            if (coordIndex !== -1) changedCoords.value.splice(coordIndex, 1)
+        } else {
+            if (coordIndex === -1) changedCoords.value.push({ rowId, field })
+        }
+    }
+
     async function fetchTrainers() {
         isLoading.value = true
         try {
@@ -128,7 +130,7 @@ export const useTrainersStore = defineStore('trainers', () => {
             originalTrainers.value = markRaw(structuredClone(trainers))
             editableTrainers.value = structuredClone(trainers)
             changedCoords.value = []
-
+            buildFilterItems()
         } catch (error) {
             console.error('Failed to fetch Trainers:', error)
             throw error
@@ -150,6 +152,15 @@ export const useTrainersStore = defineStore('trainers', () => {
         }
     }
 
+    function setSort(key: string) {
+        if (sortKey.value === key) {
+            sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+        } else {
+            sortKey.value = key
+            sortOrder.value = 'asc'
+        }
+    }
+
     function setFilter(field: string, values: any[]) {
         if (values.length === 0) {
             delete activeFilters.value[field]
@@ -164,24 +175,6 @@ export const useTrainersStore = defineStore('trainers', () => {
 
     function clearAllFilters() {
         activeFilters.value = {}
-    }
-
-    function toggleFilterValue(field: string, value: any) {
-        if (!activeFilters.value[field]) {
-            activeFilters.value[field] = []
-        }
-
-        const index = activeFilters.value[field].indexOf(value)
-        if (index === -1) {
-            activeFilters.value[field].push(value)
-        } else {
-            activeFilters.value[field].splice(index, 1)
-
-            // Clean up empty filters
-            if (activeFilters.value[field].length === 0) {
-                delete activeFilters.value[field]
-            }
-        }
     }
 
     return {
@@ -208,9 +201,9 @@ export const useTrainersStore = defineStore('trainers', () => {
         // Actions
         fetchTrainers,
         fetchTrainerNames,
+        setSort,
         setFilter,
         clearFilter,
-        clearAllFilters,
-        toggleFilterValue,
+        clearAllFilters
     }
 })

@@ -1,8 +1,8 @@
 // stores/members.ts
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import { getMembers, updateMember } from '~/utils/supabase'
-import type {Member, Planning} from '~/types'
+import type { Member } from '~/types'
 
 export const useMembersStore = defineStore('members', () => {
     // State
@@ -12,76 +12,51 @@ export const useMembersStore = defineStore('members', () => {
     const sortOrder = ref<'asc' | 'desc'>('asc')
     const isLoading = ref(false)
     const isSaving = ref(false)
-    const changedCoords = ref<{rowId: number, field:string}[]>([])
+    const changedCoords = ref<{ rowId: number; field: string }[]>([])
     const activeFilters = ref<Record<string, any[]>>({})
+
+    // Cached filter items — built once after fetch, not a computed
+    const filterItems = ref<Record<string, any[]>>({})
+
+    // O(1) lookups via Maps instead of find() on every update
+    const editableMembersMap = computed(() =>
+        new Map(editableMembers.value.map(m => [m.id, m]))
+    )
+    const originalMembersMap = computed(() =>
+        new Map(originalMembers.value.map(m => [m.id, m]))
+    )
 
     // Getters
     const filteredMembers = computed(() => {
-        let data = editableMembers.value
-
-        // Apply filters
         const filterKeys = Object.keys(activeFilters.value)
-        console.log(filterKeys)
-        if (filterKeys.length > 0) {
-            data = data.filter(member => {
-                return filterKeys.every(key => {
-                    const filterValues = activeFilters.value[key]
 
-                    // Skip if no filter values for this key
-                    if (!filterValues || filterValues.length === 0) {
-                        return true
-                    }
-
-                    const memberValue = member[key as keyof Member]
-
-                    // Handle array fields (like availability days)
-                    if (Array.isArray(memberValue)) {
-                        return filterValues.some(filterVal =>
-                            memberValue.includes(filterVal)
-                        )
-                    }
-
-                    // Handle regular fields
-                    return filterValues.includes(memberValue)
-                })
-            })
+        if (filterKeys.length === 0) {
+            return editableMembers.value
         }
 
-        return data
-    })
+        return editableMembers.value.filter(member => {
+            return filterKeys.every(key => {
+                const filterValues = activeFilters.value[key]
 
-    const filterItems = computed(() => {
-        const filters: Record<string, Set<any>> = {}
+                if (!filterValues || filterValues.length === 0) return true
 
-        originalMembers.value.forEach((item) => {
-            Object.entries(item).forEach(([key, value]) => {
-                if (key === 'id' || key === 'updated_at') return
+                const memberValue = member[key as keyof Member]
 
-                if (!filters[key]) {
-                    filters[key] = new Set()
+                if (Array.isArray(memberValue)) {
+                    return filterValues.some(filterVal => memberValue.includes(filterVal))
                 }
 
-                if (Array.isArray(value)) {
-                    value.forEach(v => filters[key]?.add(v))
-                } else {
-                    filters[key].add(value)
-                }
+                return filterValues.includes(memberValue)
             })
         })
-
-        // Convert Sets back to arrays
-        return Object.fromEntries(
-            Object.entries(filters).map(([key, set]) => [key, Array.from(set)])
-        )
     })
 
     const sortedMembers = computed(() => {
-        if (!sortKey.value || sortKey.value === '') {
-            return filteredMembers.value  // ← Return directly, no copy needed
-        }
+        const data = filteredMembers.value
 
-        const data = [...filteredMembers.value]
-        return data.sort((a, b) => {
+        if (!sortKey.value) return data
+
+        return [...data].sort((a, b) => {
             const aVal = a[sortKey.value as keyof Member]
             const bVal = b[sortKey.value as keyof Member]
 
@@ -112,29 +87,50 @@ export const useMembersStore = defineStore('members', () => {
         })
     })
 
+    // Avoids JSON.stringify on every member — uses changedCoords Set instead
     const changedMembers = computed(() => {
-        return editableMembers.value.filter(edited => {
-            const original = originalMembers.value.find(r => r.id === edited.id)
-            return JSON.stringify(edited) !== JSON.stringify(original)
-        })
+        const changedIds = new Set(changedCoords.value.map(c => c.rowId))
+        return editableMembers.value.filter(m => changedIds.has(m.id))
     })
 
     const hasUnsavedChanges = computed(() => changedCoords.value.length > 0)
 
     const changedCount = computed(() => new Set(changedCoords.value.map(c => c.rowId)).size)
 
-    const hasActiveFilters = computed(() => {
-        return Object.values(activeFilters.value).some(arr => arr.length > 0)
-    })
+    const hasActiveFilters = computed(() =>
+        Object.values(activeFilters.value).some(arr => arr.length > 0)
+    )
 
     // Actions
+    function buildFilterItems() {
+        const filters: Record<string, Set<any>> = {}
+
+        for (const item of originalMembers.value) {
+            for (const [key, value] of Object.entries(item)) {
+                if (key === 'id' || key === 'updated_at') continue
+                if (!filters[key]) filters[key] = new Set()
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => filters[key]?.add(v))
+                } else {
+                    filters[key].add(value)
+                }
+            }
+        }
+
+        filterItems.value = Object.fromEntries(
+            Object.entries(filters).map(([k, s]) => [k, Array.from(s)])
+        )
+    }
+
     async function fetchMembers() {
         isLoading.value = true
         try {
             const members = await getMembers()
             originalMembers.value = markRaw(structuredClone(members))
             editableMembers.value = structuredClone(members)
-            changedCoords.value = [] // Reset changed coords
+            changedCoords.value = []
+            buildFilterItems()
         } catch (error) {
             console.error('Failed to fetch members:', error)
             throw error
@@ -143,91 +139,57 @@ export const useMembersStore = defineStore('members', () => {
         }
     }
 
-    function updateMemberField(rowId: number, field: string, value: Member, arrayIndex?: number) {
-        const member = editableMembers.value.find(m => m.id === rowId) as Member
-        const original = originalMembers.value.find(m => m.id === rowId) as Member
-        if (!member || !original) return
-
-        const f = field as keyof Member
-
-        if (arrayIndex !== undefined && Array.isArray(member[f])) {
-            member[f][arrayIndex] = value
-        } else {
-            // @ts-expect-error typescript says never
-            member[f] = value
-        }
-
-        // Check if the entire field matches the original
-        const isBackToOriginal = JSON.stringify(member[f]) === JSON.stringify(original[f])
-
+    function _updateChangedCoords(rowId: number, field: string, isBackToOriginal: boolean) {
         const coordIndex = changedCoords.value.findIndex(
             coord => coord.rowId === rowId && coord.field === field
         )
 
         if (isBackToOriginal) {
-            // Remove from changedCoords if it exists and value is back to original
-            if (coordIndex !== -1) {
-                changedCoords.value.splice(coordIndex, 1)
-            }
+            if (coordIndex !== -1) changedCoords.value.splice(coordIndex, 1)
         } else {
-            // Add to changedCoords if not already there
-            if (coordIndex === -1) {
-                changedCoords.value.push({rowId, field})
-            }
+            if (coordIndex === -1) changedCoords.value.push({ rowId, field })
         }
     }
 
+    function updateMemberField(rowId: number, field: string, value: any, arrayIndex?: number) {
+        const member = editableMembersMap.value.get(rowId)
+        const original = originalMembersMap.value.get(rowId)
+        if (!member || !original) return
+
+        const f = field as keyof Member
+
+        if (arrayIndex !== undefined && Array.isArray(member[f])) {
+            ;(member[f] as any[])[arrayIndex] = value
+        } else {
+            // @ts-expect-error typescript says never
+            member[f] = value
+        }
+
+        const isBackToOriginal = JSON.stringify(member[f]) === JSON.stringify(original[f])
+        _updateChangedCoords(rowId, field, isBackToOriginal)
+    }
+
     function addArrayItem(rowId: number, field: string) {
-        const member = editableMembers.value.find(m => m.id === rowId)
-        const original = originalMembers.value.find(m => m.id === rowId)
+        const member = editableMembersMap.value.get(rowId)
+        const original = originalMembersMap.value.get(rowId)
         const f = field as keyof Member
 
         if (member && Array.isArray(member[f])) {
-            member[f].push('')
-
-            // Check if array still matches original
-            const isBackToOriginal = original && JSON.stringify(member[f]) === JSON.stringify(original[f])
-
-            const coordIndex = changedCoords.value.findIndex(
-                coord => coord.rowId === rowId && coord.field === field
-            )
-
-            if (isBackToOriginal) {
-                if (coordIndex !== -1) {
-                    changedCoords.value.splice(coordIndex, 1)
-                }
-            } else {
-                if (coordIndex === -1) {
-                    changedCoords.value.push({rowId, field})
-                }
-            }
+            ;(member[f] as any[]).push('')
+            const isBackToOriginal = !!original && JSON.stringify(member[f]) === JSON.stringify(original[f])
+            _updateChangedCoords(rowId, field, isBackToOriginal)
         }
     }
 
     function removeArrayItem(rowId: number, field: string, index: number) {
-        const member = editableMembers.value.find(m => m.id === rowId)
-        const original = originalMembers.value.find(m => m.id === rowId)
+        const member = editableMembersMap.value.get(rowId)
+        const original = originalMembersMap.value.get(rowId)
         const f = field as keyof Member
 
         if (member && Array.isArray(member[f])) {
-            member[f].splice(index, 1)
-
-            // Check if array still matches original
-            const isBackToOriginal = original && JSON.stringify(member[f]) === JSON.stringify(original[f])
-
-            const coordIndex = changedCoords.value.findIndex(
-                coord => coord.rowId === rowId && coord.field === field
-            )
-
-            if (isBackToOriginal) {
-                if (coordIndex !== -1) {
-                    changedCoords.value.splice(coordIndex, 1)
-                }
-            } else {
-                if (coordIndex === -1) {
-                    changedCoords.value.push({rowId, field})
-                }
-            }
+            ;(member[f] as any[]).splice(index, 1)
+            const isBackToOriginal = !!original && JSON.stringify(member[f]) === JSON.stringify(original[f])
+            _updateChangedCoords(rowId, field, isBackToOriginal)
         }
     }
 
@@ -235,7 +197,7 @@ export const useMembersStore = defineStore('members', () => {
         if (sortKey.value === key) {
             sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
         } else {
-            sortKey.value = key as keyof Member
+            sortKey.value = key
             sortOrder.value = 'asc'
         }
     }
@@ -246,21 +208,17 @@ export const useMembersStore = defineStore('members', () => {
         isSaving.value = true
         try {
             const membersToUpdate = changedMembers.value
-
             console.log(`Saving ${membersToUpdate.length} changed members`)
 
             for (const member of membersToUpdate) {
-                await updateMember(member, originalMembers.value.find((og) => og.id === member.id)!)
+                await updateMember(member, originalMembersMap.value.get(member.id)!)
             }
 
-            // Update original to match current state
-            const rawPlanning = toRaw(editableMembers.value)
-            originalMembers.value = markRaw(structuredClone(rawPlanning))
-
-            changedCoords.value = [] // Clear changed coords after successful save
+            const rawMembers = toRaw(editableMembers.value)
+            originalMembers.value = markRaw(structuredClone(rawMembers))
+            changedCoords.value = []
 
             console.log('All changes saved successfully')
-            console.log('Repopulating members')
             await fetchMembers()
         } catch (error) {
             console.error('Failed to save changes:', error)
@@ -271,8 +229,8 @@ export const useMembersStore = defineStore('members', () => {
     }
 
     function discardChanges() {
-        editableMembers.value = JSON.parse(JSON.stringify(originalMembers.value))
-        changedCoords.value = [] // Clear changed coords when discarding
+        editableMembers.value = structuredClone(toRaw(originalMembers.value))
+        changedCoords.value = []
     }
 
     function addMember(member: Member) {
@@ -281,9 +239,7 @@ export const useMembersStore = defineStore('members', () => {
 
     function removeMember(id: number) {
         const index = editableMembers.value.findIndex(m => m.id === id)
-        if (index !== -1) {
-            editableMembers.value.splice(index, 1)
-        }
+        if (index !== -1) editableMembers.value.splice(index, 1)
     }
 
     function setFilter(field: string, values: any[]) {
@@ -300,24 +256,6 @@ export const useMembersStore = defineStore('members', () => {
 
     function clearAllFilters() {
         activeFilters.value = {}
-    }
-
-    function toggleFilterValue(field: string, value: any) {
-        if (!activeFilters.value[field]) {
-            activeFilters.value[field] = []
-        }
-
-        const index = activeFilters.value[field].indexOf(value)
-        if (index === -1) {
-            activeFilters.value[field].push(value)
-        } else {
-            activeFilters.value[field].splice(index, 1)
-
-            // Clean up empty filters
-            if (activeFilters.value[field].length === 0) {
-                delete activeFilters.value[field]
-            }
-        }
     }
 
     return {
@@ -352,7 +290,6 @@ export const useMembersStore = defineStore('members', () => {
         removeMember,
         setFilter,
         clearFilter,
-        clearAllFilters,
-        toggleFilterValue,
+        clearAllFilters
     }
 })

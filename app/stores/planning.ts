@@ -9,7 +9,6 @@ interface WeeklySchedule {
     type: 'jeugd' | 'volwassenen' | 'gezamenlijk' | 'wedstrijd' | 'kleuters' | 'geen-les'
 }
 
-// Define your weekly recurring schedule
 const WEEKLY_SCHEDULE: WeeklySchedule[] = [
     { day: 1, type: 'jeugd' },
     { day: 1, type: 'volwassenen' },
@@ -32,72 +31,45 @@ export const usePlanningStore = defineStore('planning', () => {
     const changedCoords = ref<{rowId: number, field:string }[]>([])
     const activeFilters = ref<Record<string, any[]>>({})
 
+    // Cached filter items — built once after fetch
+    const filterItems = ref<Record<string, any[]>>({})
+
+    // O(1) lookups
+    const editablePlanningMap = computed(() =>
+        new Map(editablePlanning.value.map(p => [p.id, p]))
+    )
+    const originalPlanningMap = computed(() =>
+        new Map(originalPlanning.value.map(p => [p.id, p]))
+    )
+
     // Getters
     const filteredPlanning = computed(() => {
-        let data = editablePlanning.value
-
-        // Apply filters
         const filterKeys = Object.keys(activeFilters.value)
-        if (filterKeys.length > 0) {
-            data = data.filter(planning => {
-                return filterKeys.every(key => {
-                    const filterValues = activeFilters.value[key]
 
-                    // Skip if no filter values for this key
-                    if (!filterValues || filterValues.length === 0) {
-                        return true
-                    }
+        if (filterKeys.length === 0) return editablePlanning.value
 
-                    const planningValue = planning[key as keyof Planning]
+        return editablePlanning.value.filter(planning => {
+            return filterKeys.every(key => {
+                const filterValues = activeFilters.value[key]
+                if (!filterValues || filterValues.length === 0) return true
 
-                    // Handle array fields (like availability days)
-                    if (Array.isArray(planningValue)) {
-                        return filterValues.some(filterVal =>
-                            planningValue.includes(filterVal)
-                        )
-                    }
+                const planningValue = planning[key as keyof Planning]
 
-                    // Handle regular fields
-                    return filterValues.includes(planningValue)
-                })
-            })
-        }
-
-        return data
-    })
-
-    const filterItems = computed(() => {
-        const filters: Record<string, Set<any>> = {}
-
-        originalPlanning.value.forEach((item) => {
-            Object.entries(item).forEach(([key, value]) => {
-                if (key === 'id' || key === 'updated_at') return
-
-                if (!filters[key]) {
-                    filters[key] = new Set()
+                if (Array.isArray(planningValue)) {
+                    return filterValues.some(filterVal => planningValue.includes(filterVal))
                 }
 
-                if (Array.isArray(value)) {
-                    value.forEach(v => filters[key]?.add(v))
-                } else {
-                    filters[key].add(value)
-                }
+                return filterValues.includes(planningValue)
             })
         })
-
-        // Convert Sets back to arrays
-        return Object.fromEntries(
-            Object.entries(filters).map(([key, set]) => [key, Array.from(set)])
-        )
     })
 
     const sortedPlanning = computed(() => {
-        if (!sortKey.value || sortKey.value === '') {
-            return filteredPlanning.value  // ← Return directly, no copy needed
-        }
+        const data = filteredPlanning.value
 
-        const data = [...filteredPlanning.value]
-        return data.sort((a, b) => {
+        if (!sortKey.value) return data
+
+        return [...data].sort((a, b) => {
             const aVal = a[sortKey.value as keyof Planning]
             const bVal = b[sortKey.value as keyof Planning]
 
@@ -118,29 +90,62 @@ export const usePlanningStore = defineStore('planning', () => {
         })
     })
 
+    // Uses changedCoords Set instead of JSON.stringify on every item
     const changedPlanning = computed(() => {
-        return editablePlanning.value.filter(edited => {
-            const original = originalPlanning.value.find(r => r.id === edited.id)
-            return JSON.stringify(edited) !== JSON.stringify(original)
-        })
+        const changedIds = new Set(changedCoords.value.map(c => c.rowId))
+        return editablePlanning.value.filter(p => changedIds.has(p.id))
     })
 
     const hasUnsavedChanges = computed(() => changedCoords.value.length > 0)
 
     const changedCount = computed(() => new Set(changedCoords.value.map(c => c.rowId)).size)
 
-    const hasActiveFilters = computed(() => {
-        return Object.values(activeFilters.value).some(arr => arr.length > 0)
-    })
+    const hasActiveFilters = computed(() =>
+        Object.values(activeFilters.value).some(arr => arr.length > 0)
+    )
 
     // Actions
+    function buildFilterItems() {
+        const filters: Record<string, Set<any>> = {}
+
+        for (const item of originalPlanning.value) {
+            for (const [key, value] of Object.entries(item)) {
+                if (key === 'id' || key === 'updated_at') continue
+                if (!filters[key]) filters[key] = new Set()
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => filters[key]?.add(v))
+                } else {
+                    filters[key].add(value)
+                }
+            }
+        }
+
+        filterItems.value = Object.fromEntries(
+            Object.entries(filters).map(([k, s]) => [k, Array.from(s)])
+        )
+    }
+
+    function _updateChangedCoords(rowId: number, field: string, isBackToOriginal: boolean) {
+        const coordIndex = changedCoords.value.findIndex(
+            coord => coord.rowId === rowId && coord.field === field
+        )
+
+        if (isBackToOriginal) {
+            if (coordIndex !== -1) changedCoords.value.splice(coordIndex, 1)
+        } else {
+            if (coordIndex === -1) changedCoords.value.push({ rowId, field })
+        }
+    }
+
     async function fetchPlanning() {
         isLoading.value = true
         try {
             const planning = await getPlanning()
             originalPlanning.value = markRaw(structuredClone(planning))
             editablePlanning.value = structuredClone(planning)
-            changedCoords.value = [] // Reset changed coords
+            changedCoords.value = []
+            buildFilterItems()
             setSort('id', 'asc')
         } catch (error) {
             console.error('Failed to fetch Planning:', error)
@@ -151,20 +156,19 @@ export const usePlanningStore = defineStore('planning', () => {
     }
 
     async function fetchPlanningByMonth(year: number, month: number) {
-        if (hasUnsavedChanges.value) {
-            discardChanges()
-        }
+        if (hasUnsavedChanges.value) discardChanges()
+
         isLoading.value = true
         try {
             const planning = await getPlanningByMonth(year, month)
 
             if (planning.length === 0) {
                 await insertMonthPlanning(year, month)
-            }
-            else {
+            } else {
                 originalPlanning.value = markRaw(structuredClone(planning))
                 editablePlanning.value = structuredClone(planning)
                 changedCoords.value = []
+                buildFilterItems()
                 setSort('id', 'asc')
             }
         } catch (error) {
@@ -180,7 +184,6 @@ export const usePlanningStore = defineStore('planning', () => {
         try {
             const distinctMonthsRes = await getDistinctPlanningMonths()
             distinctMonths.value = structuredClone(distinctMonthsRes)
-
         } catch (error) {
             console.error('Failed to fetch Distinct Months:', error)
             throw error
@@ -189,37 +192,45 @@ export const usePlanningStore = defineStore('planning', () => {
         }
     }
 
-    function updatePlanningField(rowId: number, field: string, value: Planning, arrayIndex?: number) {
-        const planning = editablePlanning.value.find(t => t.id === rowId) as Planning
-        const original = originalPlanning.value.find(t => t.id === rowId) as Planning
+    function updatePlanningField(rowId: number, field: string, value: any, arrayIndex?: number) {
+        const planning = editablePlanningMap.value.get(rowId)
+        const original = originalPlanningMap.value.get(rowId)
         if (!planning || !original) return
 
         const f = field as keyof Planning
 
         if (arrayIndex !== undefined && Array.isArray(planning[f])) {
-            planning[f][arrayIndex] = value
+            ;(planning[f] as any[])[arrayIndex] = value
         } else {
             // @ts-expect-error typescript says never
             planning[f] = value
         }
 
-        // Check if the new value matches the original
         const isBackToOriginal = JSON.stringify(planning[f]) === JSON.stringify(original[f])
+        _updateChangedCoords(rowId, field, isBackToOriginal)
+    }
 
-        const coordIndex = changedCoords.value.findIndex(
-            coord => coord.rowId === rowId && coord.field === field
-        )
+    function addArrayItem(rowId: number, field: string) {
+        const planning = editablePlanningMap.value.get(rowId)
+        const original = originalPlanningMap.value.get(rowId)
+        const f = field as keyof Planning
 
-        if (isBackToOriginal) {
-            // Remove from changedCoords if it exists and value is back to original
-            if (coordIndex !== -1) {
-                changedCoords.value.splice(coordIndex, 1)
-            }
-        } else {
-            // Add to changedCoords if not already there
-            if (coordIndex === -1) {
-                changedCoords.value.push({rowId, field})
-            }
+        if (planning && Array.isArray(planning[f])) {
+            ;(planning[f] as any[]).push('')
+            const isBackToOriginal = !!original && JSON.stringify(planning[f]) === JSON.stringify(original[f])
+            _updateChangedCoords(rowId, field, isBackToOriginal)
+        }
+    }
+
+    function removeArrayItem(rowId: number, field: string, index: number) {
+        const planning = editablePlanningMap.value.get(rowId)
+        const original = originalPlanningMap.value.get(rowId)
+        const f = field as keyof Planning
+
+        if (planning && Array.isArray(planning[f])) {
+            ;(planning[f] as any[]).splice(index, 1)
+            const isBackToOriginal = !!original && JSON.stringify(planning[f]) === JSON.stringify(original[f])
+            _updateChangedCoords(rowId, field, isBackToOriginal)
         }
     }
 
@@ -227,8 +238,7 @@ export const usePlanningStore = defineStore('planning', () => {
         if (direction) {
             sortKey.value = key
             sortOrder.value = direction
-        }
-        else if (sortKey.value === key) {
+        } else if (sortKey.value === key) {
             sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
         } else {
             sortKey.value = key
@@ -241,19 +251,15 @@ export const usePlanningStore = defineStore('planning', () => {
 
         isSaving.value = true
         try {
-            const PlanningToUpdate = changedPlanning.value
+            const planningToUpdate = changedPlanning.value
+            console.log(`Saving ${planningToUpdate.length} changed planning items`)
 
-            console.log(`Saving ${PlanningToUpdate.length} changed Planning`)
-
-            for (const planning of PlanningToUpdate) {
-                await updatePlanning(planning, originalPlanning.value.find((og) => og.id === planning.id)!)
+            for (const planning of planningToUpdate) {
+                await updatePlanning(planning, originalPlanningMap.value.get(planning.id)!)
             }
 
-            // Update original to match current state
             const rawPlanning = toRaw(editablePlanning.value)
             originalPlanning.value = markRaw(structuredClone(rawPlanning))
-
-            // Clear changed coords after successful save
             changedCoords.value = []
 
             console.log('All changes saved successfully')
@@ -266,8 +272,8 @@ export const usePlanningStore = defineStore('planning', () => {
     }
 
     function discardChanges() {
-        editablePlanning.value = originalPlanning.value.map(t => ({ ...t }))
-        changedCoords.value = [] // Clear changed coords when discarding
+        editablePlanning.value = structuredClone(toRaw(originalPlanning.value))
+        changedCoords.value = []
     }
 
     function addPlanning(planning: Planning) {
@@ -276,48 +282,37 @@ export const usePlanningStore = defineStore('planning', () => {
 
     function removePlanning(id: number) {
         const index = editablePlanning.value.findIndex(t => t.id === id)
-        if (index !== -1) {
-            editablePlanning.value.splice(index, 1)
-        }
+        if (index !== -1) editablePlanning.value.splice(index, 1)
     }
 
     function getPlanningById(id: number) {
-        return editablePlanning.value.find(t => t.id === id)
+        return editablePlanningMap.value.get(id)
     }
 
     function generateMonthPlanning(year: number, month: number): Partial<Planning>[] {
         const planningItems: Partial<Planning>[] = []
 
-        // Get first and last day of the month
         const firstDay = new Date(year, month - 1, 1)
         const lastDay = new Date(year, month, 0)
-
-        // Iterate through each day of the month
         const currentDate = new Date(firstDay)
 
         while (currentDate <= lastDay) {
             const dayOfWeek = currentDate.getDay()
-
-            // Find all schedule items for this day of week
             const scheduleItems = WEEKLY_SCHEDULE.filter(s => s.day === dayOfWeek)
 
-            // Create planning items for each schedule entry
             for (const scheduleItem of scheduleItems) {
-                // Format date as YYYY-MM-DD
-                const year = currentDate.getFullYear()
-                const month = String(currentDate.getMonth() + 1).padStart(2, '0')
-                const day = String(currentDate.getDate()).padStart(2, '0')
-                const formattedDate = `${year}-${month}-${day}`
+                const y = currentDate.getFullYear()
+                const m = String(currentDate.getMonth() + 1).padStart(2, '0')
+                const d = String(currentDate.getDate()).padStart(2, '0')
 
                 planningItems.push({
-                    day: formattedDate,
+                    day: `${y}-${m}-${d}`,
                     type: scheduleItem.type,
                     beschikbaar: [''],
                     planning: ['']
                 })
             }
 
-            // Move to next day
             currentDate.setDate(currentDate.getDate() + 1)
         }
 
@@ -328,17 +323,13 @@ export const usePlanningStore = defineStore('planning', () => {
         isSaving.value = true
         try {
             const planningItems = generateMonthPlanning(year, month)
-
             console.log(`Inserting ${planningItems.length} planning items for ${year}-${month}`)
 
-            // Insert all items into database
             for (const item of planningItems) {
                 await insertPlanning(item as Planning)
             }
 
-        // Refresh the planning data
             await fetchPlanningByMonth(year, month)
-
             console.log('Month planning inserted successfully')
             return planningItems.length
         } catch (error) {
@@ -346,62 +337,6 @@ export const usePlanningStore = defineStore('planning', () => {
             throw error
         } finally {
             isSaving.value = false
-        }
-    }
-
-    function addArrayItem(rowId: number, field: string) {
-        const planning = editablePlanning.value.find(m => m.id === rowId)
-        const original = originalPlanning.value.find(m => m.id === rowId)
-        const f = field as keyof Planning
-
-        if (planning && Array.isArray(planning[f])) {
-            planning[f].push('')
-
-            // Check if array still matches original
-            const isBackToOriginal = original && JSON.stringify(planning[f]) === JSON.stringify(original[f])
-
-            const coordIndex = changedCoords.value.findIndex(
-                coord => coord.rowId === rowId && coord.field === field
-            )
-
-            if (isBackToOriginal) {
-                if (coordIndex !== -1) {
-                    changedCoords.value.splice(coordIndex, 1)
-                    console.log('removed:', changedCoords)
-                }
-            } else {
-                if (coordIndex === -1) {
-                    changedCoords.value.push({rowId, field})
-                    console.log('added:', changedCoords)
-                }
-            }
-        }
-    }
-
-    function removeArrayItem(rowId: number, field: string, index: number) {
-        const planning = editablePlanning.value.find(m => m.id === rowId)
-        const original = originalPlanning.value.find(m => m.id === rowId)
-        const f = field as keyof Planning
-
-        if (planning && Array.isArray(planning[f])) {
-            planning[f].splice(index, 1)
-
-            // Check if array still matches original
-            const isBackToOriginal = original && JSON.stringify(planning[f]) === JSON.stringify(original[f])
-
-            const coordIndex = changedCoords.value.findIndex(
-                coord => coord.rowId === rowId && coord.field === field
-            )
-
-            if (isBackToOriginal) {
-                if (coordIndex !== -1) {
-                    changedCoords.value.splice(coordIndex, 1)
-                }
-            } else {
-                if (coordIndex === -1) {
-                    changedCoords.value.push({rowId, field})
-                }
-            }
         }
     }
 
@@ -419,24 +354,6 @@ export const usePlanningStore = defineStore('planning', () => {
 
     function clearAllFilters() {
         activeFilters.value = {}
-    }
-
-    function toggleFilterValue(field: string, value: any) {
-        if (!activeFilters.value[field]) {
-            activeFilters.value[field] = []
-        }
-
-        const index = activeFilters.value[field].indexOf(value)
-        if (index === -1) {
-            activeFilters.value[field].push(value)
-        } else {
-            activeFilters.value[field].splice(index, 1)
-
-            // Clean up empty filters
-            if (activeFilters.value[field].length === 0) {
-                delete activeFilters.value[field]
-            }
-        }
     }
 
     return {
@@ -477,7 +394,6 @@ export const usePlanningStore = defineStore('planning', () => {
         removeArrayItem,
         setFilter,
         clearFilter,
-        clearAllFilters,
-        toggleFilterValue,
+        clearAllFilters
     }
 })

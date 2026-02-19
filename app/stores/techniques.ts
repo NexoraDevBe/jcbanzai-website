@@ -2,11 +2,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getTechniques, updateTechnique } from '~/utils/supabase'
-import type {Technique, Trainer} from '~/types'
+import type {Technique} from '~/types'
 
 export const useTechniquesStore = defineStore('techniques', () => {
     // State
-    const originalTechniques = ref<Technique[]>([])
+    const originalTechniques = shallowRef<Technique[]>([])
     const editableTechniques = ref<Technique[]>([])
     const sortKey = ref<string>('')
     const sortOrder = ref<'asc' | 'desc'>('asc')
@@ -15,72 +15,45 @@ export const useTechniquesStore = defineStore('techniques', () => {
     const changedCoords = ref<{rowId: number, field:string }[]>([])
     const activeFilters = ref<Record<string, any[]>>({})
 
+    // Cached filter items — built once after fetch
+    const filterItems = ref<Record<string, any[]>>({})
+
+    // O(1) lookups
+    const editableTechniquesMap = computed(() =>
+        new Map(editableTechniques.value.map(t => [t.id, t]))
+    )
+    const originalTechniquesMap = computed(() =>
+        new Map(originalTechniques.value.map(t => [t.id, t]))
+    )
+
     // Getters
     const filteredTechniques = computed(() => {
-        let data = editableTechniques.value
-
-        // Apply filters
         const filterKeys = Object.keys(activeFilters.value)
-        if (filterKeys.length > 0) {
-            data = data.filter(technique => {
-                return filterKeys.every(key => {
-                    const filterValues = activeFilters.value[key]
 
-                    // Skip if no filter values for this key
-                    if (!filterValues || filterValues.length === 0) {
-                        return true
-                    }
+        if (filterKeys.length === 0) return editableTechniques.value
 
-                    const techniqueValue = technique[key as keyof Technique]
+        return editableTechniques.value.filter(technique => {
+            return filterKeys.every(key => {
+                const filterValues = activeFilters.value[key]
+                if (!filterValues || filterValues.length === 0) return true
 
-                    // Handle array fields (like availability days)
-                    if (Array.isArray(techniqueValue)) {
-                        return filterValues.some(filterVal =>
-                            techniqueValue.includes(filterVal)
-                        )
-                    }
+                const techniqueValue = technique[key as keyof Technique]
 
-                    // Handle regular fields
-                    return filterValues.includes(techniqueValue)
-                })
-            })
-        }
-
-        return data
-    })
-
-    const filterItems = computed(() => {
-        const filters: Record<string, Set<any>> = {}
-
-        originalTechniques.value.forEach((item) => {
-            Object.entries(item).forEach(([key, value]) => {
-                if (key === 'id' || key === 'updated_at') return
-
-                if (!filters[key]) {
-                    filters[key] = new Set()
+                if (Array.isArray(techniqueValue)) {
+                    return filterValues.some(filterVal => techniqueValue.includes(filterVal))
                 }
 
-                if (Array.isArray(value)) {
-                    value.forEach(v => filters[key]?.add(v))
-                } else {
-                    filters[key].add(value)
-                }
+                return filterValues.includes(techniqueValue)
             })
         })
-
-        // Convert Sets back to arrays
-        return Object.fromEntries(
-            Object.entries(filters).map(([key, set]) => [key, Array.from(set)])
-        )
     })
 
     const sortedTechniques = computed(() => {
-        if (!sortKey.value || sortKey.value === '') {
-            return filteredTechniques.value  // ← Return directly, no copy needed
-        }
+        const data = filteredTechniques.value
 
-        const data = [...filteredTechniques.value]
-        return data.sort((a, b) => {
+        if (!sortKey.value) return data
+
+        return [...data].sort((a, b) => {
             const aVal = a[sortKey.value as keyof Technique]
             const bVal = b[sortKey.value as keyof Technique]
 
@@ -101,59 +74,82 @@ export const useTechniquesStore = defineStore('techniques', () => {
         })
     })
 
+    // Uses changedCoords Set instead of JSON.stringify on every item
     const changedTechniques = computed(() => {
-        return editableTechniques.value.filter(edited => {
-            const original = originalTechniques.value.find(r => r.id === edited.id)
-            return JSON.stringify(edited) !== JSON.stringify(original)
-        })
+        const changedIds = new Set(changedCoords.value.map(c => c.rowId))
+        return editableTechniques.value.filter(t => changedIds.has(t.id))
     })
 
     const hasUnsavedChanges = computed(() => changedCoords.value.length > 0)
 
     const changedCount = computed(() => new Set(changedCoords.value.map(c => c.rowId)).size)
 
-    // Group techniques by belt
     const techniquesByBelt = computed(() => {
         const grouped: Record<string, Technique[]> = {}
-
-        sortedTechniques.value.forEach(technique => {
+        for (const technique of sortedTechniques.value) {
             const belt = technique.belt || 'unassigned'
-            if (!grouped[belt]) {
-                grouped[belt] = []
-            }
+            if (!grouped[belt]) grouped[belt] = []
             grouped[belt].push(technique)
-        })
-
+        }
         return grouped
     })
 
-    // Group techniques by category
     const techniquesByCategory = computed(() => {
         const grouped: Record<string, Technique[]> = {}
-
-        sortedTechniques.value.forEach(technique => {
+        for (const technique of sortedTechniques.value) {
             const category = technique.category || 'uncategorized'
-            if (!grouped[category]) {
-                grouped[category] = []
-            }
+            if (!grouped[category]) grouped[category] = []
             grouped[category].push(technique)
-        })
-
+        }
         return grouped
     })
 
-    const hasActiveFilters = computed(() => {
-        return Object.values(activeFilters.value).some(arr => arr.length > 0)
-    })
+    const hasActiveFilters = computed(() =>
+        Object.values(activeFilters.value).some(arr => arr.length > 0)
+    )
 
     // Actions
+    function buildFilterItems() {
+        const filters: Record<string, Set<any>> = {}
+
+        for (const item of originalTechniques.value) {
+            for (const [key, value] of Object.entries(item)) {
+                if (key === 'id' || key === 'updated_at') continue
+                if (!filters[key]) filters[key] = new Set()
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => filters[key]?.add(v))
+                } else {
+                    filters[key].add(value)
+                }
+            }
+        }
+
+        filterItems.value = Object.fromEntries(
+            Object.entries(filters).map(([k, s]) => [k, Array.from(s)])
+        )
+    }
+
+    function _updateChangedCoords(rowId: number, field: string, isBackToOriginal: boolean) {
+        const coordIndex = changedCoords.value.findIndex(
+            coord => coord.rowId === rowId && coord.field === field
+        )
+
+        if (isBackToOriginal) {
+            if (coordIndex !== -1) changedCoords.value.splice(coordIndex, 1)
+        } else {
+            if (coordIndex === -1) changedCoords.value.push({ rowId, field })
+        }
+    }
+
     async function fetchTechniques() {
         isLoading.value = true
         try {
             const techniques = await getTechniques()
             originalTechniques.value = markRaw(structuredClone(techniques))
             editableTechniques.value = structuredClone(techniques)
-            changedCoords.value = [] // Reset changed coords
+            changedCoords.value = []
+            buildFilterItems()
         } catch (error) {
             console.error('Failed to fetch techniques:', error)
             throw error
@@ -162,40 +158,23 @@ export const useTechniquesStore = defineStore('techniques', () => {
         }
     }
 
-    function updateTechniqueField(rowId: number, field: string, value: Technique) {
-        const technique = editableTechniques.value.find(t => t.id === rowId)
-        const original = originalTechniques.value.find(t => t.id === rowId)
+    function updateTechniqueField(rowId: number, field: string, value: any) {
+        const technique = editableTechniquesMap.value.get(rowId)
+        const original = originalTechniquesMap.value.get(rowId)
+        if (!technique || !original) return
 
-        if (technique && original) {
-            // @ts-expect-error typescript says never
-            technique[field] = value
+        // @ts-expect-error typescript says never
+        technique[field] = value
 
-            // Check if the new value matches the original
-            const isBackToOriginal = JSON.stringify(technique[field as keyof Technique]) === JSON.stringify(original[field as keyof Technique])
-
-            const coordIndex = changedCoords.value.findIndex(
-                coord => coord.rowId === rowId && coord.field === field
-            )
-
-            if (isBackToOriginal) {
-                // Remove from changedCoords if it exists and value is back to original
-                if (coordIndex !== -1) {
-                    changedCoords.value.splice(coordIndex, 1)
-                }
-            } else {
-                // Add to changedCoords if not already there
-                if (coordIndex === -1) {
-                    changedCoords.value.push({rowId, field})
-                }
-            }
-        }
+        const isBackToOriginal = JSON.stringify(technique[field as keyof Technique]) === JSON.stringify(original[field as keyof Technique])
+        _updateChangedCoords(rowId, field, isBackToOriginal)
     }
 
     function setSort(key: string) {
         if (sortKey.value === key) {
             sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
         } else {
-            sortKey.value = key as keyof Technique
+            sortKey.value = key
             sortOrder.value = 'asc'
         }
     }
@@ -206,18 +185,14 @@ export const useTechniquesStore = defineStore('techniques', () => {
         isSaving.value = true
         try {
             const techniquesToUpdate = changedTechniques.value
-
             console.log(`Saving ${techniquesToUpdate.length} changed techniques`)
 
             for (const technique of techniquesToUpdate) {
                 await updateTechnique(technique)
             }
 
-            // Update original to match current state
-            const rawPlanning = toRaw(editableTechniques.value)
-            originalTechniques.value = markRaw(structuredClone(rawPlanning))
-
-            // Clear changed coords after successful save
+            const rawTechniques = toRaw(editableTechniques.value)
+            originalTechniques.value = markRaw(structuredClone(rawTechniques))
             changedCoords.value = []
 
             console.log('All changes saved successfully')
@@ -230,8 +205,8 @@ export const useTechniquesStore = defineStore('techniques', () => {
     }
 
     function discardChanges() {
-        editableTechniques.value = originalTechniques.value.map(t => ({ ...t }))
-        changedCoords.value = [] // Clear changed coords when discarding
+        editableTechniques.value = structuredClone(toRaw(originalTechniques.value))
+        changedCoords.value = []
     }
 
     function addTechnique(technique: Technique) {
@@ -240,13 +215,11 @@ export const useTechniquesStore = defineStore('techniques', () => {
 
     function removeTechnique(id: number) {
         const index = editableTechniques.value.findIndex(t => t.id === id)
-        if (index !== -1) {
-            editableTechniques.value.splice(index, 1)
-        }
+        if (index !== -1) editableTechniques.value.splice(index, 1)
     }
 
     function getTechniqueById(id: number) {
-        return editableTechniques.value.find(t => t.id === id)
+        return editableTechniquesMap.value.get(id)
     }
 
     function getTechniquesByBelt(belt: string) {
@@ -271,24 +244,6 @@ export const useTechniquesStore = defineStore('techniques', () => {
 
     function clearAllFilters() {
         activeFilters.value = {}
-    }
-
-    function toggleFilterValue(field: string, value: any) {
-        if (!activeFilters.value[field]) {
-            activeFilters.value[field] = []
-        }
-
-        const index = activeFilters.value[field].indexOf(value)
-        if (index === -1) {
-            activeFilters.value[field].push(value)
-        } else {
-            activeFilters.value[field].splice(index, 1)
-
-            // Clean up empty filters
-            if (activeFilters.value[field].length === 0) {
-                delete activeFilters.value[field]
-            }
-        }
     }
 
     return {
@@ -326,7 +281,6 @@ export const useTechniquesStore = defineStore('techniques', () => {
         getTechniquesByCategory,
         setFilter,
         clearFilter,
-        clearAllFilters,
-        toggleFilterValue,
+        clearAllFilters
     }
 })
