@@ -62,7 +62,7 @@ const handleFillClick = (item: any) => {
         {{ label }}
       </p>
       <IconChevron v-if="showFilterIcon" @click="showFilters = !showFilters" class="clickable" :class="{ opened: showFilters }" :stroke-width="3" :color="'secondary'" :size="12"/>
-      <div class="filter-container" :class="{ visible: showFilters }">
+      <div @mouseleave="showFilters = !showFilters" class="filter-container" :class="{ visible: showFilters }">
         <label v-for="item in filterItems" :for="item">
           <input @click="handleFilterClick(item)" :checked="selectedFilters.findIndex(filter => filter === item) !== -1" type="checkbox" :id="item" class="filter-checkbox" />
           {{ item }}
