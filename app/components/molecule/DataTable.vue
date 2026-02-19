@@ -40,11 +40,12 @@ const handleFilter = (key: string, items: any[]) => {
   emit('filter', key, items)
 }
 
-const checkIfChanged = (rowId: number, field: string) => {
-  return props.changedCoords.some(
-      (coord) => coord.rowId === rowId && coord.field === field
-  )
-};
+const changedSet = computed(() =>
+    new Set(props.changedCoords.map(c => `${c.rowId}-${c.field}`))
+)
+
+const checkIfChanged = (rowId: number, field: string) =>
+    changedSet.value.has(`${rowId}-${field}`)
 </script>
 
 <template>
