@@ -61,13 +61,13 @@ const handleFillClick = (item: any) => {
       <p>
         {{ label }}
       </p>
-      <IconChevron v-if="showFilterIcon" @click="showFilters = !showFilters" class="clickable" :class="{ opened: showFilters }" :stroke-width="3" :color="'secondary'" :size="12"/>
-      <div @mouseleave="showFilters = !showFilters" class="filter-container" :class="{ visible: showFilters }">
+      <IconChevron v-if="showFilterIcon" @click="showFilters = !showFilters" class="clickable" :class="{ opened: showFilters }" :stroke-width="3" :color="filterItems && selectedFilters.length === filterItems.length ||  filterItems && selectedFilters.length === 0 ? 'secondary' : 'danger'" :size="12"/>
+      <div v-if="filterItems" @mouseleave="showFilters = !showFilters" class="filter-container" :class="{ visible: showFilters }">
         <label v-for="item in filterItems" :for="item">
           <input @click="handleFilterClick(item)" :checked="selectedFilters.findIndex(filter => filter === item) !== -1" type="checkbox" :id="item" class="filter-checkbox" />
           {{ item }}
         </label>
-        <p><span class="clickable" @click="handleFillClick">Alle {{ filterItems?.length }} selecteren</span> - <span class="clickable" @click="handleEmptyClick">wissen</span></p>
+        <p><span class="clickable" @click="handleFillClick">Alle {{ filterItems.length }} selecteren</span> - <span class="clickable" @click="handleEmptyClick">wissen</span></p>
       </div>
     </div>
   </div>
@@ -121,8 +121,10 @@ const handleFillClick = (item: any) => {
     padding: .3rem;
 
     p {
+      position: relative;
       margin: 0;
       padding-right: .2rem;
+      width: fit-content;
     }
 
     .filter-container {
