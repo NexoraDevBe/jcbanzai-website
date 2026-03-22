@@ -13,7 +13,7 @@ const navigationItems = [
   { to: '/kalender', label: 'Kalender' },
   { to: '/nieuws', label: 'Nieuws' },
   { to: '/gallerij', label: 'Gallerij' },
-  { to: 'https://judoclubbanzai.inker.be/', label: 'Webshop', external: true },
+  { to: 'https://banzai.inker-shops.com/', label: 'Webshop', external: true },
 ]
 
 const dashboardItems = [
