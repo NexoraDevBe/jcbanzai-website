@@ -88,20 +88,11 @@ const columns = computed<Column[]>(() => [
 onMounted(async () => {
   await Promise.all([
     trainersStore.fetchTrainerNames(),
-    planningStore.fetchFilterOptions(), // add this
+    planningStore.fetchDistinctMonths(),  // must come first (or in parallel)
+    planningStore.fetchFilterOptions(),
   ])
-  if (trainersStore.trainerNames.length === 0) {
-    await trainersStore.fetchTrainerNames()
-  }
-  if (planningStore.originalPlanning.length === 0) {
-    await planningStore.fetchPlanningByMonth(year, month)
-  }
-  else {
-    if (planningStore.originalPlanning[0]?.day.substring(0, 4) !== year.toString() || planningStore.originalPlanning[0]?.day.substring(5, 7) !== month.toString()) {
-      await planningStore.fetchPlanningByMonth(year, month)
-    }
-  }
-  await planningStore.fetchDistinctMonths()
+  // now distinctMonths is populated before we check it
+  await planningStore.fetchPlanningByMonth(year, month)
 })
 
 onBeforeRouteLeave((to, from, next) => {

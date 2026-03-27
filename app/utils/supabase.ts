@@ -645,16 +645,27 @@ const getPlanningById = async (id: number): Promise<Planning> => {
 }
 
 const insertPlanning = async (planning: Planning) => {
+    // Check if a row for this day+type already exists before inserting
+    const { data: existing } = await getSupabaseClient()
+        .from('Planning')
+        .select('id')
+        .eq('day', planning.day)
+        .eq('type', planning.type)
+        .maybeSingle()
+
+    if (existing) {
+        consoleWarn('insertPlanning: skipping duplicate', [planning.day, planning.type])
+        return { success: true, data: existing }
+    }
+
     const { data, error } = await getSupabaseClient().from('Planning').insert(planning)
 
     if (error) {
         consoleErr('Error details:', error.message)
-        consoleErr('Error hint:', error.hint)
-        consoleErr('Error details:', error.details)
         return { success: false, error }
     }
 
-    consoleLog('insert Planning:', data)
+    consoleLog('insertPlanning:', data)
     return { success: true, data }
 }
 
