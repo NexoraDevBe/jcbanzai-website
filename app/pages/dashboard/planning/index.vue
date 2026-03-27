@@ -44,9 +44,7 @@ const trainerOptions = computed(() => {
 })
 
 const plannedMonths = computed(() => {
-  let filtered = planningStore.sortedPlanning
-
-  const grouped = filtered.reduce((acc: any, dm) => {
+  const grouped = planningStore.planning.reduce((acc: any, dm) => {
     const year = dm.day.substr(0, 4)
     const month = dm.day.substr(5, 2)
     const key = `${year}-${month}`
@@ -94,6 +92,10 @@ const columns = computed<Column[]>(() => [
 
 // Fetch planning on mount
 onMounted(async () => {
+  await Promise.all([
+    trainersStore.fetchTrainerNames(),
+    planningStore.fetchFilterOptions(), // add this
+  ])
   if (trainersStore.trainerNames.length === 0) {
     await trainersStore.fetchTrainerNames()
   }
@@ -146,7 +148,7 @@ onBeforeRouteLeave((to, from, next) => {
       <MoleculeDataTable
           v-if="!planningStore.isLoading"
           :columns="columns"
-          :data="planningStore.sortedPlanning"
+          :data="planningStore.planning"
           :filter-items="planningStore.filterItems"
           :sort-key="planningStore.sortKey"
           :sort-order="planningStore.sortOrder"

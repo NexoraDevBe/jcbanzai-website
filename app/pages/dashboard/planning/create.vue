@@ -86,6 +86,10 @@ const columns = computed<Column[]>(() => [
 
 // Fetch planning on mount
 onMounted(async () => {
+  await Promise.all([
+    trainersStore.fetchTrainerNames(),
+    planningStore.fetchFilterOptions(), // add this
+  ])
   if (trainersStore.trainerNames.length === 0) {
     await trainersStore.fetchTrainerNames()
   }
@@ -165,7 +169,7 @@ const createMonth = async () => {
       <MoleculeDataTable
           v-if="!planningStore.isLoading"
           :columns="columns"
-          :data="planningStore.sortedPlanning"
+          :data="planningStore.planning"
           :filter-items="planningStore.filterItems"
           :sort-key="planningStore.sortKey"
           :sort-order="planningStore.sortOrder"

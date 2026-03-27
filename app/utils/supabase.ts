@@ -527,119 +527,122 @@ const deleteMember = async (id: number) => {
 
 // PLANNING
 
-const getPlanning = async (): Promise<Planning[]> => {
-    const { data, error } = await getSupabaseClient().from('Planning')
-        .select(`
-            id,
-            day,
-            type,
-            beschikbaar,
-            planning,
-            updated_at
-        `);
+export interface PlanningQueryParams {
+    year: number
+    month: number
+    sort?: { key: string; order: 'asc' | 'desc' }
+    filters?: Record<string, any[]>
+}
 
-    if (error) {
-        consoleErr('Error fetching planning:', error);
-        throw error;
+const getPlanningByMonth = async (params: PlanningQueryParams): Promise<Planning[]> => {
+    const { year, month, sort, filters = {} } = params
+
+    // Zero-pad for reliable string comparison in Postgres
+    const from = `${year}-${String(month).padStart(2, '0')}-01`
+    const nextMonth = month === 12 ? 1 : month + 1
+    const nextYear  = month === 12 ? year + 1 : year
+    const to = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
+
+    let query = getSupabaseClient()
+        .from('Planning')
+        .select('id, day, type, beschikbaar, planning, updated_at')
+        .gte('day', from)
+        .lt('day', to)
+
+    // Filters — Planning columns are all scalar except beschikbaar/planning (arrays)
+    const arrayColumns = ['beschikbaar', 'planning']
+    for (const [field, values] of Object.entries(filters)) {
+        if (!values || values.length === 0) continue
+        if (arrayColumns.includes(field)) {
+            query = query.overlaps(field, values)
+        } else {
+            query = query.in(field, values)
+        }
     }
 
-    const planning = (data || []) as Planning[];
-    consoleLog('Fetched planning from Supabase:', planning.length);
+    // Sort — default to day asc so the table always shows chronologically
+    const sortKey  = sort?.key ?? 'day'
+    const sortAsc  = sort ? sort.order === 'asc' : true
+    query = query.order(sortKey, { ascending: sortAsc })
 
-    return planning;
-};
+    // Secondary sort: within same day keep type order stable
+    if (sortKey !== 'id') query = query.order('id', { ascending: true })
 
-const getPlanningById = async (id: number): Promise<Planning> => {
-    const { data, error } = await getSupabaseClient().from('Planning')
-        .select(`
-            id,
-            day,
-            type,
-            beschikbaar,
-            planning,
-            updated_at
-        `).eq('id', id);
+    const { data, error } = await query
 
     if (error) {
-        consoleErr('Error fetching planning:', error);
-        throw error;
+        consoleErr('Error fetching planning:', error)
+        throw error
     }
 
-    const planning = (data[0] || null);
-    consoleLog('Fetched planning from Supabase:', planning);
+    consoleLog('Fetched planning:', data?.length)
+    return (data ?? []) as unknown as Planning[]
+}
 
-    return planning as unknown as Planning;
-};
-
-const getPlanningByMonth = async (year: number, month: number): Promise<Planning[]> => {
-    const { data, error } = await getSupabaseClient().from('Planning')
-        .select(`
-            id,
-            day,
-            type,
-            beschikbaar,
-            planning,
-            updated_at
-        `).gte('day', `${year}-${month}-01`)
-        .lt('day', `${year}-${(month === 12 ? '01' : month+1)}-01`);
+// Filter options — only the filterable scalar columns + type
+// beschikbaar/planning arrays are too dynamic to pre-build checkbox lists for
+const getPlanningFilterOptions = async (): Promise<Record<string, any[]>> => {
+    const { data, error } = await getSupabaseClient()
+        .from('Planning')
+        .select('type')
 
     if (error) {
-        consoleErr('Error fetching planning:', error);
-        throw error;
+        consoleErr('Error fetching planning filter options:', error)
+        throw error
     }
 
-    const planning = (data || null);
-    consoleLog('Fetched planning from Supabase:', planning.length);
+    const typeSet = new Set<string>()
+    for (const row of data ?? []) {
+        if (row.type) typeSet.add(row.type)
+    }
 
-    return planning as unknown as Planning[];
-};
+    return {
+        type: Array.from(typeSet).sort((a, b) => a.localeCompare(b))
+    }
+}
 
 const getDistinctPlanningMonths = async (): Promise<{ year: number; month: number }[]> => {
     const { data, error } = await getSupabaseClient()
         .from('Planning')
-        .select('day');
+        .select('day')
 
     if (error) {
-        consoleErr('Error fetching planning dates:', error);
-        throw error;
+        consoleErr('Error fetching planning dates:', error)
+        throw error
     }
 
-    if (!data || data.length === 0) {
-        consoleLog('No planning data found');
-        return [];
-    }
-
-    // Extract unique year-month combinations
-    const monthYearSet = new Set<string>();
-
-    data.forEach((item) => {
+    const monthYearSet = new Set<string>()
+    for (const item of data ?? []) {
         if (item.day) {
-            const date = new Date(item.day);
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1; // getMonth() returns 0-11
-            monthYearSet.add(`${year}-${month}`);
+            const date = new Date(item.day)
+            monthYearSet.add(`${date.getFullYear()}-${date.getMonth() + 1}`)
         }
-    });
+    }
 
-    // Convert set to array of objects and sort
-    const distinctMonths: { year: number; month: number }[] =
-        Array.from(monthYearSet)
-            .map((yearMonth) => {
-                const [year, month] = yearMonth
-                    .split('-')
-                    .map(Number) as [number, number];
+    return Array.from(monthYearSet)
+        .map(ym => {
+            const [year, month] = ym.split('-').map(Number) as [number, number]
+            return { year, month }
+        })
+        .sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month)
+}
 
-                return { year, month };
-            })
-            .sort((a, b) =>
-                a.year !== b.year
-                    ? a.year - b.year
-                    : a.month - b.month
-            );
+// Remove the old getPlanning (full table fetch) and getPlanningById from exports
+// — they're only used internally by updatePlanning which still needs getPlanningById:
+const getPlanningById = async (id: number): Promise<Planning> => {
+    const { data, error } = await getSupabaseClient()
+        .from('Planning')
+        .select('id, day, type, beschikbaar, planning, updated_at')
+        .eq('id', id)
+        .single() // cleaner than data[0]
 
-    consoleLog('Distinct months from planning:', distinctMonths.length);
-    return distinctMonths;
-};
+    if (error) {
+        consoleErr('Error fetching planning by id:', error)
+        throw error
+    }
+
+    return data as unknown as Planning
+}
 
 const insertPlanning = async (planning: Planning) => {
     const { data, error } = await getSupabaseClient().from('Planning').insert(planning)
@@ -786,8 +789,8 @@ export {
     updateMember,
     deleteMember,
 
-    getPlanning,
     getPlanningByMonth,
+    getPlanningFilterOptions,
     getDistinctPlanningMonths,
     insertPlanning,
     updatePlanning,

@@ -61,6 +61,10 @@ const columns: Column[] = computed(() => [
 
 // Fetch planning on mount
 onMounted(async () => {
+  await Promise.all([
+    trainersStore.fetchTrainerNames(),
+    planningStore.fetchFilterOptions(), // add this
+  ])
   if (trainersStore.trainerNames.length === 0) {
     await trainersStore.fetchTrainerNames()
   }
@@ -114,7 +118,7 @@ onBeforeRouteLeave((to, from, next) => {
       <MoleculeDataTable
           v-if="!planningStore.isLoading"
           :columns="columns"
-          :data="planningStore.sortedPlanning"
+          :data="planningStore.planning"
           :filter-items="planningStore.filterItems"
           :sort-key="planningStore.sortKey"
           :sort-order="planningStore.sortOrder"
