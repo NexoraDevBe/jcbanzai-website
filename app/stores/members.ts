@@ -1,172 +1,158 @@
-// stores/members.ts
 import { defineStore } from 'pinia'
 import { ref, computed, shallowRef } from 'vue'
-import { getMembers, updateMember } from '~/utils/supabase'
+import {
+    getMembers, getMemberFilterOptions, updateMember,
+    type MemberQueryParams
+} from '~/utils/supabase'
 import type { Member } from '~/types'
 
 export const useMembersStore = defineStore('members', () => {
-    // State
-    const originalMembers = shallowRef<Member[]>([])
-    const editableMembers = ref<Member[]>([])
-    const sortKey = ref<string>('')
+    // — Server state —
+    const members = ref<Member[]>([])           // current page, as fetched
+    const originalMembers = shallowRef<Member[]>([]) // snapshot for conflict detection
+    const totalCount = ref(0)
+    const filterItems = ref<Record<string, any[]>>({}) // populated once
+
+    // — Query params (these drive every fetch) —
+    const sortKey = ref('Naam')
     const sortOrder = ref<'asc' | 'desc'>('asc')
+    const activeFilters = ref<Record<string, any[]>>({})
+    const currentPage = ref(1)
+    const pageSize = ref(50)
+
+    // — Edit tracking —
+    const changedCoords = ref<{ rowId: number; field: string }[]>([])
     const isLoading = ref(false)
     const isSaving = ref(false)
-    const changedCoords = ref<{ rowId: number; field: string }[]>([])
-    const activeFilters = ref<Record<string, any[]>>({})
 
-    // Cached filter items — built once after fetch, not a computed
-    const filterItems = ref<Record<string, any[]>>({})
-
-    // O(1) lookups via Maps instead of find() on every update
-    const editableMembersMap = computed(() =>
-        new Map(editableMembers.value.map(m => [m.id, m]))
-    )
-    const originalMembersMap = computed(() =>
-        new Map(originalMembers.value.map(m => [m.id, m]))
-    )
-
-    // Getters
-    const filteredMembers = computed(() => {
-        const filterKeys = Object.keys(activeFilters.value)
-
-        if (filterKeys.length === 0) {
-            return editableMembers.value
-        }
-
-        return editableMembers.value.filter(member => {
-            return filterKeys.every(key => {
-                const filterValues = activeFilters.value[key]
-
-                if (!filterValues || filterValues.length === 0) return true
-
-                const memberValue = member[key as keyof Member]
-
-                if (Array.isArray(memberValue)) {
-                    return filterValues.some(filterVal => memberValue.includes(filterVal))
-                }
-
-                return filterValues.includes(memberValue)
-            })
-        })
-    })
-
-    const sortedMembers = computed(() => {
-        const data = filteredMembers.value
-
-        if (!sortKey.value) return data
-
-        return [...data].sort((a, b) => {
-            const aVal = a[sortKey.value as keyof Member]
-            const bVal = b[sortKey.value as keyof Member]
-
-            if (aVal == null && bVal == null) return 0
-            if (aVal == null) return sortOrder.value === 'asc' ? 1 : -1
-            if (bVal == null) return sortOrder.value === 'asc' ? -1 : 1
-
-            if (Array.isArray(aVal) && Array.isArray(bVal)) {
-                const compare = aVal.length - bVal.length
-                return sortOrder.value === 'asc' ? compare : -compare
-            }
-
-            if (typeof aVal === 'boolean' && typeof bVal === 'boolean') {
-                const compare = aVal === bVal ? 0 : aVal ? 1 : -1
-                return sortOrder.value === 'asc' ? compare : -compare
-            }
-
-            if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortOrder.value === 'asc' ? aVal - bVal : bVal - aVal
-            }
-
-            const aStr = String(aVal).toLowerCase()
-            const bStr = String(bVal).toLowerCase()
-
-            if (aStr < bStr) return sortOrder.value === 'asc' ? -1 : 1
-            if (aStr > bStr) return sortOrder.value === 'asc' ? 1 : -1
-            return 0
-        })
-    })
-
-    // Avoids JSON.stringify on every member — uses changedCoords Set instead
-    const changedMembers = computed(() => {
-        const changedIds = new Set(changedCoords.value.map(c => c.rowId))
-        return editableMembers.value.filter(m => changedIds.has(m.id))
-    })
-
+    // — Derived —
+    const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value))
     const hasUnsavedChanges = computed(() => changedCoords.value.length > 0)
-
     const changedCount = computed(() => new Set(changedCoords.value.map(c => c.rowId)).size)
-
     const hasActiveFilters = computed(() =>
         Object.values(activeFilters.value).some(arr => arr.length > 0)
     )
 
-    // Actions
-    function buildFilterItems() {
-        const filters: Record<string, Set<any>> = {}
+    const membersMap = computed(() => new Map(members.value.map(m => [m.id, m])))
+    const originalMembersMap = computed(() => new Map(originalMembers.value.map(m => [m.id, m])))
 
-        for (const item of originalMembers.value) {
-            for (const [key, value] of Object.entries(item)) {
-                if (key === 'id' || key === 'updated_at') continue
-                if (!filters[key]) filters[key] = new Set()
+    const changedMembers = computed(() => {
+        const ids = new Set(changedCoords.value.map(c => c.rowId))
+        return members.value.filter(m => ids.has(m.id))
+    })
 
-                if (Array.isArray(value)) {
-                    value.forEach(v => filters[key]?.add(v))
-                } else {
-                    filters[key].add(value)
-                }
-            }
-        }
-
-        filterItems.value = Object.fromEntries(
-            Object.entries(filters).map(([k, s]) => [
-                k,
-                Array.from(s).sort((a, b) =>
-                    String(a).localeCompare(String(b))
-                )
-            ])
-        )
-    }
-
+    // — Core fetch —
     async function fetchMembers() {
         isLoading.value = true
         try {
-            const members = await getMembers()
-            originalMembers.value = markRaw(structuredClone(members))
-            editableMembers.value = structuredClone(members)
+            const params: MemberQueryParams = {
+                sort: { key: sortKey.value, order: sortOrder.value },
+                filters: activeFilters.value,
+                page: currentPage.value,
+                pageSize: pageSize.value,
+            }
+
+            const { data, count } = await getMembers(params)
+
+            members.value = data.map(member => ({
+                ...member,
+                created_at: formatDate(member.created_at),
+            }))
+            originalMembers.value = markRaw(structuredClone(data))
+            totalCount.value = count
             changedCoords.value = []
-            buildFilterItems()
-        } catch (error) {
-            console.error('Failed to fetch members:', error)
-            throw error
+        } catch (e) {
+            console.error('Failed to fetch members:', e)
+            throw e
         } finally {
             isLoading.value = false
         }
     }
 
-    function _updateChangedCoords(rowId: number, field: string, isBackToOriginal: boolean) {
-        const coordIndex = changedCoords.value.findIndex(
-            coord => coord.rowId === rowId && coord.field === field
-        )
+    // Runs once on first load
+    async function fetchFilterOptions() {
+        if (Object.keys(filterItems.value).length > 0) return // already loaded
+        filterItems.value = await getMemberFilterOptions()
+    }
 
-        if (isBackToOriginal) {
-            if (coordIndex !== -1) changedCoords.value.splice(coordIndex, 1)
+    function formatDate(dateString: string) {
+        return new Date(dateString).toLocaleString('nl-BE', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+    }
+
+    // — Sort (resets to page 1) —
+    function setSort(key: string) {
+        if (sortKey.value === key) {
+            sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
         } else {
-            if (coordIndex === -1) changedCoords.value.push({ rowId, field })
+            sortKey.value = key
+            sortOrder.value = 'asc'
+        }
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    // — Filters (resets to page 1) —
+    function setFilter(field: string, values: any[]) {
+        if (values.length === 0) {
+            delete activeFilters.value[field]
+        } else {
+            activeFilters.value[field] = values
+        }
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    function clearFilter(field: string) {
+        delete activeFilters.value[field]
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    function clearAllFilters() {
+        activeFilters.value = {}
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    // — Pagination —
+    function setPage(page: number) {
+        if (page < 1 || page > totalPages.value) return
+        currentPage.value = page
+        fetchMembers()
+    }
+
+    function setPageSize(size: number) {
+        pageSize.value = size
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    // — Edit tracking (unchanged) —
+    function _updateChangedCoords(rowId: number, field: string, isBackToOriginal: boolean) {
+        const idx = changedCoords.value.findIndex(c => c.rowId === rowId && c.field === field)
+        if (isBackToOriginal) {
+            if (idx !== -1) changedCoords.value.splice(idx, 1)
+        } else {
+            if (idx === -1) changedCoords.value.push({ rowId, field })
         }
     }
 
     function updateMemberField(rowId: number, field: string, value: any, arrayIndex?: number) {
-        const member = editableMembersMap.value.get(rowId)
+        const member = membersMap.value.get(rowId)
         const original = originalMembersMap.value.get(rowId)
         if (!member || !original) return
 
         const f = field as keyof Member
-
         if (arrayIndex !== undefined && Array.isArray(member[f])) {
             ;(member[f] as any[])[arrayIndex] = value
         } else {
-            // @ts-expect-error typescript says never
+            // @ts-expect-error
             member[f] = value
         }
 
@@ -175,10 +161,9 @@ export const useMembersStore = defineStore('members', () => {
     }
 
     function addArrayItem(rowId: number, field: string) {
-        const member = editableMembersMap.value.get(rowId)
+        const member = membersMap.value.get(rowId)
         const original = originalMembersMap.value.get(rowId)
         const f = field as keyof Member
-
         if (member && Array.isArray(member[f])) {
             ;(member[f] as any[]).push('')
             const isBackToOriginal = !!original && JSON.stringify(member[f]) === JSON.stringify(original[f])
@@ -187,10 +172,9 @@ export const useMembersStore = defineStore('members', () => {
     }
 
     function removeArrayItem(rowId: number, field: string, index: number) {
-        const member = editableMembersMap.value.get(rowId)
+        const member = membersMap.value.get(rowId)
         const original = originalMembersMap.value.get(rowId)
         const f = field as keyof Member
-
         if (member && Array.isArray(member[f])) {
             ;(member[f] as any[]).splice(index, 1)
             const isBackToOriginal = !!original && JSON.stringify(member[f]) === JSON.stringify(original[f])
@@ -198,103 +182,77 @@ export const useMembersStore = defineStore('members', () => {
         }
     }
 
-    function setSort(key: string) {
-        if (sortKey.value === key) {
-            sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-        } else {
-            sortKey.value = key
-            sortOrder.value = 'asc'
-        }
-    }
-
+    // — Save / discard —
     async function saveChanges() {
         if (!hasUnsavedChanges.value) return
-
         isSaving.value = true
         try {
-            const membersToUpdate = changedMembers.value
-            console.log(`Saving ${membersToUpdate.length} changed members`)
-
-            for (const member of membersToUpdate) {
+            for (const member of changedMembers.value) {
                 await updateMember(member, originalMembersMap.value.get(member.id)!)
             }
-
-            const rawMembers = toRaw(editableMembers.value)
-            originalMembers.value = markRaw(structuredClone(rawMembers))
-            changedCoords.value = []
-
-            console.log('All changes saved successfully')
             await fetchMembers()
-        } catch (error) {
-            console.error('Failed to save changes:', error)
-            throw error
+        } catch (e) {
+            console.error('Failed to save:', e)
+            throw e
         } finally {
             isSaving.value = false
         }
     }
 
     function discardChanges() {
-        editableMembers.value = structuredClone(toRaw(originalMembers.value))
+        members.value = structuredClone(toRaw(originalMembers.value))
         changedCoords.value = []
     }
 
     function addMember(member: Member) {
-        editableMembers.value.push(member)
+        members.value.push(member)
+        totalCount.value++
     }
 
     function removeMember(id: number) {
-        const index = editableMembers.value.findIndex(m => m.id === id)
-        if (index !== -1) editableMembers.value.splice(index, 1)
-    }
-
-    function setFilter(field: string, values: any[]) {
-        if (values.length === 0) {
-            delete activeFilters.value[field]
-        } else {
-            activeFilters.value[field] = values
+        const idx = members.value.findIndex(m => m.id === id)
+        if (idx !== -1) {
+            members.value.splice(idx, 1)
+            totalCount.value--
         }
-    }
-
-    function clearFilter(field: string) {
-        delete activeFilters.value[field]
-    }
-
-    function clearAllFilters() {
-        activeFilters.value = {}
     }
 
     return {
         // State
-        originalMembers,
-        editableMembers,
+        members,
+        totalCount,
+        totalPages,
+        currentPage,
+        pageSize,
         sortKey,
         sortOrder,
+        activeFilters,
+        filterItems,
         isLoading,
         isSaving,
-        activeFilters,
+        changedCoords,
 
         // Getters
-        filteredMembers,
-        filterItems,
-        sortedMembers,
-        changedMembers,
         hasUnsavedChanges,
-        changedCount,
-        changedCoords,
         hasActiveFilters,
+        changedCount,
+        changedMembers,
 
         // Actions
         fetchMembers,
+        fetchFilterOptions,
+        setSort,
+        setFilter,
+        clearFilter,
+        clearAllFilters,
+        setPage,
+        setPageSize,
         updateMemberField,
         addArrayItem,
         removeArrayItem,
-        setSort,
         saveChanges,
         discardChanges,
         addMember,
         removeMember,
-        setFilter,
-        clearFilter,
-        clearAllFilters
     }
 })

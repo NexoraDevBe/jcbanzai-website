@@ -290,46 +290,105 @@ const deleteTechnique = async (id: number) => {
 
 // MEMBERS
 
-const getMembers = async (): Promise<Member[]> => {
-    const { data, error } = await getSupabaseClient().from('Members')
-        .select(`
-            id,
-            Actief,
-            Vergunning,
-            Vergunning_geldig_tot,
-            Voornaam,
-            Naam,
-            Geslacht,
-            Geboorte_datum,
-            Nationaliteit,
-            Straat,
-            Postcode,
-            Gemeente,
-            Gsm,
-            Gsm2_Telefoon,
-            Emails,
-            In_judovlaanderen,
-            Dojos,
-            Wedstrijd_training,
-            Graad,
-            Gordel_behaald_op,
-            Behaald_examen,
-            Door_wie_examen,
-            Datum_examen,
-            Lidgeld_opmerkingen,
-            updated_at
-          `);
+export interface MemberQueryParams {
+    sort?: { key: string; order: 'asc' | 'desc' }
+    filters?: Record<string, any[]>
+    page?: number
+    pageSize?: number
+}
 
-    if (error) {
-        consoleErr('Error fetching members:', error);
-        throw error;
+export interface MemberQueryResult {
+    data: Member[]
+    count: number
+}
+
+const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryResult> => {
+    const { sort, filters = {}, page = 1, pageSize = 50 } = params
+
+    const SELECT_FIELDS = `
+    id, Actief, Vergunning, Vergunning_geldig_tot,
+    Voornaam, Naam, Geslacht, Geboorte_datum, Nationaliteit,
+    Straat, Postcode, Gemeente, Gsm, Gsm2_Telefoon, Emails,
+    In_judovlaanderen, Dojos, Wedstrijd_training, Graad,
+    Gordel_behaald_op, Behaald_examen, Door_wie_examen,
+    Datum_examen, Lidgeld_opmerkingen, updated_at, created_at
+  `
+
+    let query = getSupabaseClient()
+        .from('Members')
+        .select(SELECT_FIELDS, { count: 'exact' })
+
+    // Filters
+    for (const [field, values] of Object.entries(filters)) {
+        if (!values || values.length === 0) continue
+
+        const col = field as keyof Member
+
+        // Arrays in Postgres (like Emails, Dojos) need .overlaps()
+        const arrayColumns = ['Emails', 'Dojos']
+        if (arrayColumns.includes(field)) {
+            query = query.overlaps(col, values)
+        } else {
+            query = query.in(col, values)
+        }
     }
 
-    const members = (data || []);
-    consoleLog('Fetched members from Supabase:', members.length);
+    // Sort
+    if (sort?.key) {
+        query = query.order(sort.key, { ascending: sort.order === 'asc' })
+    } else {
+        query = query.order('Naam', { ascending: true })
+    }
 
-    return members as unknown as Member[];
-};
+    // Pagination
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+    query = query.range(from, to)
+
+    const { data, error, count } = await query
+
+    if (error) {
+        consoleErr('Error fetching members:', error)
+        throw error
+    }
+
+    consoleLog('Fetched members:', data?.length + 'of' + count)
+    return { data: (data ?? []) as unknown as Member[], count: count ?? 0 }
+}
+
+// Runs ONCE to populate filter checkboxes
+// Fetches only the columns you want to filter on, no pagination
+const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
+    const { data, error } = await getSupabaseClient()
+        .from('Members')
+        .select('Actief, Geslacht, Nationaliteit, Graad, Dojos, Wedstrijd_training, In_judovlaanderen')
+
+    if (error) {
+        consoleErr('Error fetching filter options:', error)
+        throw error
+    }
+
+    const sets: Record<string, Set<any>> = {}
+
+    for (const row of data ?? []) {
+        for (const [key, value] of Object.entries(row)) {
+            if (!sets[key]) sets[key] = new Set()
+            if (Array.isArray(value)) {
+                // @ts-ignore
+                value.forEach(v => sets[key].add(v))
+            } else if (value !== null && value !== undefined) {
+                sets[key].add(value)
+            }
+        }
+    }
+
+    return Object.fromEntries(
+        Object.entries(sets).map(([k, s]) => [
+            k,
+            Array.from(s).sort((a, b) => String(a).localeCompare(String(b)))
+        ])
+    )
+}
 
 const getMemberById = async (id: number): Promise<Member> => {
     const { data, error } = await getSupabaseClient().from('Members')
@@ -722,6 +781,7 @@ export {
     deleteTechnique,
 
     getMembers,
+    getMemberFilterOptions,
     insertMember,
     updateMember,
     deleteMember,

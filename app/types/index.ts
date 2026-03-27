@@ -35,6 +35,7 @@ interface Member {
     Door_wie_examen: string,
     Datum_examen: string,
     updated_at: string,
+    created_at: string,
 }
 
 interface Planning {

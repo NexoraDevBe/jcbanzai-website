@@ -14,9 +14,10 @@ const membersStore = useMembersStore()
 
 // Fetch members on mount
 onMounted(async () => {
-  if (membersStore.originalMembers.length === 0) {
-    await membersStore.fetchMembers()
-  }
+  await Promise.all([
+    membersStore.fetchMembers(),
+    membersStore.fetchFilterOptions(), // one-time, populates checkboxes
+  ])
 })
 
 // Country options
@@ -47,6 +48,9 @@ const grades = [
 
 // Determine which fields are disabled per row
 const isFieldDisabled = (fieldKey: string) => {
+  if (fieldKey == 'created_at') {
+    return true
+  }
   if (userStore.userRole === 'user') {
     switch (fieldKey) {
       case 'Gordel_behaald_op':
@@ -108,6 +112,7 @@ const columns = computed(() => [
   { key: 'Behaald_examen', label: 'Examen behaald', type: 'text', disabled: () => isFieldDisabled('Behaald_examen') },
   { key: 'Door_wie_examen', label: 'Examen door', type: 'text', disabled: () => isFieldDisabled('Door_wie_examen') },
   { key: 'Datum_examen', label: 'Examen datum', type: 'date', disabled: () => isFieldDisabled('Datum_examen') },
+  { key: 'created_at', label: 'Aangemaakt op', type: 'text', disabled: () => isFieldDisabled('created_at') },
 ]) as unknown as Column[]
 </script>
 
@@ -143,10 +148,20 @@ const columns = computed(() => [
     </MoleculePageHeader>
 
     <section class="data-table-container">
+      <div v-show="!membersStore.isLoading" class="pagination">
+        <button class="secondary" :disabled="membersStore.currentPage === 1" @click="membersStore.setPage(membersStore.currentPage - 1)">
+          <IconChevron class="left" :size="16" :stroke-width="3" :color="'primary'"/>
+        </button>
+        <span>{{ membersStore.currentPage }} / {{ membersStore.totalPages }} ({{ membersStore.totalCount }} leden)</span>
+        <button class="secondary" :disabled="membersStore.currentPage === membersStore.totalPages" @click="membersStore.setPage(membersStore.currentPage + 1)">
+          <IconChevron class="right"  :size="16" :stroke-width="3" :color="'primary'"/>
+        </button>
+      </div>
+
       <MoleculeDataTable
           v-if="!membersStore.isLoading"
           :columns="columns"
-          :data="membersStore.sortedMembers"
+          :data="membersStore.members"
           :filter-items="membersStore.filterItems"
           :sort-key="membersStore.sortKey"
           :sort-order="membersStore.sortOrder"
@@ -157,7 +172,18 @@ const columns = computed(() => [
           @add-array-item="membersStore.addArrayItem"
           @remove-array-item="membersStore.removeArrayItem"
       />
+
       <div class="loading" v-else>Laden...</div>
+
+      <div v-show="!membersStore.isLoading" class="pagination">
+        <button class="secondary" :disabled="membersStore.currentPage === 1" @click="membersStore.setPage(membersStore.currentPage - 1)">
+          <IconChevron class="left" :size="16" :stroke-width="3" :color="'primary'"/>
+        </button>
+        <span>{{ membersStore.currentPage }} / {{ membersStore.totalPages }} ({{ membersStore.totalCount }} leden)</span>
+        <button class="secondary" :disabled="membersStore.currentPage === membersStore.totalPages" @click="membersStore.setPage(membersStore.currentPage + 1)">
+          <IconChevron class="right"  :size="16" :stroke-width="3" :color="'primary'"/>
+        </button>
+      </div>
     </section>
   </main>
 </template>
@@ -168,18 +194,32 @@ const columns = computed(() => [
 
   .data-table-container {
     position: relative;
-    overflow: scroll;
     contain: layout style paint;
-    height: 80vh;
+    margin-bottom: 2rem;
 
     .loading {
       width: 100%;
-      height: 100%;
+      height: 50vh;
       font-size: 1.3rem;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: rgba(0, 0, 0, .2);
+    }
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+
+    .left {
+      transform: rotate(90deg);
+    }
+
+    .right {
+      transform: rotate(-90deg);
     }
   }
 }
