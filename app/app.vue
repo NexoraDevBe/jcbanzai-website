@@ -5,6 +5,9 @@ useHead({
     { name: 'description', content: 'My amazing site.' }
   ],
 })
+
+const userStore = useUserStore()
+userStore.getUser()
 </script>
 
 <template>

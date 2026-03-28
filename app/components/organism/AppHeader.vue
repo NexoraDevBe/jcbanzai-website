@@ -2,10 +2,10 @@
 import { useUserStore } from "~/stores/user";
 
 const store = useUserStore();
-const userRole = store.userRole;
+const userRole = computed(() => store.userRole);
 
-const navigationItems = [
-  { to: '/dashboard', label: 'Dashboard', locked: userRole === '' },
+const navigationItems = computed(() => [
+  { to: '/dashboard', label: 'Dashboard', locked: userRole.value === '' },
   { to: '/', label: 'Home' },
   { to: '/starten', label: 'Starten?' },
   { to: '/trainingen', label: 'Trainingen' },
@@ -14,7 +14,7 @@ const navigationItems = [
   { to: '/nieuws', label: 'Nieuws' },
   { to: '/gallerij', label: 'Gallerij' },
   { to: 'https://banzai.inker-shops.com/', label: 'Webshop', external: true },
-]
+])
 
 const dashboardItems = [
   { to: '/', label: 'Website' },
@@ -22,6 +22,7 @@ const dashboardItems = [
   { to: '/dashboard/ledenlijst', label: 'Ledenlijst' },
   { to: '/dashboard/leerlijn', label: 'Leerlijn' },
   { to: '/dashboard/planning', label: 'Planning' },
+  { to: '/dashboard/nieuws', label: 'Nieuws' },
 ]
 
 const state = ref<boolean>(false)
@@ -58,7 +59,9 @@ const toggle = () => {
 header {
   position: fixed;
   inset: 0;
+  width: 100vw;
   width: 100dvw;
+  height: 100vh;
   height: 100dvh;
   margin: 0;
   z-index: 1000;

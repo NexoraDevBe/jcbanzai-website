@@ -167,7 +167,7 @@ const register = async (email: string, password: string): Promise<AuthTokenRespo
 }
 
 const logout = async () => {
-    navigateTo('/dashboard/auth')
+    navigateTo('/')
     userData = null;
     userDataPromise = null;
     useUserStore().clearData();

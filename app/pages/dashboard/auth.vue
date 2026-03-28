@@ -5,8 +5,6 @@ definePageMeta({
   layout: 'dashboard',
 })
 
-
-
 const email = ref<string>('')
 const password = ref<string>('')
 const confirmPassword = ref<string>('')

@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', () => {
         }
 
         userData.value = await getUserData()
-        consoleLog('userStore, fetched to supabase user data')
+        consoleLog('userStore, fetched to supabase user data', userData.value)
 
         if (userData.value && userData.value.role) {
             userRole.value = userData.value.role
