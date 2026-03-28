@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import {logout} from "~/utils/supabase";
-
 definePageMeta({
   middleware: 'auth',
   layout: 'dashboard',

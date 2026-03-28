@@ -194,16 +194,6 @@ const columns = computed(() => [
       />
 
       <div class="loading" v-else>Laden...</div>
-
-      <div v-show="!membersStore.isLoading" class="pagination">
-        <button class="secondary" :disabled="membersStore.currentPage === 1" @click="membersStore.setPage(membersStore.currentPage - 1)">
-          <IconChevron class="left" :size="16" :stroke-width="3" :color="'primary'"/>
-        </button>
-        <span>{{ membersStore.currentPage }} / {{ membersStore.totalPages }} ({{ membersStore.totalCount }} leden)</span>
-        <button class="secondary" :disabled="membersStore.currentPage === membersStore.totalPages" @click="membersStore.setPage(membersStore.currentPage + 1)">
-          <IconChevron class="right"  :size="16" :stroke-width="3" :color="'primary'"/>
-        </button>
-      </div>
     </section>
   </main>
 </template>
@@ -212,19 +202,13 @@ const columns = computed(() => [
 #leden-page {
   margin-bottom: var(--page-margin);
 
-  .data-table-container {
-    position: relative;
-    contain: layout style paint;
-    margin-bottom: 2rem;
-
-    .loading {
-      width: 100%;
-      height: 50vh;
-      font-size: 1.3rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+  .loading {
+    width: 100%;
+    height: 50vh;
+    font-size: 1.3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .pagination {

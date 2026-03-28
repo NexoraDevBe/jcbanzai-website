@@ -49,44 +49,46 @@ const checkIfChanged = (rowId: number, field: string) =>
 </script>
 
 <template>
-  <div class="table">
-    <!-- Header Row -->
-    <div class="table-row header-row">
-      <MoleculeSortableTableHead
-          v-for="column in columns"
-          :key="column.key"
-          :label="column.label"
-          :sort-key="column.key"
-          :current-sort-key="sortKey"
-          :sort-order="sortOrder"
-          :class-name="column.className"
-          :sticky="column.sticky"
-          :filter-items="filterItems?.[column.key]"
-          @sort="emit('sort', $event)"
-          @filter="handleFilter"
-      />
-    </div>
+  <div class="data-table-container">
+    <div class="table">
+      <!-- Header Row -->
+      <div class="table-row header-row">
+        <MoleculeSortableTableHead
+            v-for="column in columns"
+            :key="column.key"
+            :label="column.label"
+            :sort-key="column.key"
+            :current-sort-key="sortKey"
+            :sort-order="sortOrder"
+            :class-name="column.className"
+            :sticky="column.sticky"
+            :filter-items="filterItems?.[column.key]"
+            @sort="emit('sort', $event)"
+            @filter="handleFilter"
+        />
+      </div>
 
-    <!-- Data Rows -->
-    <div
-        v-for="row in data"
-        :key="row.id"
-        class="table-row"
-    >
-      <MoleculeEditableTableCell
-          v-for="column in columns"
-          :key="`${row.id}-${column.key}`"
-          :value="row[column.key]"
-          :type="column.type || 'text'"
-          :disabled="column.disabled ? column.disabled(row) : false"
-          :class-name="(column.className ? column.className : '')"
-          :changed="checkIfChanged(row.id, column.key)"
-          :options="column.options"
-          :expand-all="expandAll"
-          @update="handleUpdate(row.id, column.key as string, $event.value, $event.index)"
-          @add-array-item="handleAddArrayItem(row.id, column.key as string)"
-          @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
-      />
+      <!-- Data Rows -->
+      <div
+          v-for="row in data"
+          :key="row.id"
+          class="table-row"
+      >
+        <MoleculeEditableTableCell
+            v-for="column in columns"
+            :key="`${row.id}-${column.key}`"
+            :value="row[column.key]"
+            :type="column.type || 'text'"
+            :disabled="column.disabled ? column.disabled(row) : false"
+            :class-name="(column.className ? column.className : '')"
+            :changed="checkIfChanged(row.id, column.key)"
+            :options="column.options"
+            :expand-all="expandAll"
+            @update="handleUpdate(row.id, column.key as string, $event.value, $event.index)"
+            @add-array-item="handleAddArrayItem(row.id, column.key as string)"
+            @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -96,6 +98,7 @@ const checkIfChanged = (rowId: number, field: string) =>
   position: relative;
   overflow: scroll;
   contain: layout style paint;
+  max-height: 75vh;
 
   .table {
     display: table;

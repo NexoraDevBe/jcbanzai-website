@@ -14,8 +14,8 @@ export const useMembersStore = defineStore('members', () => {
     const filterItems = ref<Record<string, any[]>>({}) // populated once
 
     // — Query params (these drive every fetch) —
-    const sortKey = ref('Naam')
-    const sortOrder = ref<'asc' | 'desc'>('asc')
+    const sortKey = ref('id')
+    const sortOrder = ref<'asc' | 'desc'>('desc')
     const activeFilters = ref<Record<string, any[]>>({})
     const currentPage = ref(1)
     const pageSize = ref(50)
