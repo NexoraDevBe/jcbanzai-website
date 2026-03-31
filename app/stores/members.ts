@@ -99,7 +99,12 @@ export const useMembersStore = defineStore('members', () => {
 
     // — Filters (resets to page 1) —
     function setFilter(field: string, values: any[]) {
-        if (values.length === 0) {
+        const allOptions = filterItems.value[field]
+        // If all options selected (or none), treat as "no filter"
+        if (
+            values.length === 0 ||
+            (allOptions && values.length === allOptions.length)
+        ) {
             delete activeFilters.value[field]
         } else {
             activeFilters.value[field] = values

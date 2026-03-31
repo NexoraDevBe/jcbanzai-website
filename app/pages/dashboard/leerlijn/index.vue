@@ -85,6 +85,7 @@ const columns: Column[] = [
           :columns="columns"
           :data="techniquesStore.techniques"
           :filter-items="techniquesStore.filterItems"
+          :active-filters="techniquesStore.activeFilters"
           :sort-key="techniquesStore.sortKey"
           :sort-order="techniquesStore.sortOrder"
           :changed-coords="techniquesStore.changedCoords"

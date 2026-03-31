@@ -49,7 +49,7 @@ const ctaInschrijven = () => {
       <h1 class="hero-title">Judoclub<br> <span>Banzai</span></h1>
       <div class="cta-container">
         <AtomCallToAction :on-click="ctaStarten">
-          Starten?
+          Initiatie?
         </AtomCallToAction>
         <AtomCallToAction :class-name="'outline'" :on-click="ctaInschrijven">
           Inschrijven?

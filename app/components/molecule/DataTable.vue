@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type {Column, Member, Planning, Trainer} from "~/types";
+import {ref} from "vue";
 
 interface Props {
   columns: Column[]
@@ -8,6 +9,7 @@ interface Props {
   sortOrder: 'asc' | 'desc'
   changedCoords: {rowId: number, field: string}[]
   filterItems?: Record<string, any[]>
+  activeFilters?: Record<string, any[]>
   height?: string
   expandAll?: boolean
 }
@@ -24,6 +26,8 @@ const emit = defineEmits<{
   filter: [key: string, items: any[]]
 }>()
 
+const selectedFilters = ref<Record<string, any[]>>({})
+
 const handleUpdate = (rowId: number, field: string, value: any, arrayIndex?: number) => {
   emit('update', rowId, field, value, arrayIndex)
 }
@@ -36,8 +40,20 @@ const handleRemoveArrayItem = (rowId: number, field: string, index: number) => {
   emit('removeArrayItem', rowId, field, index)
 }
 
-const handleFilter = (key: string, items: any[]) => {
-  emit('filter', key, items)
+function handleFilter(key: string, items: any[]) {
+  const filters = ref<[]>([])
+  if (selectedFilters.value[key]?.includes(items)) {
+    console.log("fixed")
+  }
+  selectedFilters.value[key] = [...items]
+
+  emit('filter', key, selectedFilters.value[key])
+}
+
+function initColumnFilters(key: string, items: any[]) {
+  // Always initialize to all items (= all checked). Don't skip if already set,
+  // because filterItems may arrive after mount.
+  selectedFilters.value[key] = [...items]
 }
 
 const changedSet = computed(() =>
@@ -46,6 +62,17 @@ const changedSet = computed(() =>
 
 const checkIfChanged = (rowId: number, field: string) =>
     changedSet.value.has(`${rowId}-${field}`)
+
+watch(
+    () => props.activeFilters,
+    (newFilterItems) => {
+      if (!newFilterItems) return
+      for (const [key, items] of Object.entries(newFilterItems)) {
+        initColumnFilters(key, items)
+      }
+    },
+    { immediate: true, deep: true }
+)
 </script>
 
 <template>
@@ -63,6 +90,7 @@ const checkIfChanged = (rowId: number, field: string) =>
             :class-name="column.className"
             :sticky="column.sticky"
             :filter-items="filterItems?.[column.key]"
+            :selected-filters="selectedFilters[column.key]"
             @sort="emit('sort', $event)"
             @filter="handleFilter"
         />
@@ -99,6 +127,7 @@ const checkIfChanged = (rowId: number, field: string) =>
   overflow: scroll;
   contain: layout style paint;
   max-height: 75vh;
+  min-height: 60vh;
 
   .table {
     display: table;

@@ -136,6 +136,7 @@ const columns = computed(() => [
         :hide-admin-actions="userStore.userRole === 'user'"
     >
       <template #left-actions>
+        {{ membersStore.activeFilters }}
         <button
             @click="membersStore.saveChanges"
             class="warning"
@@ -183,6 +184,7 @@ const columns = computed(() => [
           :columns="columns"
           :data="membersStore.members"
           :filter-items="membersStore.filterItems"
+          :active-filters="membersStore.activeFilters"
           :sort-key="membersStore.sortKey"
           :sort-order="membersStore.sortOrder"
           :changed-coords="membersStore.changedCoords"

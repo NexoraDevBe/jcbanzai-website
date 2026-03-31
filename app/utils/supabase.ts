@@ -396,7 +396,7 @@ const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryRe
 const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('Members')
-        .select('Actief, Geslacht, Nationaliteit, Graad, Dojos, Wedstrijd_training, In_judovlaanderen')
+        .select('actief, geslacht, nationaliteit, graad, dojos, wedstrijd_training, in_judovlaanderen')
 
     if (error) {
         consoleErr('Error fetching filter options:', error)

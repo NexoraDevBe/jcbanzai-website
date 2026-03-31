@@ -117,7 +117,7 @@ const handleClick = () => {
         Starten<span>?</span>
       </h1>
       <AtomCallToAction class-name="cta" :on-click="handleClick">
-        Inschrijven
+        Inschrijven - Initiatie
       </AtomCallToAction>
     </div>
     <OrganismInfoSection :sections="infoSections" />

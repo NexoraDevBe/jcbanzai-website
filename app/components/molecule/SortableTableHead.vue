@@ -10,6 +10,7 @@ interface Props {
   className?: string
   sticky?: boolean
   filterItems?: any[]
+  selectedFilters?: any[]
 }
 
 const props = defineProps<Props>()
@@ -22,32 +23,43 @@ const emit = defineEmits<{
   filter: [filterKey: string, items: any[]]
 }>()
 
-const selectedFilters = ref<any[]>(props.filterItems ? [...props.filterItems] : [])
 const showFilterIcon = computed(() => props.filterItems && props.filterItems.length > 0)
 const showFilters = ref<boolean>(false)
 
+
+const pendingFilters = ref<any[] | null>(null)
+
 const handleFilterClick = (item: any) => {
-  const index = selectedFilters.value.findIndex(filter => filter === item)
+  // Work from pending, or fall back to current selectedFilters / all items
+  const base = pendingFilters.value !== null
+      ? [...pendingFilters.value]
+      : props.selectedFilters
+          ? [...props.selectedFilters]
+          : [...(props.filterItems ?? [])]
 
+  const index = base.indexOf(item)
   if (index !== -1) {
-    selectedFilters.value.splice(index, 1)
+    base.splice(index, 1)
+  } else {
+    base.push(item)
   }
-  else {
-    selectedFilters.value.push(item)
-  }
-  emit('filter', props.sortKey, selectedFilters.value)
+  pendingFilters.value = base
 }
 
-const handleEmptyClick = (item: any) => {
-  selectedFilters.value = []
-  emit('filter', props.sortKey, selectedFilters.value)
+const handleEmptyClick = () => {
+  pendingFilters.value = []
 }
 
-const handleFillClick = (item: any) => {
-  if (props.filterItems && props.filterItems.length > 0) {
-    selectedFilters.value = [...props.filterItems]
-    emit('filter', props.sortKey, selectedFilters.value)
+const handleFillClick = () => {
+  pendingFilters.value = [...(props.filterItems ?? [])]
+}
+
+const handleMouseLeave = () => {
+  if (pendingFilters.value !== null) {
+    emit('filter', props.sortKey, pendingFilters.value)
+    pendingFilters.value = null
   }
+  showFilters.value = false
 }
 </script>
 
@@ -61,10 +73,16 @@ const handleFillClick = (item: any) => {
       <p>
         {{ label }}
       </p>
-      <IconChevron v-if="showFilterIcon" @click="showFilters = !showFilters" class="clickable" :class="{ opened: showFilters }" :stroke-width="3" :color="filterItems && selectedFilters.length === filterItems.length ||  filterItems && selectedFilters.length === 0 ? 'secondary' : 'danger'" :size="12"/>
-      <div v-if="filterItems" @mouseleave="showFilters = !showFilters" class="filter-container" :class="{ visible: showFilters }">
+      <IconChevron v-if="showFilterIcon" @click="showFilters = !showFilters" class="clickable" :class="{ opened: showFilters }" :stroke-width="3" :color="
+  (() => {
+    const active = pendingFilters ?? selectedFilters
+    return !active || active.length === filterItems!.length || active.length === 0
+      ? 'secondary'
+      : 'danger'
+  })()" :size="12"/>
+      <div v-if="filterItems" @mouseleave="handleMouseLeave" class="filter-container" :class="{ visible: showFilters }">
         <label v-for="item in filterItems" :for="item">
-          <input @click="handleFilterClick(item)" :checked="selectedFilters.findIndex(filter => filter === item) !== -1" type="checkbox" :id="item" class="filter-checkbox" />
+          <input @click="handleFilterClick(item)" :checked="(pendingFilters ?? selectedFilters ?? filterItems)?.includes(item)" type="checkbox" :id="item" class="filter-checkbox" />
           {{ item }}
         </label>
         <p><span class="clickable" @click="handleFillClick">Alle {{ filterItems.length }} selecteren</span> - <span class="clickable" @click="handleEmptyClick">wissen</span></p>
