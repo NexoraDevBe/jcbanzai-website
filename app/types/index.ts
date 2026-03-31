@@ -49,16 +49,16 @@ interface Planning {
 
 interface Trainer {
     id: number
-    Voornaam: string
-    Naam: string
-    Gsm: string
-    Email: string
-    Check_strafregister: string,
-    Check_door: string,
-    Straat: string,
-    Gemeente: string,
-    Postcode: string,
-    Titels: string[]
+    voornaam: string
+    naam: string
+    gsm: string
+    email: string
+    check_strafregister: string,
+    check_door: string,
+    straat: string,
+    gemeente: string,
+    postcode: string,
+    titels: string[]
 }
 
 interface UserData {

@@ -341,12 +341,12 @@ const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryRe
     const { sort, filters = {}, page = 1, pageSize = 50 } = params
 
     const SELECT_FIELDS = `
-    id, Actief, Vergunning, Vergunning_geldig_tot,
-    Voornaam, Naam, Geslacht, Geboorte_datum, Nationaliteit,
-    Straat, Postcode, Gemeente, Gsm, Gsm2_Telefoon, Emails,
-    In_judovlaanderen, Dojos, Wedstrijd_training, Graad,
-    Gordel_behaald_op, Behaald_examen, Door_wie_examen,
-    Datum_examen, Lidgeld_opmerkingen, updated_at, created_at
+    id, actief, vergunning, vergunning_geldig_tot,
+    voornaam, naam, geslacht, geboorte_datum, nationaliteit,
+    straat, postcode, gemeente, gsm, telefoon, emails,
+    in_judovlaanderen, dojos, wedstrijd_training, graad,
+    gordel_behaald_op, behaald_examen, door_wie_examen,
+    datum_examen, lidgeld_opmerkingen, updated_at, created_at
   `
 
     let query = getSupabaseClient()
@@ -780,7 +780,7 @@ const getTrainers = async (params: TrainerQueryParams = {}): Promise<Trainer[]> 
 
     let query = getSupabaseClient()
         .from('Trainers')
-        .select('id, Voornaam, Naam, Gsm, Email, Check_strafregister, Check_door, Straat, Gemeente, Postcode, Titels')
+        .select('id, voornaam, naam, gsm, email, check_strafregister, check_door, straat, gemeente, postcode, titels')
 
     for (const [field, values] of Object.entries(filters)) {
         if (!values || values.length === 0) continue
@@ -804,7 +804,7 @@ const getTrainers = async (params: TrainerQueryParams = {}): Promise<Trainer[]> 
 const getTrainerFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('Trainers')
-        .select('Check_strafregister, Titels')
+        .select('check_strafregister, titels')
 
     if (error) {
         consoleErr('Error fetching trainer filter options:', error)
@@ -815,17 +815,17 @@ const getTrainerFilterOptions = async (): Promise<Record<string, any[]>> => {
     const titels = new Set<string>()
 
     for (const row of data ?? []) {
-        if (row.Check_strafregister !== null) strafregister.add(row.Check_strafregister)
-        if (Array.isArray(row.Titels)) {
-            row.Titels.forEach((t: string) => titels.add(t))
-        } else if (row.Titels) {
-            titels.add(row.Titels)
+        if (row.check_strafregister !== null) strafregister.add(row.check_strafregister)
+        if (Array.isArray(row.titels)) {
+            row.titels.forEach((t: string) => titels.add(t))
+        } else if (row.titels) {
+            titels.add(row.titels)
         }
     }
 
     return {
-        Check_strafregister: Array.from(strafregister).sort((a, b) => String(a).localeCompare(String(b))),
-        Titels: Array.from(titels).sort((a, b) => a.localeCompare(b)),
+        check_strafregister: Array.from(strafregister).sort((a, b) => String(a).localeCompare(String(b))),
+        titels: Array.from(titels).sort((a, b) => a.localeCompare(b)),
     }
 }
 
@@ -833,9 +833,9 @@ const getTrainerNames = async (): Promise<Partial<Trainer>[]> => {
     const { data, error } = await getSupabaseClient().from('Trainers')
         .select(`
             id,
-            Voornaam,
-            Naam
-        `).order('Voornaam');
+            voornaam,
+            naam
+        `).order('voornaam');
 
     if (error) {
         consoleErr('Error fetching trainers:', error);
