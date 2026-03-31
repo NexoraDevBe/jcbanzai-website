@@ -210,27 +210,62 @@ const getUserData = async (): Promise<UserData | null> => {
 
 // TECHNIQUES
 
-const getTechniques = async (): Promise<Technique[]> => {
-    const { data, error } = await getSupabaseClient().from('Techniques')
-        .select(`
-            id,
-            name,
-            belt,
-            category,
-            translation,
-            video
-        `);
+export interface TechniqueQueryParams {
+    sort?: { key: string; order: 'asc' | 'desc' }
+    filters?: Record<string, any[]>
+}
 
-    if (error) {
-        consoleErr('Error fetching techniques:', error);
-        throw error;
+const getTechniques = async (params: TechniqueQueryParams = {}): Promise<Technique[]> => {
+    const { sort, filters = {} } = params
+
+    let query = getSupabaseClient()
+        .from('Techniques')
+        .select('id, name, belt, category, translation, video')
+
+    // All Technique columns are scalar, so .in() covers everything
+    for (const [field, values] of Object.entries(filters)) {
+        if (!values || values.length === 0) continue
+        query = query.in(field, values)
     }
 
-    const techniques = (data || []) as Technique[];
-    consoleLog('Fetched techniques from Supabase:', techniques.length);
+    const sortKey = sort?.key ?? 'name'
+    query = query.order(sortKey, { ascending: sort ? sort.order === 'asc' : true })
 
-    return techniques;
-};
+    const { data, error } = await query
+
+    if (error) {
+        consoleErr('Error fetching techniques:', error)
+        throw error
+    }
+
+    consoleLog('Fetched techniques:', data?.length)
+    return (data ?? []) as Technique[]
+}
+
+// Runs once — all columns are worth filtering since the dataset is small and static
+const getTechniqueFilterOptions = async (): Promise<Record<string, any[]>> => {
+    const { data, error } = await getSupabaseClient()
+        .from('Techniques')
+        .select('belt, category')
+
+    if (error) {
+        consoleErr('Error fetching technique filter options:', error)
+        throw error
+    }
+
+    const belts = new Set<string>()
+    const categories = new Set<string>()
+
+    for (const row of data ?? []) {
+        if (row.belt) belts.add(row.belt)
+        if (row.category) categories.add(row.category)
+    }
+
+    return {
+        belt: Array.from(belts).sort((a, b) => a.localeCompare(b)),
+        category: Array.from(categories).sort((a, b) => a.localeCompare(b)),
+    }
+}
 
 const insertTechnique = async (name: string, belt: string, category: string, translation: string, video: string) => {
     const values = {
@@ -735,32 +770,64 @@ const deletePlanning = async (id: number) => {
 
 // TRAINERS
 
-const getTrainers = async (): Promise<Trainer[]> => {
-    const { data, error } = await getSupabaseClient().from('Trainers')
-        .select(`
-            id,
-            Voornaam,
-            Naam,
-            Gsm,
-            Email,
-            Check_strafregister,
-            Check_door,
-            Straat,
-            Gemeente,
-            Postcode,
-            Titels
-        `);
+export interface TrainerQueryParams {
+    sort?: { key: string; order: 'asc' | 'desc' }
+    filters?: Record<string, any[]>
+}
 
-    if (error) {
-        consoleErr('Error fetching trainers:', error);
-        throw error;
+const getTrainers = async (params: TrainerQueryParams = {}): Promise<Trainer[]> => {
+    const { sort, filters = {} } = params
+
+    let query = getSupabaseClient()
+        .from('Trainers')
+        .select('id, Voornaam, Naam, Gsm, Email, Check_strafregister, Check_door, Straat, Gemeente, Postcode, Titels')
+
+    for (const [field, values] of Object.entries(filters)) {
+        if (!values || values.length === 0) continue
+        query = query.in(field, values)
     }
 
-    const trainers = (data || []) as Trainer[];
-    consoleLog('Fetched trainers from Supabase:', trainers.length);
+    const sortKey = sort?.key ?? 'Naam'
+    query = query.order(sortKey, { ascending: sort ? sort.order === 'asc' : true })
 
-    return trainers;
-};
+    const { data, error } = await query
+
+    if (error) {
+        consoleErr('Error fetching trainers:', error)
+        throw error
+    }
+
+    consoleLog('Fetched trainers:', data?.length)
+    return (data ?? []) as Trainer[]
+}
+
+const getTrainerFilterOptions = async (): Promise<Record<string, any[]>> => {
+    const { data, error } = await getSupabaseClient()
+        .from('Trainers')
+        .select('Check_strafregister, Titels')
+
+    if (error) {
+        consoleErr('Error fetching trainer filter options:', error)
+        throw error
+    }
+
+    const strafregister = new Set<any>()
+    const titels = new Set<string>()
+
+    for (const row of data ?? []) {
+        if (row.Check_strafregister !== null) strafregister.add(row.Check_strafregister)
+        if (Array.isArray(row.Titels)) {
+            row.Titels.forEach((t: string) => titels.add(t))
+        } else if (row.Titels) {
+            titels.add(row.Titels)
+        }
+    }
+
+    return {
+        Check_strafregister: Array.from(strafregister).sort((a, b) => String(a).localeCompare(String(b))),
+        Titels: Array.from(titels).sort((a, b) => a.localeCompare(b)),
+    }
+}
 
 const getTrainerNames = async (): Promise<Partial<Trainer>[]> => {
     const { data, error } = await getSupabaseClient().from('Trainers')
@@ -790,6 +857,7 @@ export {
     getUserData,
 
     getTechniques,
+    getTechniqueFilterOptions,
     insertTechnique,
     updateTechnique,
     deleteTechnique,
@@ -808,5 +876,6 @@ export {
     deletePlanning,
 
     getTrainers,
+    getTrainerFilterOptions,
     getTrainerNames,
 };

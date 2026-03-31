@@ -11,8 +11,12 @@ definePageMeta({
 const userStore = useUserStore()
 const techniquesStore = useTechniquesStore()
 
-// Fetch techniques on mount
-await techniquesStore.fetchTechniques()
+onMounted(async () => {
+  await Promise.all([
+    techniquesStore.fetchTechniques(),
+    techniquesStore.fetchFilterOptions(),
+  ])
+})
 
 const disabled = computed(() => userStore.userRole === 'user')
 
@@ -79,7 +83,7 @@ const columns: Column[] = [
       <MoleculeDataTable
           v-if="!techniquesStore.isLoading"
           :columns="columns"
-          :data="techniquesStore.sortedTechniques"
+          :data="techniquesStore.techniques"
           :filter-items="techniquesStore.filterItems"
           :sort-key="techniquesStore.sortKey"
           :sort-order="techniquesStore.sortOrder"
