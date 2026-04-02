@@ -17,13 +17,13 @@ const month = now.getMonth() + 1
 
 const trainerOptions = computed(() => {
   const mapped = trainersStore.trainerNames
-      .filter((trainer) => trainer.Naam && trainer.Voornaam)
+      .filter((trainer) => trainer.naam && trainer.voornaam)
       .map((trainer) => {
-        if (trainer.Naam && trainer.Voornaam) {
-          const achternaam = trainer.Naam.split(' ')
+        if (trainer.naam && trainer.voornaam) {
+          const achternaam = trainer.naam.split(' ')
               .map((deelnaam) => deelnaam.substring(0, 1))
               .join('')
-          const naam = trainer.Voornaam + ' ' + achternaam
+          const naam = trainer.voornaam + ' ' + achternaam
 
           return {
             value: naam,

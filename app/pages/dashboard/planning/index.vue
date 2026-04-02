@@ -18,17 +18,17 @@ const month = now.getMonth() + 1
 
 const trainerOptions = computed(() => {
   const mapped = trainersStore.trainerNames
-      .filter((trainer) => trainer.Naam && trainer.Voornaam)
+      .filter((trainer) => trainer.naam && trainer.voornaam)
       .map((trainer) => {
-        if (trainer.Naam && trainer.Voornaam) {
-          const achternaam = trainer.Naam.split(' ')
-              .map((deelnaam) => deelnaam.substring(0, 1))
+        if (trainer.naam && trainer.voornaam) {
+          const lastnameCapital = trainer.naam.split(' ')
+              .map((lastname) => lastname.substring(0, 1))
               .join('')
-          const naam = trainer.Voornaam + ' ' + achternaam
+          const name = trainer.voornaam + ' ' + lastnameCapital
 
           return {
-            value: naam,
-            label: naam,
+            value: name,
+            label: name,
           }
         }
         return {
@@ -45,8 +45,8 @@ const trainerOptions = computed(() => {
 
 const plannedMonths = computed(() => {
   const grouped = planningStore.planning.reduce((acc: any, dm) => {
-    const year = dm.day.substr(0, 4)
-    const month = dm.day.substr(5, 2)
+    const year = dm.day.substring(0, 4)
+    const month = dm.day.substring(5, 7)
     const key = `${year}-${month}`
 
     if (!acc[key]) {
@@ -58,7 +58,7 @@ const plannedMonths = computed(() => {
   }, {})
 
   return Object.entries(grouped)
-    .filter(([key, days]) => {
+    .filter((days) => {
       return (days as any).every((dm: any) => {
         return dm.type === 'geen-les'
             ? dm.planning.length <= 1 || dm.planning[0] === ''

@@ -2,7 +2,7 @@
 import { useMembersStore } from '~/stores/members'
 import { useUserStore } from '~/stores/user'
 import { countries } from 'countries-list'
-import {getMembers, type MemberQueryParams, type MemberQueryResult} from "~/utils/supabase";
+import {getMembers, type MemberQueryParams} from "~/utils/supabase";
 import type { Column } from '~/types'
 
 definePageMeta({
@@ -71,7 +71,7 @@ const handleDownloadClick = async () => {
     pageSize: 1000,
   }
 
-  const { data, count } = await getMembers(params)
+  const { data } = await getMembers(params)
 
   const date = Date.now()
 
