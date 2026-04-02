@@ -77,6 +77,18 @@ interface Column {
     sticky?: boolean
 }
 
+interface News {
+    id: number
+    title: string
+    description: string
+    post: boolean
+    alert: boolean
+    alert_end_date: string
+    date: string
+    img_url: string
+    created_at: string
+}
+
 export type {
     Technique,
     Member,
@@ -84,4 +96,5 @@ export type {
     Trainer,
     UserData,
     Column,
+    News,
 }
