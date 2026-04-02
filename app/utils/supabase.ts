@@ -1,6 +1,6 @@
 import type {Session, SupabaseClient, User} from "@supabase/supabase-js";
 import {type AuthError, type AuthTokenResponsePassword, createClient} from "@supabase/supabase-js";
-import type {Member, Planning, Technique, Trainer, UserData} from "~/types";
+import type {Member, Planning, Technique, Trainer, UserData, News} from "~/types";
 import type {RuntimeConfig} from "nuxt/schema";
 import {useUserStore} from "~/stores/user";
 
@@ -242,7 +242,6 @@ const getTechniques = async (params: TechniqueQueryParams = {}): Promise<Techniq
     return (data ?? []) as Technique[]
 }
 
-// Runs once — all columns are worth filtering since the dataset is small and static
 const getTechniqueFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('Techniques')
@@ -391,8 +390,6 @@ const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryRe
     return { data: (data ?? []) as unknown as Member[], count: count ?? 0 }
 }
 
-// Runs ONCE to populate filter checkboxes
-// Fetches only the columns you want to filter on, no pagination
 const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('Members')
@@ -409,8 +406,7 @@ const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
         for (const [key, value] of Object.entries(row)) {
             if (!sets[key]) sets[key] = new Set()
             if (Array.isArray(value)) {
-                // @ts-ignore
-                value.forEach(v => sets[key].add(v))
+                value.forEach(v => sets[key]?.add(v))
             } else if (value !== null && value !== undefined) {
                 sets[key].add(value)
             }
@@ -614,8 +610,6 @@ const getPlanningByMonth = async (params: PlanningQueryParams): Promise<Planning
     return (data ?? []) as unknown as Planning[]
 }
 
-// Filter options — only the filterable scalar columns + type
-// beschikbaar/planning arrays are too dynamic to pre-build checkbox lists for
 const getPlanningFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('Planning')
@@ -662,8 +656,6 @@ const getDistinctPlanningMonths = async (): Promise<{ year: number; month: numbe
         .sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month)
 }
 
-// Remove the old getPlanning (full table fetch) and getPlanningById from exports
-// — they're only used internally by updatePlanning which still needs getPlanningById:
 const getPlanningById = async (id: number): Promise<Planning> => {
     const { data, error } = await getSupabaseClient()
         .from('Planning')
@@ -848,6 +840,135 @@ const getTrainerNames = async (): Promise<Partial<Trainer>[]> => {
     return trainernames;
 };
 
+// NEWSPOSTS
+
+export interface NewsQueryParams {
+    sort?: { key: string; order: 'asc' | 'desc' }
+    filters?: Record<string, any[]>
+    page?: number
+    pageSize?: number
+}
+
+export interface NewsQueryResult {
+    data: News[]
+    count: number
+}
+
+const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResult> => {
+    const { sort, filters = {}, page = 1, pageSize = 25 } = params
+
+    let query = getSupabaseClient()
+        .from('News')
+        .select('id, title, description, img_url, post, alert, alert_end_date, date, created_at', { count: 'exact' })
+
+    for (const [field, values] of Object.entries(filters)) {
+        if (!values || values.length === 0) continue
+        query = query.in(field, values)
+    }
+
+    const sortKey = sort?.key ?? 'id'
+    query = query.order(sortKey, { ascending: sort ? sort.order === 'asc' : false })
+
+    const from = (page - 1) * pageSize
+    query = query.range(from, from + pageSize - 1)
+
+    const { data, error, count } = await query
+
+    if (error) {
+        consoleErr('Error fetching news:', error)
+        throw error
+    }
+
+    consoleLog('Fetched news:', data?.length + ' of ' + count)
+    return { data: (data ?? []) as News[], count: count ?? 0 }
+}
+
+const getNewspostFilterOptions = async (): Promise<Record<string, any[]>> => {
+    const { data, error } = await getSupabaseClient()
+        .from('News')
+        .select('date, post, alert, alert_end_date')
+
+    if (error) {
+        consoleErr('Error fetching news filter options:', error)
+        throw error
+    }
+
+    const dates = new Set<string>()
+    const alerts = new Set<string>()
+    const alertEndDates = new Set<string>()
+
+    for (const row of data ?? []) {
+        if (row.alert) alerts.add(row.alert)
+        if (row.date) dates.add(row.date)
+        if (row.alert_end_date) alertEndDates.add(row.alert_end_date)
+    }
+
+    return {
+        date: Array.from(dates).sort((a, b) => a.localeCompare(b)),
+        alert: Array.from(alerts).sort((a, b) => a.localeCompare(b)),
+        alert_end_dates: Array.from(alertEndDates).sort((a, b) => a.localeCompare(b)),
+    }
+}
+
+const insertNewspost = async (title: string, description: string, alertEndDate: string, date: string, imgUrl: string, alert: boolean, post: boolean) => {
+    const values = {
+        title: title,
+        description: description,
+        post: post,
+        alert: alert,
+        alert_end_date: alertEndDate,
+        date: date,
+        img_url: imgUrl,
+    }
+
+    const { data, error } = await getSupabaseClient().from('News').insert(values)
+
+    if (error) {
+        consoleErr('Error details:', error.message)
+        consoleErr('Error hint:', error.hint)
+        consoleErr('Error details:', error.details)
+        return { success: false, error }
+    }
+
+    consoleLog('insertNewspost:', data)
+    return { success: true, data }
+}
+
+const updateNewspost = async (newspost: News) => {
+    const { data, error } = await getSupabaseClient()
+        .from('News')
+        .update(newspost)
+        .eq('id', newspost.id)
+
+    if (error) {
+        consoleErr('Error details:', error.message)
+        consoleErr('Error hint:', error.hint)
+        consoleErr('Error details:', error.details)
+        return { success: false, error }
+    }
+
+    consoleLog('updateNews:', data)
+    return { success: true, data }
+}
+
+const deleteNewspost = async (id: number) => {
+    const { data, error } = await getSupabaseClient()
+        .from('News')
+        .delete()
+        .eq('id', id)
+
+    if (error) {
+        consoleErr('Error details:', error.message)
+        consoleErr('Error hint:', error.hint)
+        consoleErr('Error details:', error.details)
+        return { success: false, error }
+    }
+
+    consoleLog('deleteNews:', data)
+    return { success: true, data }
+}
+
+
 export {
     getSupabaseClient,
 
@@ -878,4 +999,10 @@ export {
     getTrainers,
     getTrainerFilterOptions,
     getTrainerNames,
+
+    getNewsposts,
+    getNewspostFilterOptions,
+    insertNewspost,
+    updateNewspost,
+    deleteNewspost,
 };
