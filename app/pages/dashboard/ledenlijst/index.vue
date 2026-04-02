@@ -136,7 +136,6 @@ const columns = computed(() => [
         :hide-admin-actions="userStore.userRole === 'user'"
     >
       <template #left-actions>
-        {{ membersStore.activeFilters }}
         <button
             @click="membersStore.saveChanges"
             class="warning"
@@ -169,15 +168,14 @@ const columns = computed(() => [
     </MoleculePageHeader>
 
     <section class="data-table-container">
-      <div v-show="!membersStore.isLoading" class="pagination">
-        <button class="secondary" :disabled="membersStore.currentPage === 1" @click="membersStore.setPage(membersStore.currentPage - 1)">
-          <IconChevron class="left" :size="16" :stroke-width="3" :color="'primary'"/>
-        </button>
-        <span>{{ membersStore.currentPage }} / {{ membersStore.totalPages }} ({{ membersStore.totalCount }} leden)</span>
-        <button class="secondary" :disabled="membersStore.currentPage === membersStore.totalPages" @click="membersStore.setPage(membersStore.currentPage + 1)">
-          <IconChevron class="right"  :size="16" :stroke-width="3" :color="'primary'"/>
-        </button>
-      </div>
+      <MoleculePaginationNav
+          :current-page="membersStore.currentPage"
+          :is-loading="membersStore.isLoading"
+          :total-count="membersStore.totalCount"
+          :total-pages="membersStore.totalPages"
+          @up="membersStore.setPage"
+          @down="membersStore.setPage"
+      />
 
       <MoleculeDataTable
           v-if="!membersStore.isLoading"
@@ -211,22 +209,6 @@ const columns = computed(() => [
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    margin: 1rem 0;
-
-    .left {
-      transform: rotate(90deg);
-    }
-
-    .right {
-      transform: rotate(-90deg);
-    }
   }
 }
 </style>
