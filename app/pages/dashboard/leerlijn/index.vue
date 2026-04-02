@@ -102,21 +102,13 @@ const columns: Column[] = [
 #leerlijn-page {
   margin-bottom: var(--page-margin);
 
-  .data-table-container {
-    position: relative;
-    overflow: scroll;
-    contain: layout style paint;
-    height: 80vh;
-
-    .loading {
-      width: 100%;
-      height: 100%;
-      font-size: 1.3rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: rgba(0, 0, 0, .2);
-    }
+  .loading {
+    width: 100%;
+    height: 50vh;
+    font-size: 1.3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 }
 </style>
