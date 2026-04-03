@@ -19,8 +19,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  sort: [key: string]
   update: [rowId: number, field: string, value: any, arrayIndex?: number]
+  delete: [rowId: number[]]
+  sort: [key: string]
   addArrayItem: [rowId: number, field: string]
   removeArrayItem: [rowId: number, field: string, index: number]
   filter: [key: string, items: any[]]
@@ -73,6 +74,17 @@ watch(
     },
     { immediate: true, deep: true }
 )
+
+const selectedRows = ref<number[]>([])
+
+const deleteSelected = (rowId: number) => {
+  if (selectedRows.value.includes(rowId)) {
+    selectedRows.value.splice(selectedRows.value.indexOf(rowId), 1)
+  } else {
+    selectedRows.value.push(rowId)
+  }
+  emit('delete', selectedRows.value)
+}
 </script>
 
 <template>
@@ -80,6 +92,7 @@ watch(
     <div class="table">
       <!-- Header Row -->
       <div class="table-row header-row">
+        <div class="table-cell table-head delete-head"/>
         <MoleculeSortableTableHead
             v-for="column in columns"
             :key="column.key"
@@ -102,6 +115,9 @@ watch(
           :key="row.id"
           class="table-row"
       >
+        <div class="table-cell delete-wrapper">
+          <input type="checkbox" @change="deleteSelected(row.id)">
+        </div>
         <MoleculeEditableTableCell
             v-for="column in columns"
             :key="`${row.id}-${column.key}`"
@@ -158,6 +174,28 @@ watch(
             background-color: var(--gray-200);
           }
         }
+      }
+
+      .delete-wrapper {
+        display: table-cell;
+        text-align: center;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+        max-width: 2rem;
+        width: 1rem;
+
+        input {
+          accent-color: var(--accent);
+        }
+      }
+
+      .delete-head {
+        display: table-cell;
+        background: var(--primary);
+        position: sticky;
+        top: 0;
+        left: 0;
+        z-index: 2;
       }
     }
   }
