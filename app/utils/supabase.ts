@@ -859,7 +859,7 @@ const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResu
 
     let query = getSupabaseClient()
         .from('News')
-        .select('id, title, description, img_url, post, alert, alert_end_date, date, created_at', { count: 'exact' })
+        .select('id, title, description, img_url, post, pinned, alert, alert_start_date, alert_end_date, date, created_at', { count: 'exact' })
 
     for (const [field, values] of Object.entries(filters)) {
         if (!values || values.length === 0) continue
@@ -886,39 +886,77 @@ const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResu
 const getNewspostFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('News')
-        .select('date, post, alert, alert_end_date')
+        .select('date, post, pinned, alert, alert_start_date, alert_end_date')
 
     if (error) {
-        consoleErr('Error fetching news filter options:', error)
+        consoleErr('Error fetching filter options:', error)
         throw error
     }
 
-    const dates = new Set<string>()
-    const alerts = new Set<string>()
-    const alertEndDates = new Set<string>()
+    const sets: Record<string, Set<any>> = {}
 
     for (const row of data ?? []) {
-        if (row.alert) alerts.add(row.alert)
-        if (row.date) dates.add(row.date)
-        if (row.alert_end_date) alertEndDates.add(row.alert_end_date)
+        for (const [key, value] of Object.entries(row)) {
+            if (!sets[key]) sets[key] = new Set()
+            if (Array.isArray(value)) {
+                value.forEach(v => sets[key]?.add(v))
+            } else if (value !== null && value !== undefined) {
+                sets[key].add(value)
+            }
+        }
     }
 
+    return Object.fromEntries(
+        Object.entries(sets).map(([k, s]) => [
+            k,
+            Array.from(s).sort((a, b) => String(a).localeCompare(String(b)))
+        ])
+    )
+}
+
+const uploadNewsImageToBucket = async (file: File, path: string = "public") => {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    const filePath = path ? `${path}/${fileName}` : fileName
+
+    const { data, error } = await getSupabaseClient()
+        .storage
+        .from('news-images')
+        .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+        })
+
+    if (error) {
+        consoleErr('Upload error:', error.message)
+        consoleErr('Cause:', error.cause)
+        return { success: false, error }
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = getSupabaseClient()
+        .storage
+        .from('news-images')
+        .getPublicUrl(filePath)
+
     return {
-        date: Array.from(dates).sort((a, b) => a.localeCompare(b)),
-        alert: Array.from(alerts).sort((a, b) => a.localeCompare(b)),
-        alert_end_dates: Array.from(alertEndDates).sort((a, b) => a.localeCompare(b)),
+        success: true,
+        path: filePath,
+        url: publicUrlData.publicUrl,
     }
 }
 
-const insertNewspost = async (title: string, description: string, alertEndDate: string, date: string, imgUrl: string, alert: boolean, post: boolean) => {
+const insertNewspost = async (title: string, description: string, alertStartDate: string | null, alertEndDate: string | null, date: string | null, imgUrl: string, alert: boolean, post: boolean, pinned: boolean) => {
     const values = {
         title: title,
         description: description,
         post: post,
         alert: alert,
+        alert_start_date: alertStartDate,
         alert_end_date: alertEndDate,
         date: date,
         img_url: imgUrl,
+        pinned: pinned,
     }
 
     const { data, error } = await getSupabaseClient().from('News').insert(values)
@@ -956,6 +994,8 @@ const deleteNewspost = async (id: number) => {
         .from('News')
         .delete()
         .eq('id', id)
+
+    console.log(id)
 
     if (error) {
         consoleErr('Error details:', error.message)
@@ -1002,6 +1042,7 @@ export {
 
     getNewsposts,
     getNewspostFilterOptions,
+    uploadNewsImageToBucket,
     insertNewspost,
     updateNewspost,
     deleteNewspost,

@@ -2,6 +2,7 @@
 import {useNewsStore} from "~/stores/news";
 import { useUserStore } from '~/stores/user'
 import type { Column } from '~/types'
+import {deleteNewspost} from "~/utils/supabase";
 
 definePageMeta({
   middleware: 'auth',
@@ -20,37 +21,34 @@ onMounted(async () => {
 
 const disabled = computed(() => userStore.userRole === 'user')
 
-const beltOptions = [
-  { value: 'white', label: 'wit' },
-  { value: 'yellow', label: 'geel' },
-  { value: 'orange', label: 'oranje' },
-  { value: 'green', label: 'groen' },
-  { value: 'blue', label: 'blauw' },
-  { value: 'brown', label: 'bruin' },
-  { value: 'black', label: 'zwart' },
-  { value: '', label: '/' },
-]
-
-const categoryOptions = [
-  { value: 'protocol', label: 'protocol' },
-  { value: 'val', label: 'val' },
-  { value: 'worp', label: 'worp' },
-  { value: 'houdgreep', label: 'houdgreep' },
-  { value: 'wurging', label: 'wurging' },
-  { value: 'klem', label: 'klem' },
-  { value: 'kata', label: 'kata' },
-]
-
 const columns: Column[] = [
   { key: 'id', label: 'ID', type: 'readonly', className: 'id', sticky: true },
   { key: 'title', label: 'Titel', type: 'text', className: 'title' },
-  { key: 'description', label: 'Beschrijving', type: 'text', options: beltOptions, className: 'description' },
+  { key: 'description', label: 'Beschrijving', type: 'textarea', className: 'description' },
   { key: 'date', label: 'Datum', type: 'date', className: 'date' },
-  { key: 'img_url', label: 'Foto', type: 'text', options: categoryOptions, className: 'img-url' },
+  { key: 'img_url', label: 'Foto', type: 'text', className: 'img-url' },
+  { key: 'pinned', label: 'Vastgemaakt', type: 'checkbox', className: 'pinned' },
   { key: 'post', label: 'Is post', type: 'checkbox', className: 'post' },
   { key: 'alert', label: 'Is alert', type: 'checkbox', className: 'alert' },
+  { key: 'alert_start_date', label: 'Alert start datum', type: 'date', className: 'alert-start-date' },
   { key: 'alert_end_date', label: 'Alert eind datum', type: 'date', className: 'alert-end-date' },
 ]
+
+const selectedRows = ref<number[]>([])
+const handleEmitDelete = (rowId: number[]) => {
+  selectedRows.value = rowId
+}
+const handleDelete = async () => {
+  if (selectedRows.value.length <= 0) return
+  const answer = window.confirm(
+      `Ben je zeker dat je de rij(en) ${selectedRows.value} wilt verwijderen`
+  )
+  if (answer) {
+    for (const id of selectedRows.value) {
+      await newsStore.removeNewspost(id)
+    }
+  }
+}
 </script>
 
 <template>
@@ -69,12 +67,14 @@ const columns: Column[] = [
         <button
             :disabled="disabled"
             class="success"
+            @click="navigateTo('/dashboard/nieuws/create')"
         >
           Toevoegen
         </button>
         <button
-            :disabled="disabled"
+            :disabled="disabled || selectedRows.length <= 0"
             class="danger"
+            @click="handleDelete"
         >
           Verwijderen
         </button>
@@ -103,6 +103,7 @@ const columns: Column[] = [
           @sort="newsStore.setSort"
           @filter="newsStore.setFilter"
           @update="newsStore.updateNewspostField"
+          @delete="handleEmitDelete"
       />
       <div class="loading" v-else>Laden...</div>
     </section>

@@ -172,14 +172,16 @@ export const useNewsStore = defineStore('news', () => {
         title: string,
         description: string,
         alertEndDate: string,
+        alertStartDate: string,
         date: string,
         imgUrl: string,
         alert: boolean,
-        post: boolean
+        post: boolean,
+        pinned: boolean
     ) {
         isSaving.value = true
         try {
-            const result = await insertNewspost(title, description, alertEndDate, date, imgUrl, alert, post)
+            const result = await insertNewspost(title, description, alertStartDate, alertEndDate, date, imgUrl, alert, post, pinned)
             if (result.success) {
                 // Go to page 1 after insert so the new post is visible
                 currentPage.value = 1
