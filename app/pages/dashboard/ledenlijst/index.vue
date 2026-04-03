@@ -2,8 +2,9 @@
 import { useMembersStore } from '~/stores/members'
 import { useUserStore } from '~/stores/user'
 import { countries } from 'countries-list'
-import {getMembers, type MemberQueryParams} from "~/utils/supabase";
+import { getMembers, type MemberQueryParams } from "~/utils/supabase";
 import type { Column } from '~/types'
+import { downloadCSV } from "~/utils/files";
 
 definePageMeta({
   middleware: 'auth',
