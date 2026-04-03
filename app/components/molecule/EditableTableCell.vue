@@ -1,7 +1,7 @@
 <script setup lang="ts">
 interface Props {
   value: any
-  type: 'text' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'array-select-horizontal' | 'readonly'
+  type: 'text' | 'textarea' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'array-select-horizontal' | 'readonly'
   disabled?: boolean
   className?: string
   options?: Array<{ value: string | number; label: string }>
@@ -40,8 +40,13 @@ const handleRemoveItem = (index: number) => {
   emit('removeArrayItem', index)
 }
 
+const handleTextareaClose = () => {
+  textareaShow.value = false;
+}
+
 const arrayShow = ref<boolean>(false)
 const horizontalDropdownOpen = ref<boolean>(false)
+const textareaShow = ref<boolean>(false)
 
 watch(() => props.expandAll, (newVal) => {
   if (newVal !== undefined && (props.type === 'array-text' || props.type === 'array-select')) {
@@ -208,6 +213,27 @@ watch(() => props.expandAll, (newVal) => {
       </button>
     </div>
 
+    <div
+        v-else-if="type === 'textarea'"
+        class="textarea"
+        @click="() => {if (!disabled) {textareaShow = true}}"
+    >
+      <p>
+        {{ value.length > 10 ? value.substring(0, 10) + "..." : value }}
+      </p>
+      <div v-show="textareaShow" class="textarea-wrapper">
+        <textarea
+            :value="value"
+            :disabled="disabled"
+            @input="handleInput"
+        />
+        <button class="danger" @click.stop="handleTextareaClose">
+          close
+        </button>
+      </div>
+
+    </div>
+
     <!-- Text input (default) -->
     <input
         v-else
@@ -232,7 +258,8 @@ watch(() => props.expandAll, (newVal) => {
 
   input[type="text"],
   input[type="date"],
-  select {
+  select,
+  .textarea {
     min-width: 10rem;
     width: 100%;
     margin: 0;
@@ -251,6 +278,13 @@ watch(() => props.expandAll, (newVal) => {
   input[type="checkbox"] {
     text-align: center;
     margin-left: 0.5rem;
+    accent-color: var(--secondary);
+    opacity: .3;
+    border: 1px solid var(--secondary);
+
+    &:checked {
+      opacity: 1;
+    }
   }
 
   &:has(input:focus), &:has(select:focus) {
@@ -512,6 +546,34 @@ watch(() => props.expandAll, (newVal) => {
 
       &:active {
         transform: scale(0.98);
+      }
+    }
+  }
+
+  .textarea {
+    .textarea-wrapper {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      max-width: 60rem;
+      min-width: 15rem;
+      height: 40vh;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      background-color: var(--primary-40);
+      border: 2px solid var(--secondary-40);
+      border-radius: 1.8rem;
+
+      textarea {
+        width: 100%;
+        height: 100%;
+        background-color: var(--primary);
       }
     }
   }
