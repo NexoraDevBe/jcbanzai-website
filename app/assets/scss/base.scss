@@ -21,7 +21,7 @@
   --brown: #7B5533;
 
   --danger: #dc2626;
-  --warning: #ffc107;
+  --warning: #ff9407;
   --success: #16a34a;
 
   // GENERAL COLORS
@@ -110,6 +110,10 @@
     --secondary-70: rgba(230, 230, 230, 0.7);
     --secondary-80: rgba(230, 230, 230, 0.8);
     --secondary-90: rgba(230, 230, 230, 0.9);
+
+    --danger: #dc2626;
+    --warning: #ffc107;
+    --success: #16a34a;
   }
 }
 
@@ -250,9 +254,11 @@ option {
 }
 
 input:required + label::after,
+textarea:required + label::after,
 select:required + label::after,
 label:has(+ input:required)::after,
-label:has(+ select:required)::after {
+label:has(+ select:required)::after,
+label:has(+ textarea:required)::after{
   content: " *";
   color: var(--accent);
 }
