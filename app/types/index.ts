@@ -70,7 +70,7 @@ interface UserData {
 interface Column {
     key: string
     label: string
-    type?: 'text' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'array-select-horizontal' | 'readonly'
+    type?: 'text' | 'textarea' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'array-select-horizontal' | 'readonly'
     options?: Array<{ value: string | number; label: string }>
     className?: string
     disabled?: (row: any) => boolean
@@ -82,6 +82,7 @@ interface News {
     title: string
     description: string
     post: boolean
+    pinned: boolean
     alert: boolean
     alert_end_date: string
     date: string
