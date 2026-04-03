@@ -49,28 +49,24 @@ const plannedMonths = computed(() => {
     const month = dm.day.substring(5, 7)
     const key = `${year}-${month}`
 
-    if (!acc[key]) {
-      acc[key] = []
-    }
+    if (!acc[key]) acc[key] = []
     acc[key].push(dm)
 
     return acc
   }, {})
 
   return Object.entries(grouped)
-    .filter((days) => {
-      return (days as any).every((dm: any) => {
-        return dm.type === 'geen-les'
-            ? dm.planning.length <= 1 || dm.planning[0] === ''
-            : dm.planning.length > 0 && dm.planning[0] !== ''
+      .filter(([key, days]) => {                          // destructure the tuple
+        return (days as any[]).every((dm: any) => {       // now dm is a day object
+          return dm.type === 'geen-les'
+              ? dm.planning.length <= 1 || dm.planning[0] === ''   // .length not .length()
+              : dm.planning.length > 0 && dm.planning[0] !== ''    // .length not .length()
+        })
       })
-    })
-    .map(([key, days]) => {
-      return {
+      .map(([key]) => ({
         year: +key.substring(0, 4),
         month: +key.substring(5, 7)
-      }
-    })
+      }))
 })
 
 const typeOptions = [
