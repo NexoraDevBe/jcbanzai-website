@@ -126,7 +126,7 @@ watch(() => props.expandAll, (newVal) => {
                 @click="handleRemoveItem(index)"
                 title="Verwijder item"
             >
-              <IconDeleteCross :size="16" :stroke-width="2.5" :color="'danger'"/>
+              <IconDeleteCross :size="12" :stroke-width="2.5" :color="'danger'"/>
             </button>
           </div>
 
@@ -137,7 +137,7 @@ watch(() => props.expandAll, (newVal) => {
               @click="handleAddItem"
               title="Voeg item toe"
           >
-            <IconAddCross :size="16" :stroke-width="2.5" :color="'success'"/>
+            <IconAddCross :size="12" :stroke-width="2.5" :color="'success'"/>
           </button>
         </div>
       </div>
@@ -186,8 +186,8 @@ watch(() => props.expandAll, (newVal) => {
             @click="(value.length > 1 ? arrayShow = !arrayShow : handleAddItem())"
             :title="value.length > 1 ? 'Toon/Verberg items' : 'Voeg item toe'"
         >
-          <IconChevron v-if="value.length > 1" :class="{'flip': arrayShow}" :size="16" :stroke-width="3" :color="'gray-800'"/>
-          <IconAddCross v-else :size="20" :stroke-width="2.5" :color="'success'"/>
+          <IconChevron v-if="value.length > 1" :class="{'flip': arrayShow}" :size="12" :stroke-width="2.5" :color="'gray-800'"/>
+          <IconAddCross v-else :size="16" :stroke-width="2" :color="'success'"/>
         </button>
         <button
             v-if="arrayShow && index !== 0"
@@ -198,7 +198,7 @@ watch(() => props.expandAll, (newVal) => {
             @click="handleRemoveItem(index)"
             title="Verwijder item"
         >
-          <IconDeleteCross :size="20" :stroke-width="2.5" :color="'danger'"/>
+          <IconDeleteCross :size="16" :stroke-width="2" :color="'danger'"/>
         </button>
       </div>
       <button
@@ -209,7 +209,7 @@ watch(() => props.expandAll, (newVal) => {
           @click="handleAddItem"
           title="Voeg item toe"
       >
-        <IconAddCross :size="20" :stroke-width="2.5" :color="'success'"/>
+        <IconAddCross :size="16" :stroke-width="2" :color="'success'"/>
       </button>
     </div>
 
@@ -251,6 +251,8 @@ watch(() => props.expandAll, (newVal) => {
   vertical-align: middle;
   border: 1px solid var(--secondary-10);
   min-width: 10rem;
+  font-size: 0.9rem;
+font-family: system-ui;
 
   &.dnone {
     display: none;
@@ -263,11 +265,13 @@ watch(() => props.expandAll, (newVal) => {
     min-width: 10rem;
     width: 100%;
     margin: 0;
-    padding: 0.8rem 0.5rem;
+    padding: 0.35rem 0.4rem;
     border: none;
     border-radius: 0;
     background: none;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+font-family: system-ui;
+    line-height: 1.2;
   }
 
   &:has(select),
@@ -335,7 +339,9 @@ watch(() => props.expandAll, (newVal) => {
 
   p {
     margin: 0;
-    padding: 0.3rem 0.5rem;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.9rem;
+font-family: system-ui;
   }
 
   &:has(.array-container) {
@@ -346,8 +352,8 @@ watch(() => props.expandAll, (newVal) => {
   .array-horizontal-container {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.5rem;
+    gap: 0.25rem;
+    padding: 0.25rem;
     width: 100%;
 
     .array-horizontal-wrapper {
@@ -358,7 +364,7 @@ watch(() => props.expandAll, (newVal) => {
       .array-horizontal-items {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.25rem;
         align-items: center;
 
         .array-horizontal-item {
@@ -368,12 +374,12 @@ watch(() => props.expandAll, (newVal) => {
           border-radius: 0.4rem;
 
           select {
-            min-width: 8rem;
+            min-width: 6rem;
             width: auto;
-            padding: 0.3rem 0.5rem;
+            padding: 0.2rem 0.35rem;
             border-radius: 0.4rem;
             background-color: var(--gray-150);
-            font-size: 1rem;
+            font-size: 0.8rem;
           }
         }
 
@@ -381,8 +387,8 @@ watch(() => props.expandAll, (newVal) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 1.8rem;
-          height: 1.8rem;
+          width: 1.4rem;
+          height: 1.4rem;
           padding: 0;
           background-color: transparent;
           border-radius: .4rem;
@@ -398,7 +404,7 @@ watch(() => props.expandAll, (newVal) => {
           }
 
           &-remove {
-            border: 2px solid var(--danger);
+            border: 1px solid var(--danger);
             color: var(--danger);
 
             &:hover {
@@ -407,7 +413,7 @@ watch(() => props.expandAll, (newVal) => {
           }
 
           &-show {
-            border: 2px solid var(--gray-800);
+            border: 1px solid var(--gray-800);
             color: var(--gray-800);
 
             .flip {
@@ -420,9 +426,10 @@ watch(() => props.expandAll, (newVal) => {
           }
 
           &-add {
-            width: 1.8rem;
+            width: 1.4rem;
+            height: 1.4rem;
             margin: 0;
-            border: 2px dashed var(--success);
+            border: 1px dashed var(--success);
             color: var(--success);
 
             .flip {
@@ -442,19 +449,20 @@ watch(() => props.expandAll, (newVal) => {
   .array-container {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.5rem;
+    gap: 0.25rem;
+    padding: 0.25rem;
     width: 100%;
 
     .array-item {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.25rem;
       align-items: center;
 
       input[type="text"], select {
         flex: 1;
         border-radius: .4rem;
-        padding: 0.3rem 0.5rem;
+        padding: 0.2rem 0.35rem;
+        font-size: 0.8rem;
       }
 
       select {
@@ -469,8 +477,8 @@ watch(() => props.expandAll, (newVal) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 1.8rem;
-        height: 1.8rem;
+        width: 1.4rem;
+        height: 1.4rem;
         padding: 0;
         background-color: transparent;
         border-radius: .4rem;
@@ -486,7 +494,7 @@ watch(() => props.expandAll, (newVal) => {
         }
 
         &-remove {
-          border: 2px solid var(--danger);
+          border: 1px solid var(--danger);
           color: var(--danger);
 
           &:hover {
@@ -495,7 +503,7 @@ watch(() => props.expandAll, (newVal) => {
         }
 
         &-show {
-          border: 2px solid var(--gray-800);
+          border: 1px solid var(--gray-800);
           color: var(--gray-800);
 
           .flip {
@@ -508,9 +516,10 @@ watch(() => props.expandAll, (newVal) => {
         }
 
         &-add {
-          width: 1.8rem;
+          width: 1.4rem;
+          height: 1.4rem;
           margin: 0;
-          border: 2px solid var(--success);
+          border: 1px solid var(--success);
           color: var(--success);
 
           .flip {
@@ -528,17 +537,16 @@ watch(() => props.expandAll, (newVal) => {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: calc(100% - 2.3rem);
-      min-width:1.8rem;
-      height: 1.8rem;
+      width: 100%;
+      min-width:1.4rem;
+      height: 1.4rem;
       padding: 0;
-      border: 2px dashed var(--success);
+      border: 1px dashed var(--success);
       background-color: transparent;
       color: var(--success);
       border-radius: .4rem;
       cursor: pointer;
       transition: all 0.2s;
-      margin-right: 2rem;
 
       &:hover {
         background-color: var(--success-50);
@@ -567,7 +575,7 @@ watch(() => props.expandAll, (newVal) => {
       padding: 1.5rem;
       backdrop-filter: blur(10px);
       background-color: var(--primary-40);
-      border: 2px solid var(--secondary-40);
+      border: 1px solid var(--secondary-40);
       border-radius: 1.8rem;
 
       textarea {

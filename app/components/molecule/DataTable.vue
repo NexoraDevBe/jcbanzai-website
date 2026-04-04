@@ -151,7 +151,7 @@ const deleteSelected = (rowId: number) => {
 
     .table-row {
       display: table-row;
-      font-size: 1.1rem;
+      font-size: .9rem;
 
       .id {
         background-color: var(--gray-100);
