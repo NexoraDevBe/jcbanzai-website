@@ -859,7 +859,7 @@ const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResu
 
     let query = getSupabaseClient()
         .from('News')
-        .select('id, title, description, img_url, post, pinned, alert, alert_start_date, alert_end_date, date, created_at', { count: 'exact' })
+        .select('id, title, description, img_url, post, alert, alert_start_date, alert_end_date, date, created_at', { count: 'exact' })
 
     for (const [field, values] of Object.entries(filters)) {
         if (!values || values.length === 0) continue
@@ -886,7 +886,7 @@ const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResu
 const getNewspostFilterOptions = async (): Promise<Record<string, any[]>> => {
     const { data, error } = await getSupabaseClient()
         .from('News')
-        .select('date, post, pinned, alert, alert_start_date, alert_end_date')
+        .select('date, post, alert, alert_start_date, alert_end_date')
 
     if (error) {
         consoleErr('Error fetching filter options:', error)
@@ -946,7 +946,7 @@ const uploadNewsImageToBucket = async (file: File, path: string = "public") => {
     }
 }
 
-const insertNewspost = async (title: string, description: string, alertStartDate: string | null, alertEndDate: string | null, date: string | null, imgUrl: string, alert: boolean, post: boolean, pinned: boolean) => {
+const insertNewspost = async (title: string, description: string, alertStartDate: string | null, alertEndDate: string | null, date: string | null, imgUrl: string, alert: boolean, post: boolean) => {
     const values = {
         title: title,
         description: description,
@@ -955,8 +955,7 @@ const insertNewspost = async (title: string, description: string, alertStartDate
         alert_start_date: alertStartDate,
         alert_end_date: alertEndDate,
         date: date,
-        img_url: imgUrl,
-        pinned: pinned,
+        img_url: imgUrl
     }
 
     const { data, error } = await getSupabaseClient().from('News').insert(values)

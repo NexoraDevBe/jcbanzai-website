@@ -82,7 +82,6 @@ interface News {
     title: string
     description: string
     post: boolean
-    pinned: boolean
     alert: boolean
     alert_end_date: string
     date: string

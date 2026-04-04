@@ -12,10 +12,11 @@ definePageMeta({
   layout: 'dashboard',
 })
 
+const newsStore = useNewsStore();
+
 const title = ref<string>('')
 const description = ref<string>('')
 const date = ref<string>('')
-const pinned = ref<boolean>(false)
 const post = ref<boolean>(false)
 const alert = ref<boolean>(false)
 const alertStartDate = ref<string>('')
@@ -35,8 +36,7 @@ const handleSubmit = async () => {
   // Validate all fields
   const validations: Record<string, any> = {
     title: validateText(title.value, 'Titel', {required: true, maxLength: 80}),
-    description: validateText(description.value, 'Beschrijving', {required: true, maxLength: 1500}),
-    pinned: validateCheckbox(pinned.value, 'Vastzetten', { required: false }),
+    description: validateText(description.value, 'Beschrijving', {required: false, maxLength: 1500}),
     post: validateCheckbox(post.value, 'Post op nieuwspagina', { required: false }),
     date: validateDate(date.value, 'Zichtbare datum', { required: post.value }),
     alert: validateCheckbox(alert.value, 'Alert op homepagina', { required: false }),
@@ -77,7 +77,7 @@ const handleSubmit = async () => {
   }
 
   // Submit form
-  insertNewspost(
+  await newsStore.addNewspost(
       title.value,
       description.value,
       alertStartDate.value || null,
@@ -85,8 +85,7 @@ const handleSubmit = async () => {
       date.value || null,
       imgUrl.value,
       alert.value,
-      post.value,
-      pinned.value,
+      post.value
   )
 
   success.value = 'Nieuwspost succesvol opgeslaan!'
@@ -98,7 +97,6 @@ const handleSubmit = async () => {
   imgUrl.value = '';
   alert.value = false;
   post.value = false;
-  pinned.value = false;
 
   scrollTo(0,0)
 }
@@ -135,22 +133,10 @@ const handleFileChange = (event: Event) => {
           <textarea
               id="description"
               v-model="description"
-              required
               :class="{ 'error': errors.description }"
               rows="10"
           />
           <span v-if="errors.description" class="error-text">{{ errors.description }}</span>
-        </div>
-
-        <div class="form-item">
-          <label for="pinned">Vastmaken</label>
-          <input
-              id="pinned"
-              v-model="pinned"
-              type="checkbox"
-              :class="{ 'error': errors.pinned }"
-          />
-          <span v-if="errors.pinned" class="error-text">{{ errors.pinned }}</span>
         </div>
 
         <div class="form-item">

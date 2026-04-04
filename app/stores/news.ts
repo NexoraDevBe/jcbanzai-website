@@ -17,7 +17,7 @@ export const useNewsStore = defineStore('news', () => {
     const totalCount = ref(0)
 
     // — Query params —
-    const sortKey = ref<string>('id')
+    const sortKey = ref<string>('date')
     const sortOrder = ref<'asc' | 'desc'>('desc')
     const activeFilters = ref<Record<string, any[]>>({})
     const currentPage = ref(1)
@@ -171,17 +171,16 @@ export const useNewsStore = defineStore('news', () => {
     async function addNewspost(
         title: string,
         description: string,
-        alertEndDate: string,
-        alertStartDate: string,
-        date: string,
+        alertStartDate: string | null,
+        alertEndDate: string | null,
+        date: string | null,
         imgUrl: string,
         alert: boolean,
-        post: boolean,
-        pinned: boolean
+        post: boolean
     ) {
         isSaving.value = true
         try {
-            const result = await insertNewspost(title, description, alertStartDate, alertEndDate, date, imgUrl, alert, post, pinned)
+            const result = await insertNewspost(title, description, alertStartDate, alertEndDate, date, imgUrl, alert, post)
             if (result.success) {
                 // Go to page 1 after insert so the new post is visible
                 currentPage.value = 1
