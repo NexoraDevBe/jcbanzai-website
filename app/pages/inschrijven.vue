@@ -307,23 +307,6 @@ const handleSubmit = () => {
       grid-template-columns: 100%;
       gap: 1rem;
 
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-
-        .error-text {
-          color: var(--danger);
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
-        }
-
-        input.error,
-        select.error {
-          border-color: var(--danger);
-        }
-      }
-
       button[type="submit"] {
         display: inline-flex;
         align-items: center;
@@ -342,28 +325,6 @@ const handleSubmit = () => {
         cursor: pointer;
       }
     }
-  }
-
-  .error-message {
-    text-align: center;
-    color: var(--danger);
-    font-weight: 500;
-    margin: 0 auto 2rem;
-    padding: 1rem 1.5rem;
-    background-color: var(--danger-50);
-    border-radius: 0.5rem;
-    width: fit-content;
-  }
-
-  .success-message {
-    text-align: center;
-    color: var(--success);
-    font-weight: 500;
-    margin: 0 auto 2rem;
-    padding: 1rem 1.5rem;
-    background-color: var(--success-50);
-    border-radius: 0.5rem;
-    width: fit-content;
   }
 }
 

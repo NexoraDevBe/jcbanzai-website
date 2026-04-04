@@ -263,7 +263,13 @@ label:has(+ textarea:required)::after{
   color: var(--accent);
 }
 
-button {
+//.form-group:has(input[type="file"]) {
+//  input[type="file"] {
+//    display: none;
+//  }
+//}
+
+button, .btn {
   display: inline-flex;
   align-items: center;
   gap: 1rem;
