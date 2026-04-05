@@ -49,6 +49,22 @@ const columns: Column[] = [
   { key: 'translation', label: 'Vertaling', type: 'text', className: 'translation' },
   { key: 'video', label: 'Video', type: 'text', className: 'video' },
 ]
+
+const selectedRows = ref<number[]>([])
+const handleEmitDelete = (rowId: number[]) => {
+  selectedRows.value = rowId
+}
+const handleDelete = () => {
+  if (selectedRows.value.length <= 0) return
+  const answer = window.confirm(
+      `Ben je zeker dat je de rij(en) ${selectedRows.value} wilt verwijderen`
+  )
+  if (answer) {
+    for (const id of selectedRows.value) {
+      techniquesStore.removeTechnique(id)
+    }
+  }
+}
 </script>
 
 <template>
@@ -71,8 +87,9 @@ const columns: Column[] = [
           Toevoegen
         </button>
         <button
-            :disabled="disabled"
+            :disabled="userStore.userRole === 'user' || selectedRows.length <= 0"
             class="danger"
+            @click="handleDelete"
         >
           Verwijderen
         </button>
@@ -89,9 +106,12 @@ const columns: Column[] = [
           :sort-key="techniquesStore.sortKey"
           :sort-order="techniquesStore.sortOrder"
           :changed-coords="techniquesStore.changedCoords"
+          :search-query="techniquesStore.searchQuery"
           @sort="techniquesStore.setSort"
           @filter="techniquesStore.setFilter"
           @update="techniquesStore.updateTechniqueField"
+          @search="techniquesStore.setSearch"
+          @delete="handleEmitDelete"
       />
       <div class="loading" v-else>Laden...</div>
     </section>

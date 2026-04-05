@@ -170,7 +170,7 @@ const handleDelete = () => {
       </template>
       <template #right-actions>
         <button
-            :disabled="userStore.userRole === 'user'"
+            :disabled="userStore.userRole === 'user' || true"
             class="success"
         >
           Toevoegen
