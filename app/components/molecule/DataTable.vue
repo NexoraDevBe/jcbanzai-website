@@ -177,7 +177,7 @@ function closeFilterSheet() {
 <template>
   <div class="dt-root">
     <!-- ── Desktop search bar ─────────────────────────────────────── -->
-    <div class="desktop-search-bar desktop-only">
+    <div v-if="searchQuery !== undefined" class="desktop-search-bar desktop-only">
       <div class="search-input-wrap">
         <IconSearch :size="15" :stroke-width="2" color="secondary" class="search-icon" />
         <input
@@ -211,7 +211,7 @@ function closeFilterSheet() {
 
     <!-- ── Mobile toolbar ────────────────────────────────────────── -->
     <div class="mobile-toolbar mobile-only">
-      <div class="search-input-wrap">
+      <div v-if="searchQuery !== undefined" class="search-input-wrap">
         <IconSearch :size="15" :stroke-width="2" color="secondary" class="search-icon" />
         <input
             v-model="inputValue"
@@ -226,7 +226,7 @@ function closeFilterSheet() {
         </button>
       </div>
 
-      <button class="toolbar-btn search-submit-mobile" @click="commitSearch" title="Zoeken">
+      <button v-if="searchQuery !== undefined" class="toolbar-btn search-submit-mobile" @click="commitSearch" title="Zoeken">
         <IconSearch :size="16" :stroke-width="2" color="secondary" />
       </button>
 
@@ -486,7 +486,6 @@ function closeFilterSheet() {
     font-family: system-ui;
     color: var(--secondary);
     outline: none;
-    transition: border-color 0.12s;
 
     &:focus { border-color: var(--accent); }
     &.has-active { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
@@ -525,8 +524,8 @@ function closeFilterSheet() {
   font-family: system-ui;
   white-space: nowrap;
   cursor: pointer;
-  transition: opacity 0.12s;
   flex-shrink: 0;
+  transition: none;
 
   &:hover  { opacity: 0.85; }
   &:active { opacity: 0.7; }
@@ -614,7 +613,6 @@ function closeFilterSheet() {
   margin-bottom: 0.75rem;
   overflow: hidden;
   background: var(--primary);
-  transition: border-color 0.15s, box-shadow 0.15s;
 
   &--selected {
     border-color: var(--accent);
@@ -701,7 +699,7 @@ function closeFilterSheet() {
     color: var(--secondary);
     white-space: nowrap;
     cursor: pointer;
-    transition: background 0.12s, border-color 0.12s;
+    transition: none;
     flex-shrink: 0;
 
     &:hover  { background: var(--secondary-10); }
@@ -728,6 +726,7 @@ function closeFilterSheet() {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--secondary);
+    transition: none;
     &:hover { opacity: 0.85; background: var(--accent); }
   }
 }
@@ -786,7 +785,6 @@ function closeFilterSheet() {
     font-size: 0.8rem;
     color: var(--secondary);
     cursor: pointer;
-    transition: background 0.1s, border-color 0.1s;
 
     &:hover { background: var(--secondary-10); }
 
@@ -797,7 +795,6 @@ function closeFilterSheet() {
     }
 
     .sort-chevron {
-      transition: transform 0.15s;
       &.flip { transform: rotate(180deg); }
     }
   }
@@ -835,7 +832,6 @@ function closeFilterSheet() {
     font-size: 0.78rem;
     color: var(--secondary);
     cursor: pointer;
-    transition: background 0.1s, border-color 0.1s;
 
     &:hover { background: var(--secondary-10); }
 
@@ -861,7 +857,6 @@ function closeFilterSheet() {
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.12s;
       &:hover  { opacity: 0.85; }
       &:active { opacity: 0.7; }
     }
