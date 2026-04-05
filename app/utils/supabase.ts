@@ -329,6 +329,7 @@ export interface MemberQueryParams {
     filters?: Record<string, any[]>
     page?: number
     pageSize?: number
+    search?: string
 }
 
 export interface MemberQueryResult {
@@ -337,7 +338,7 @@ export interface MemberQueryResult {
 }
 
 const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryResult> => {
-    const { sort, filters = {}, page = 1, pageSize = 50 } = params
+    const { sort, filters = {}, page = 1, pageSize = 50, search } = params
 
     const SELECT_FIELDS = `
     id, actief, vergunning, vergunning_geldig_tot,
@@ -352,13 +353,35 @@ const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryRe
         .from('Members')
         .select(SELECT_FIELDS, { count: 'exact' })
 
-    // Filters
+    // ── Search ──────────────────────────────────────────────────────────
+    if (search?.trim()) {
+        const q = search.trim()
+
+        // Text columns — safe for ilike
+        const textOrClauses = [
+            `voornaam.ilike.%${q}%`,
+            `naam.ilike.%${q}%`,
+            `straat.ilike.%${q}%`,
+            `gemeente.ilike.%${q}%`,
+            `gsm.ilike.%${q}%`,
+            `telefoon.ilike.%${q}%`,
+        ]
+
+        // vergunning is bigint — only search it if the input is a number
+        // Uses .filter() with ::text cast which Supabase passes through as-is
+        if (/^\d+/.test(q)) {
+            query = query.or(
+                [...textOrClauses, `vergunning.eq.${parseInt(q, 10)}`].join(',')
+            )
+        } else {
+            query = query.or(textOrClauses.join(','))
+        }
+    }
+
+    // ── Column filters ──────────────────────────────────────────────────
     for (const [field, values] of Object.entries(filters)) {
         if (!values || values.length === 0) continue
-
         const col = field as keyof Member
-
-        // Arrays in Postgres (like Emails, Dojos) need .overlaps()
         const arrayColumns = ['Emails', 'Dojos']
         if (arrayColumns.includes(field)) {
             query = query.overlaps(col, values)
@@ -367,14 +390,14 @@ const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryRe
         }
     }
 
-    // Sort
+    // ── Sort ────────────────────────────────────────────────────────────
     if (sort?.key) {
         query = query.order(sort.key, { ascending: sort.order === 'asc' })
     } else {
-        query = query.order('Naam', { ascending: true })
+        query = query.order('naam', { ascending: true })
     }
 
-    // Pagination
+    // ── Pagination ──────────────────────────────────────────────────────
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
     query = query.range(from, to)
@@ -386,7 +409,7 @@ const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryRe
         throw error
     }
 
-    consoleLog('Fetched members:', data?.length + 'of' + count)
+    consoleLog('Fetched members:', data?.length + ' of ' + count)
     return { data: (data ?? []) as unknown as Member[], count: count ?? 0 }
 }
 
@@ -425,29 +448,29 @@ const getMemberById = async (id: number): Promise<Member> => {
     const { data, error } = await getSupabaseClient().from('Members')
         .select(`
             id,
-            Actief,
-            Vergunning,
-            Vergunning_geldig_tot,
-            Voornaam,
-            Naam,
-            Geslacht,
-            Geboorte_datum,
-            Nationaliteit,
-            Straat,
-            Postcode,
-            Gemeente,
-            Gsm,
-            Gsm2_Telefoon,
-            Emails,
-            In_judovlaanderen,
-            Dojos,
-            Wedstrijd_training,
-            Graad,
-            Gordel_behaald_op,
-            Behaald_examen,
-            Door_wie_examen,
-            Datum_examen,
-            Lidgeld_opmerkingen,
+            actief,
+            vergunning,
+            vergunning_geldig_tot,
+            voornaam,
+            naam,
+            geslacht,
+            geboorte_datum,
+            nationaliteit,
+            straat,
+            postcode,
+            gemeente,
+            gsm,
+            telefoon,
+            emails,
+            in_judovlaanderen,
+            dojos,
+            wedstrijd_training,
+            graad,
+            gordel_behaald_op,
+            behaald_examen,
+            door_wie_examen,
+            datum_examen,
+            lidgeld_opmerkingen,
             updated_at
           `).eq('id', id);
 
@@ -522,6 +545,10 @@ const updateMember = async (local: Member, original: Member) => {
 
 const commitMember = async (member: Member) => {
     member.updated_at = new Date().toISOString();
+
+    if (member.created_at) {
+        delete member.created_at;
+    }
 
     const { data, error } = await getSupabaseClient()
         .from('Members')

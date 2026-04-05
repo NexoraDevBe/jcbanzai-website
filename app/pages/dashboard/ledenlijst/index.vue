@@ -55,10 +55,10 @@ const isFieldDisabled = (fieldKey: string) => {
   }
   if (userStore.userRole === 'user') {
     switch (fieldKey) {
-      case 'Gordel_behaald_op':
-      case 'Door_wie_examen':
-      case 'Behaald_examen':
-      case 'Datum_examen':
+      case 'gordel_behaald_op':
+      case 'door_wie_examen':
+      case 'behaald_examen':
+      case 'datum_examen':
         return false
       default:
         return true
@@ -82,11 +82,11 @@ const handleDownloadClick = async () => {
 // Define all columns
 const columns = computed(() => [
   { key: 'id', label: 'ID', type: 'readonly', className: 'id', sticky: true },
-  { key: 'actief', label: 'Actief', type: 'checkbox', disabled: () => isFieldDisabled('Actief') },
-  { key: 'vergunning', label: 'Vergunning nr', type: 'text', disabled: () => isFieldDisabled('Vergunning') },
-  { key: 'vergunning_geldig_tot', label: 'Vergunning datum', type: 'date', disabled: () => isFieldDisabled('Vergunning_geldig_tot') },
-  { key: 'voornaam', label: 'Voornaam', type: 'text', disabled: () => isFieldDisabled('Voornaam') },
-  { key: 'naam', label: 'Achternaam', type: 'text', disabled: () => isFieldDisabled('Naam') },
+  { key: 'actief', label: 'Actief', type: 'checkbox', disabled: () => isFieldDisabled('actief') },
+  { key: 'vergunning', label: 'Vergunning nr', type: 'text', disabled: () => isFieldDisabled('vergunning') },
+  { key: 'vergunning_geldig_tot', label: 'Vergunning datum', type: 'date', disabled: () => isFieldDisabled('vergunning_geldig_tot') },
+  { key: 'voornaam', label: 'Voornaam', type: 'text', disabled: () => isFieldDisabled('voornaam') },
+  { key: 'naam', label: 'Achternaam', type: 'text', disabled: () => isFieldDisabled('naam') },
   {
     key: 'geslacht',
     label: 'Geslacht',
@@ -95,39 +95,55 @@ const columns = computed(() => [
       { value: 'M', label: 'M' },
       { value: 'V', label: 'V' }
     ],
-    disabled: () => isFieldDisabled('Geslacht')
+    disabled: () => isFieldDisabled('geslacht')
   },
-  { key: 'geboorte_datum', label: 'Geboorte', type: 'date', disabled: () => isFieldDisabled('Geboorte_datum') },
+  { key: 'geboorte_datum', label: 'Geboorte', type: 'date', disabled: () => isFieldDisabled('geboorte_datum') },
   {
     key: 'nationaliteit',
     label: 'Nationaliteit',
     type: 'select',
     options: countryOptions,
-    disabled: () => isFieldDisabled('Nationaliteit')
+    disabled: () => isFieldDisabled('nationaliteit')
   },
-  { key: 'straat', label: 'Straat + nr', type: 'text', className: 'straat', disabled: () => isFieldDisabled('Straat') },
-  { key: 'postcode', label: 'Postcode', type: 'text', disabled: () => isFieldDisabled('Postcode') },
-  { key: 'gemeente', label: 'Gemeente', type: 'text', disabled: () => isFieldDisabled('Gemeente') },
-  { key: 'gsm', label: 'GSM', type: 'text', disabled: () => isFieldDisabled('Gsm') },
-  { key: 'telefoon', label: 'Telefoon', type: 'text', disabled: () => isFieldDisabled('Gsm2_Telefoon') },
-  { key: 'emails', label: 'Emails', type: 'array-text', className: 'emails', disabled: () => isFieldDisabled('Emails') },
-  { key: 'in_judovlaanderen', label: 'In JV', type: 'checkbox', disabled: () => isFieldDisabled('In_judovlaanderen') },
-  { key: 'dojos', label: 'Dojo\'s', type: 'array-text', className: 'dojos', disabled: () => isFieldDisabled('Dojos') },
-  { key: 'wedstrijd_training', label: 'Wedstrijd training', type: 'text', disabled: () => isFieldDisabled('Wedstrijd_training') },
+  { key: 'straat', label: 'Straat + nr', type: 'text', className: 'straat', disabled: () => isFieldDisabled('straat') },
+  { key: 'postcode', label: 'Postcode', type: 'text', disabled: () => isFieldDisabled('postcode') },
+  { key: 'gemeente', label: 'Gemeente', type: 'text', disabled: () => isFieldDisabled('gemeente') },
+  { key: 'gsm', label: 'GSM', type: 'text', disabled: () => isFieldDisabled('gsm') },
+  { key: 'telefoon', label: 'Telefoon', type: 'text', disabled: () => isFieldDisabled('telefoon') },
+  { key: 'emails', label: 'Emails', type: 'array-text', className: 'emails', disabled: () => isFieldDisabled('emails') },
+  { key: 'in_judovlaanderen', label: 'In JV', type: 'checkbox', disabled: () => isFieldDisabled('in_judovlaanderen') },
+  { key: 'dojos', label: 'Dojo\'s', type: 'array-text', className: 'dojos', disabled: () => isFieldDisabled('dojos') },
+  { key: 'wedstrijd_training', label: 'Wedstrijd training', type: 'text', disabled: () => isFieldDisabled('wedstrijd_training') },
   {
-    key: 'Graad',
+    key: 'graad',
     label: 'Graad',
     type: 'select',
     options: grades,
-    disabled: () => isFieldDisabled('Graad')
+    disabled: () => isFieldDisabled('graad')
   },
-  { key: 'Gordel_behaald_op', label: 'Gordel behaald op', type: 'date', disabled: () => isFieldDisabled('Gordel_behaald_op') },
-  { key: 'Lidgeld_opmerkingen', label: 'Opmerkingen', type: 'text', className: 'opmerkingen', disabled: () => isFieldDisabled('Lidgeld_opmerkingen') },
-  { key: 'Behaald_examen', label: 'Examen behaald', type: 'text', disabled: () => isFieldDisabled('Behaald_examen') },
-  { key: 'Door_wie_examen', label: 'Examen door', type: 'text', disabled: () => isFieldDisabled('Door_wie_examen') },
-  { key: 'Datum_examen', label: 'Examen datum', type: 'date', disabled: () => isFieldDisabled('Datum_examen') },
+  { key: 'gordel_behaald_op', label: 'Gordel behaald op', type: 'date', disabled: () => isFieldDisabled('gordel_behaald_op') },
+  { key: 'lidgeld_opmerkingen', label: 'Opmerkingen', type: 'text', className: 'opmerkingen', disabled: () => isFieldDisabled('lidgeld_opmerkingen') },
+  { key: 'behaald_examen', label: 'Examen behaald', type: 'text', disabled: () => isFieldDisabled('behaald_examen') },
+  { key: 'door_wie_examen', label: 'Examen door', type: 'text', disabled: () => isFieldDisabled('door_wie_examen') },
+  { key: 'datum_examen', label: 'Examen datum', type: 'date', disabled: () => isFieldDisabled('datum_examen') },
   { key: 'created_at', label: 'Aangemaakt op', type: 'text', disabled: () => isFieldDisabled('created_at') },
 ]) as unknown as Column[]
+
+const selectedRows = ref<number[]>([])
+const handleEmitDelete = (rowId: number[]) => {
+  selectedRows.value = rowId
+}
+const handleDelete = () => {
+  if (selectedRows.value.length <= 0) return
+  const answer = window.confirm(
+      `Ben je zeker dat je de rij(en) ${selectedRows.value} wilt verwijderen`
+  )
+  if (answer) {
+    for (const id of selectedRows.value) {
+      membersStore.removeMember(id)
+    }
+  }
+}
 </script>
 
 <template>
@@ -160,8 +176,9 @@ const columns = computed(() => [
           Toevoegen
         </button>
         <button
-            :disabled="userStore.userRole === 'user'"
+            :disabled="userStore.userRole === 'user' || selectedRows.length <= 0"
             class="danger"
+            @click="handleDelete"
         >
           Verwijderen
         </button>
@@ -169,15 +186,6 @@ const columns = computed(() => [
     </MoleculePageHeader>
 
     <section class="data-table-container">
-      <MoleculePaginationNav
-          :current-page="membersStore.currentPage"
-          :is-loading="membersStore.isLoading"
-          :total-count="membersStore.totalCount"
-          :total-pages="membersStore.totalPages"
-          @up="membersStore.setPage"
-          @down="membersStore.setPage"
-      />
-
       <MoleculeDataTable
           v-if="!membersStore.isLoading"
           :columns="columns"
@@ -187,11 +195,14 @@ const columns = computed(() => [
           :sort-key="membersStore.sortKey"
           :sort-order="membersStore.sortOrder"
           :changed-coords="membersStore.changedCoords"
+          :search-query="membersStore.searchQuery"
           @sort="membersStore.setSort"
           @filter="membersStore.setFilter"
+          @search="membersStore.setSearch"
           @update="membersStore.updateMemberField"
           @add-array-item="membersStore.addArrayItem"
           @remove-array-item="membersStore.removeArrayItem"
+          @delete="handleEmitDelete"
       />
 
       <div class="loading" v-else>Laden...</div>

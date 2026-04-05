@@ -18,7 +18,8 @@ export const useMembersStore = defineStore('members', () => {
     const sortOrder = ref<'asc' | 'desc'>('desc')
     const activeFilters = ref<Record<string, any[]>>({})
     const currentPage = ref(1)
-    const pageSize = ref(50)
+    const pageSize = ref(500)
+    const searchQuery = ref('')
 
     // — Edit tracking —
     const changedCoords = ref<{ rowId: number; field: string }[]>([])
@@ -50,13 +51,14 @@ export const useMembersStore = defineStore('members', () => {
                 filters: activeFilters.value,
                 page: currentPage.value,
                 pageSize: pageSize.value,
+                search: searchQuery.value || undefined,   // ← ADD
             }
 
             const { data, count } = await getMembers(params)
 
             members.value = data.map(member => ({
                 ...member,
-                created_at: formatDate(member.created_at),
+                created_at: formatDate(member.created_at!),
             }))
             originalMembers.value = markRaw(structuredClone(data))
             totalCount.value = count
@@ -93,6 +95,19 @@ export const useMembersStore = defineStore('members', () => {
             sortKey.value = key
             sortOrder.value = 'asc'
         }
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    // — Search (resets to page 1) —
+    function setSearch(query: string) {
+        searchQuery.value = query
+        currentPage.value = 1
+        fetchMembers()
+    }
+
+    function clearSearch() {
+        searchQuery.value = ''
         currentPage.value = 1
         fetchMembers()
     }
@@ -231,6 +246,7 @@ export const useMembersStore = defineStore('members', () => {
         pageSize,
         sortKey,
         sortOrder,
+        searchQuery,
         activeFilters,
         filterItems,
         isLoading,
@@ -247,6 +263,8 @@ export const useMembersStore = defineStore('members', () => {
         fetchMembers,
         fetchFilterOptions,
         setSort,
+        setSearch,
+        clearSearch,
         setFilter,
         clearFilter,
         clearAllFilters,
