@@ -22,6 +22,7 @@ export const useNewsStore = defineStore('news', () => {
     const activeFilters = ref<Record<string, any[]>>({})
     const currentPage = ref(1)
     const pageSize = ref(25)
+    const searchQuery = ref('')
 
     // — Edit tracking —
     const changedCoords = ref<{ rowId: number; field: string }[]>([])
@@ -53,6 +54,7 @@ export const useNewsStore = defineStore('news', () => {
                 filters: activeFilters.value,
                 page: currentPage.value,
                 pageSize: pageSize.value,
+                search: searchQuery.value || undefined,
             })
             newsposts.value = data
             originalNewsposts.value = markRaw(structuredClone(data))
@@ -83,6 +85,19 @@ export const useNewsStore = defineStore('news', () => {
         }
         currentPage.value = 1
         _fetch()
+    }
+
+    // — Search (resets to page 1) —
+    function setSearch(query: string) {
+        searchQuery.value = query
+        currentPage.value = 1
+        fetchNewsposts()
+    }
+
+    function clearSearch() {
+        searchQuery.value = ''
+        currentPage.value = 1
+        fetchNewsposts()
     }
 
     // — Filters (resets to page 1) —
@@ -225,6 +240,7 @@ export const useNewsStore = defineStore('news', () => {
         originalNewsposts,
         sortKey,
         sortOrder,
+        searchQuery,
         activeFilters,
         filterItems,
         isLoading,
@@ -245,6 +261,8 @@ export const useNewsStore = defineStore('news', () => {
         fetchNewsposts,
         fetchFilterOptions,
         setSort,
+        setSearch,
+        clearSearch,
         setFilter,
         clearFilter,
         clearAllFilters,

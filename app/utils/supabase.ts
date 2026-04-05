@@ -213,14 +213,27 @@ const getUserData = async (): Promise<UserData | null> => {
 export interface TechniqueQueryParams {
     sort?: { key: string; order: 'asc' | 'desc' }
     filters?: Record<string, any[]>
+    search?: string
 }
 
 const getTechniques = async (params: TechniqueQueryParams = {}): Promise<Technique[]> => {
-    const { sort, filters = {} } = params
+    const { sort, filters = {}, search } = params
 
     let query = getSupabaseClient()
         .from('Techniques')
         .select('id, name, belt, category, translation, video')
+
+    // ── Search ──────────────────────────────────────────────────────────
+    if (search?.trim()) {
+        const q = search.trim()
+
+        // Text columns — safe for ilike
+        const textOrClauses = [
+            `name.ilike.%${q}%`,
+        ]
+
+        query = query.or(textOrClauses.join(','))
+    }
 
     // All Technique columns are scalar, so .in() covers everything
     for (const [field, values] of Object.entries(filters)) {

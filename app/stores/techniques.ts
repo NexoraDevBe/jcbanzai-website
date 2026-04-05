@@ -18,6 +18,7 @@ export const useTechniquesStore = defineStore('techniques', () => {
     const sortKey = ref<string>('id')
     const sortOrder = ref<'asc' | 'desc'>('asc')
     const activeFilters = ref<Record<string, any[]>>({})
+    const searchQuery = ref('')
 
     // — Edit tracking —
     const changedCoords = ref<{ rowId: number; field: string }[]>([])
@@ -68,6 +69,7 @@ export const useTechniquesStore = defineStore('techniques', () => {
             const params: TechniqueQueryParams = {
                 sort: { key: sortKey.value, order: sortOrder.value },
                 filters: activeFilters.value,
+                search: searchQuery.value || undefined,
             }
 
             const data = await getTechniques(params)
@@ -100,6 +102,17 @@ export const useTechniquesStore = defineStore('techniques', () => {
             sortOrder.value = 'asc'
         }
         _fetch()
+    }
+
+    // — Search (resets to page 1) —
+    function setSearch(query: string) {
+        searchQuery.value = query
+        fetchTechniques()
+    }
+
+    function clearSearch() {
+        searchQuery.value = ''
+        fetchTechniques()
     }
 
     // — Filters (re-fetches) —
@@ -198,6 +211,7 @@ export const useTechniquesStore = defineStore('techniques', () => {
         sortOrder,
         activeFilters,
         filterItems,
+        searchQuery,
         isLoading,
         isSaving,
         changedCoords,
@@ -215,6 +229,8 @@ export const useTechniquesStore = defineStore('techniques', () => {
         fetchFilterOptions,
         setSort,
         setFilter,
+        setSearch,
+        clearSearch,
         clearFilter,
         clearAllFilters,
         updateTechniqueField,

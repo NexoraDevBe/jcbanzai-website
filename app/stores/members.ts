@@ -51,7 +51,7 @@ export const useMembersStore = defineStore('members', () => {
                 filters: activeFilters.value,
                 page: currentPage.value,
                 pageSize: pageSize.value,
-                search: searchQuery.value || undefined,   // ← ADD
+                search: searchQuery.value || undefined,
             }
 
             const { data, count } = await getMembers(params)
