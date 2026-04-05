@@ -874,6 +874,7 @@ export interface NewsQueryParams {
     filters?: Record<string, any[]>
     page?: number
     pageSize?: number
+    search?: string
 }
 
 export interface NewsQueryResult {
@@ -882,22 +883,39 @@ export interface NewsQueryResult {
 }
 
 const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResult> => {
-    const { sort, filters = {}, page = 1, pageSize = 25 } = params
+    const { sort, filters = {}, page = 1, pageSize = 25, search } = params
 
     let query = getSupabaseClient()
         .from('News')
         .select('id, title, description, img_url, post, alert, alert_start_date, alert_end_date, date, created_at', { count: 'exact' })
 
+    // ── Search ──────────────────────────────────────────────────────────
+    if (search?.trim()) {
+        const q = search.trim()
+
+        // Text columns — safe for ilike
+        const textOrClauses = [
+            `title.ilike.%${q}%`,
+            `description.ilike.%${q}%`
+        ]
+
+        query = query.or(textOrClauses.join(','))
+    }
+
+    // ── Column filters ──────────────────────────────────────────────────
     for (const [field, values] of Object.entries(filters)) {
         if (!values || values.length === 0) continue
         query = query.in(field, values)
     }
 
+    // ── Sort ────────────────────────────────────────────────────────────
     const sortKey = sort?.key ?? 'id'
     query = query.order(sortKey, { ascending: sort ? sort.order === 'asc' : false })
 
+    // ── Pagination ──────────────────────────────────────────────────────
     const from = (page - 1) * pageSize
-    query = query.range(from, from + pageSize - 1)
+    const to = from + pageSize - 1
+    query = query.range(from, to)
 
     const { data, error, count } = await query
 

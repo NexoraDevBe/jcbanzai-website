@@ -176,7 +176,6 @@ function closeFilterSheet() {
 
 <template>
   <div class="dt-root">
-
     <!-- ── Desktop search bar ─────────────────────────────────────── -->
     <div class="desktop-search-bar desktop-only">
       <div class="search-input-wrap">
@@ -189,29 +188,25 @@ function closeFilterSheet() {
             :class="{ 'has-active': hasActiveSearch }"
             @keydown.enter="commitSearch"
         />
-        <Transition name="fade">
-          <button
-              v-if="inputValue"
-              class="search-clear"
-              title="Wis zoekopdracht"
-              @click="clearSearch"
-          >
-            <IconClose :size="12" :stroke-width="2.5" color="secondary" />
-          </button>
-        </Transition>
+        <button
+            v-if="inputValue"
+            class="search-clear"
+            title="Wis zoekopdracht"
+            @click="clearSearch"
+        >
+          <IconClose :size="12" :stroke-width="2.5" color="secondary" />
+        </button>
       </div>
       <button class="search-submit" @click="commitSearch" title="Zoeken">
         <IconSearch :size="14" :stroke-width="2.5" color="primary" />
         <span>Zoek</span>
       </button>
-      <Transition name="fade">
-        <span v-if="hasActiveSearch" class="search-active-label">
-          Resultaten voor "{{ searchQuery }}"
-          <button class="search-active-clear" @click="clearSearch">
-            <IconClose :size="10" :stroke-width="2.5" color="secondary" />
-          </button>
-        </span>
-      </Transition>
+      <span v-if="hasActiveSearch" class="search-active-label">
+        Resultaten voor "{{ searchQuery }}"
+        <button class="search-active-clear" @click="clearSearch">
+          <IconClose :size="10" :stroke-width="2.5" color="secondary" />
+        </button>
+      </span>
     </div>
 
     <!-- ── Mobile toolbar ────────────────────────────────────────── -->
@@ -226,11 +221,9 @@ function closeFilterSheet() {
             placeholder="Zoeken..."
             @keydown.enter="commitSearch"
         />
-        <Transition name="fade">
-          <button v-if="inputValue" class="search-clear" @click="clearSearch">
-            <IconClose :size="12" :stroke-width="2.5" color="secondary" />
-          </button>
-        </Transition>
+        <button v-if="inputValue" class="search-clear" @click="clearSearch">
+          <IconClose :size="12" :stroke-width="2.5" color="secondary" />
+        </button>
       </div>
 
       <button class="toolbar-btn search-submit-mobile" @click="commitSearch" title="Zoeken">
@@ -368,11 +361,6 @@ function closeFilterSheet() {
               @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
           />
         </div>
-
-        <div v-if="data.length === 0" class="no-results-row">
-          <span v-if="hasActiveSearch">Geen resultaten voor "{{ searchQuery }}"</span>
-          <span v-else>Geen gegevens beschikbaar</span>
-        </div>
       </div>
     </div>
 
@@ -426,7 +414,6 @@ function closeFilterSheet() {
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -529,7 +516,7 @@ function closeFilterSheet() {
   align-items: center;
   gap: 0.35rem;
   padding: 0.4rem 0.85rem;
-  border: none;
+  border: 1px solid var(--accent);
   border-radius: 0.5rem;
   background: var(--accent);
   color: var(--primary);
@@ -542,7 +529,7 @@ function closeFilterSheet() {
   flex-shrink: 0;
 
   &:hover  { opacity: 0.85; }
-  &:active { opacity: 0.7; transform: scale(0.98); }
+  &:active { opacity: 0.7; }
 }
 
 /* ─── Table scroll wrapper ────────────────────────────────────────── */
@@ -729,7 +716,7 @@ function closeFilterSheet() {
       height: 1.05rem;
       border-radius: 50%;
       background: var(--warning);
-      color: white;
+      color: var(--secondary);
       font-size: 0.62rem;
       font-weight: 700;
     }
@@ -740,13 +727,15 @@ function closeFilterSheet() {
     padding: 0.42rem 0.5rem;
     background: var(--accent);
     border-color: var(--accent);
-    color: white;
+    color: var(--secondary);
     &:hover { opacity: 0.85; background: var(--accent); }
   }
 }
 
 /* ─── Inline sheets ───────────────────────────────────────────────── */
 .inline-sheet {
+  font-family: system-ui;
+
   background: var(--primary);
   border: 1px solid var(--secondary-20);
   border-radius: 0.75rem;
@@ -868,7 +857,7 @@ function closeFilterSheet() {
       border-radius: 0.5rem;
       border: none;
       background: var(--accent);
-      color: white;
+      color: var(--secondary);
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
@@ -882,9 +871,6 @@ function closeFilterSheet() {
 /* ─── Transitions ─────────────────────────────────────────────────── */
 .sheet-enter-active, .sheet-leave-active { transition: opacity 0.15s, transform 0.15s; }
 .sheet-enter-from,  .sheet-leave-to      { opacity: 0; transform: translateY(-6px); }
-
-.fade-enter-active, .fade-leave-active { transition: opacity 0.1s; }
-.fade-enter-from,   .fade-leave-to     { opacity: 0; }
 
 /* ─── Mobile breakpoint ───────────────────────────────────────────── */
 @media (max-width: 768px) {

@@ -263,7 +263,7 @@ watch(() => props.expandAll, (newVal) => {
 
   /* size overrides */
   &.dnone    { display: none; }
-  &.id       { min-width: 3rem; text-align: center; position: sticky; left: 0; background-color: var(--gray-100); }
+  &.id       { min-width: 3rem; position: sticky; left: 0; background-color: var(--gray-100); }
   &.straat   { min-width: 20rem; }
   &.emails   { min-width: 30rem; }
   &.translation, &.video { min-width: 30rem; width: 30rem; }
