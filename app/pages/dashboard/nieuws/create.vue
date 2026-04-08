@@ -27,6 +27,9 @@ const errors = ref<Record<string, string>>({})
 const error = ref<string>('')
 const success = ref<string>('')
 
+const MAX_SIZE_MB = 2
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
+
 // Clear post-related fields when post is unchecked
 watch(post, (val) => {
   if (!val) {
@@ -71,6 +74,13 @@ const handleSubmit = async () => {
 
   if (post.value && image.value) {
     const webpFile = await convertToWebP(image.value)
+
+    // (optional) check again after conversion
+    if (webpFile.size > MAX_SIZE_BYTES) {
+      errors.value.image = `Afbeelding is te groot na compressie (max 2MB) (opgegeven bestand ${MAX_SIZE_MB}MB)`
+      return
+    }
+
     const uploadResult = await uploadNewsImageToBucket(webpFile as File)
 
     if (!uploadResult.success) {

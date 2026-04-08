@@ -36,7 +36,7 @@ export function downloadCSV(data: any[], filename = "data.csv") {
     document.body.removeChild(link);
 }
 
-export async function convertToWebP(file: any, quality = 0.8) {
+export async function convertToWebP(file: any, quality = 0.8): Promise<File> {
     return new Promise((resolve, reject) => {
         if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
             return reject(new Error("Unsupported file type"));
