@@ -113,7 +113,9 @@ const handleDelete = () => {
           @search="techniquesStore.setSearch"
           @delete="handleEmitDelete"
       />
-      <div class="loading" v-else>Laden...</div>
+      <div v-else class="loading">
+        <AtomLoader/>
+      </div>
     </section>
   </main>
 </template>

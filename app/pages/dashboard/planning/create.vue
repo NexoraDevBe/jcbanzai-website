@@ -172,7 +172,9 @@ const createMonth = async () => {
           @add-array-item="planningStore.addArrayItem"
           @remove-array-item="planningStore.removeArrayItem"
       />
-      <div class="loading" v-else>Laden...</div>
+      <div v-else class="loading">
+        <AtomLoader/>
+      </div>
     </section>
   </main>
 </template>

@@ -112,7 +112,7 @@ const columns = computed(() => [
   { key: 'telefoon', label: 'Telefoon', type: 'text', disabled: () => isFieldDisabled('telefoon') },
   { key: 'emails', label: 'Emails', type: 'array-text', className: 'emails', disabled: () => isFieldDisabled('emails') },
   { key: 'in_judovlaanderen', label: 'In JV', type: 'checkbox', disabled: () => isFieldDisabled('in_judovlaanderen') },
-  { key: 'dojos', label: 'Dojo\'s', type: 'array-text', className: 'dojos', disabled: () => isFieldDisabled('dojos') },
+  // { key: 'dojos', label: 'Dojo\'s', type: 'array-text', className: 'dojos', disabled: () => isFieldDisabled('dojos') },
   { key: 'wedstrijd_training', label: 'Wedstrijd training', type: 'text', disabled: () => isFieldDisabled('wedstrijd_training') },
   {
     key: 'graad',
@@ -123,9 +123,9 @@ const columns = computed(() => [
   },
   { key: 'gordel_behaald_op', label: 'Gordel behaald op', type: 'date', disabled: () => isFieldDisabled('gordel_behaald_op') },
   { key: 'lidgeld_opmerkingen', label: 'Opmerkingen', type: 'text', className: 'opmerkingen', disabled: () => isFieldDisabled('lidgeld_opmerkingen') },
-  { key: 'behaald_examen', label: 'Examen behaald', type: 'text', disabled: () => isFieldDisabled('behaald_examen') },
-  { key: 'door_wie_examen', label: 'Examen door', type: 'text', disabled: () => isFieldDisabled('door_wie_examen') },
-  { key: 'datum_examen', label: 'Examen datum', type: 'date', disabled: () => isFieldDisabled('datum_examen') },
+  // { key: 'behaald_examen', label: 'Examen behaald', type: 'text', disabled: () => isFieldDisabled('behaald_examen') },
+  // { key: 'door_wie_examen', label: 'Examen door', type: 'text', disabled: () => isFieldDisabled('door_wie_examen') },
+  // { key: 'datum_examen', label: 'Examen datum', type: 'date', disabled: () => isFieldDisabled('datum_examen') },
   { key: 'created_at', label: 'Aangemaakt op', type: 'text', disabled: () => isFieldDisabled('created_at') },
 ]) as unknown as Column[]
 
@@ -205,7 +205,9 @@ const handleDelete = () => {
           @delete="handleEmitDelete"
       />
 
-      <div class="loading" v-else>Laden...</div>
+      <div v-else class="loading">
+        <AtomLoader/>
+      </div>
     </section>
   </main>
 </template>

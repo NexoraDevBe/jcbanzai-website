@@ -9,6 +9,7 @@ definePageMeta({
 <main id="dashboard-page">
   <h1>Dashboard overzicht</h1>
   <section>
+    <AtomLoader/>
   </section>
 </main>
 </template>

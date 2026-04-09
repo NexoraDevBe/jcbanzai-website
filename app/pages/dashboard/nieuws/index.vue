@@ -107,7 +107,9 @@ const handleDelete = async () => {
           @update="newsStore.updateNewspostField"
           @delete="handleEmitDelete"
       />
-      <div class="loading" v-else>Laden...</div>
+      <div class="loading" v-else>
+        <AtomLoader/>
+      </div>
     </section>
   </main>
 </template>
