@@ -83,6 +83,7 @@ interface News {
     description: string
     post: boolean
     alert: boolean
+    alert_start_date: string
     alert_end_date: string
     date: string
     img_url: string

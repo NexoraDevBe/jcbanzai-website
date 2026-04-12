@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type {News} from "~/types";
+
+const newsStore = useNewsStore()
+
 useHead({
   title: 'Judoclub Banzai - Judo in Gavere & Nazareth',
   meta: [
@@ -40,20 +44,42 @@ const ctaStarten = () => {
 const ctaInschrijven = () => {
   navigateTo('/inschrijven')
 }
+
+onMounted(async () => {
+  await Promise.all([
+    newsStore.fetchNewsposts()
+  ])
+})
+
+const posts = computed<News[]>(() => {
+  const today = new Date()
+
+  return newsStore.newsposts.filter((n) => {
+    const start = new Date(n.alert_start_date)
+    const end = new Date(n.alert_end_date)
+
+    return n.alert && today >= start && today <= end
+  })
+})
 </script>
 
 <template>
   <main id="home-page">
     <section class="hero">
-      <AtomJapaneseText :outline="true" :size="4" :vertical="false">バーンザイ</AtomJapaneseText>
-      <h1 class="hero-title">Judoclub<br> <span>Banzai</span></h1>
-      <div class="cta-container">
-        <AtomCallToAction :on-click="ctaStarten">
-          Initiatie?
-        </AtomCallToAction>
-        <AtomCallToAction :class-name="'outline'" :on-click="ctaInschrijven">
-          Inschrijven?
-        </AtomCallToAction>
+      <div>
+        <AtomJapaneseText :outline="true" :size="4" :vertical="false">バーンザイ</AtomJapaneseText>
+        <h1 class="hero-title">Judoclub<br> <span>Banzai</span></h1>
+        <div class="cta-container">
+          <AtomCallToAction :on-click="ctaStarten">
+            Initiatie?
+          </AtomCallToAction>
+          <AtomCallToAction :class-name="'outline'" :on-click="ctaInschrijven">
+            Inschrijven?
+          </AtomCallToAction>
+        </div>
+      </div>
+      <div class="alert-container">
+        <MoleculeAlertCard v-if="posts" v-for="p in posts" :post="p"/>
       </div>
     </section>
     <section class="intro">
@@ -82,10 +108,20 @@ const ctaInschrijven = () => {
     height: 100dvh;
     padding-bottom: 3rem;
 
+    .alert-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: absolute;
+      width: calc(100% - (5.5rem - var(--page-margin)));
+      top: 1rem;
+      left: 0;
+      min-height: 3.5rem;
+    }
+
     .hero-title {
-      margin: 0;
-      margin-bottom: 2rem;
-      line-height: .8;
+      margin: 0 0 2rem 0;
+      line-height: 0.8;
       font-size: 18vw;
       font-weight: 400;
       text-transform: uppercase;
@@ -104,38 +140,25 @@ const ctaInschrijven = () => {
   }
 
   .intro {
+    position: relative;
+
     .paragraph {
       margin-left: var(--page-margin);
     }
   }
 }
 
-@media screen and (width >= 40rem) {
+@media (min-width: 40rem) {
   #home-page {
-    padding: 0;
-
     .hero {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: start;
-      height: 100dvh;
-
-      :deep(.scroll-indicator) {
-        display: none;
-      }
+      align-items: flex-start;
 
       .cta-container {
-        display: flex;
         flex-direction: row;
-        align-items: center;
-        gap: 1rem;
       }
     }
 
     .intro {
-      position: relative;
       display: flex;
       height: 2rem;
 
@@ -143,121 +166,61 @@ const ctaInschrijven = () => {
         position: absolute;
         left: 25vw;
         bottom: 0;
+        margin-left: 0;
       }
     }
   }
 }
 
-@media screen and (width >= 48rem) {
+@media (min-width: 48rem) {
   #home-page {
-    padding: 0;
-
     .hero {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: start;
-      height: 100dvh;
-
       .hero-title {
-        margin: 0;
-        line-height: .8;
         font-size: 8rem;
-        font-weight: 400;
-        text-transform: uppercase;
 
         span {
           font-size: 11.2rem;
         }
       }
     }
-
-    .intro {
-      position: relative;
-      display: flex;
-      height: 2rem;
-
-      .paragraph {
-        position: absolute;
-        left: 25vw;
-        bottom: 0;
-      }
-    }
   }
 }
 
-@media screen and (width >= 64rem) {
+@media (min-width: 64rem) {
   #home-page {
-    padding: 0;
-
     .hero {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: start;
-      height: 100dvh;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
 
-      .hero-title {
-        margin: 0;
-        line-height: .8;
-        font-size: 8rem;
-        font-weight: 400;
-        text-transform: uppercase;
-
-        span {
-          font-size: 11.2rem;
-        }
+      .alert-container {
+        position: static;
+        max-width: 30rem;
       }
 
       &::after {
-        display: block;
+        content: '';
         position: absolute;
         top: 10vh;
         right: -20%;
-        content: '';
         height: 50dvw;
-        max-height: 100%;
         min-height: 30rem;
+        max-height: 100%;
         aspect-ratio: 1;
         background-color: var(--accent);
         border-radius: 50%;
         z-index: -1;
       }
     }
-
-    .intro {
-      position: relative;
-      display: flex;
-      height: 2rem;
-
-      .paragraph {
-        position: absolute;
-        left: 25vw;
-        bottom: 0;
-      }
-    }
   }
 }
 
-@media screen and (width >= 80rem) {
+@media (min-width: 80rem) {
   #home-page {
-    padding: 0;
-
     .hero {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      height: 100dvh;
-
       .hero-title {
-        margin: 0;
-        line-height: .8;
         font-size: 10rem;
-        font-weight: 400;
-        text-transform: uppercase;
 
         span {
           font-size: 14rem;
@@ -269,30 +232,7 @@ const ctaInschrijven = () => {
       }
 
       &::after {
-        display: block;
-        position: absolute;
-        top: 10vh;
-        right: -20%;
-        content: '';
-        height: 50dvw;
-        max-height: 100%;
         min-height: 40rem;
-        aspect-ratio: 1;
-        background-color: var(--accent);
-        border-radius: 50%;
-        z-index: -1;
-      }
-    }
-
-    .intro {
-      position: relative;
-      display: flex;
-      height: 2rem;
-
-      .paragraph {
-        position: absolute;
-        left: 25vw;
-        bottom: 0;
       }
     }
   }

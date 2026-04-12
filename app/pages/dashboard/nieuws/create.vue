@@ -156,13 +156,14 @@ const handleFileChange = (event: Event) => {
 
           <div class="form-group">
             <label for="description">
-              Beschrijving
+              Beschrijving <small v-show="alert && post" style="color: var(--warning)">( Beschrijving is niet zichtbaar op de alert )</small>
             </label>
             <textarea
                 id="description"
                 v-model="description"
                 :class="{ 'error': errors.description }"
                 :required="post"
+                :disabled="!post"
                 rows="15"
             />
             <span v-if="errors.description" class="error-text">{{ errors.description }}</span>
