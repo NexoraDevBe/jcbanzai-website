@@ -500,18 +500,18 @@ const getMemberById = async (id: number): Promise<Member> => {
 
 const insertMember = async (name: string, lastname: string, gender: string, birthdate: string, nation: string, street: string, city: string, zipcode: string, phone: string, emails: string[], uitpas?: string) => {
     const values = {
-        Voornaam: name,
-        Naam: lastname,
-        Geslacht: gender,
-        Geboorte_datum: birthdate,
-        Nationaliteit: nation,
-        Straat: street,
-        Postcode: zipcode,
-        Gemeente: city,
-        Gsm: phone,
-        Emails: emails,
-        ...(uitpas && { Lidgeld_opmerkingen: 'UiTPAS nr:' + uitpas }),
-        Dojos: ['']
+        voornaam: name,
+        naam: lastname,
+        geslacht: gender,
+        geboorte_datum: birthdate,
+        nationaliteit: nation,
+        straat: street,
+        postcode: zipcode,
+        gemeente: city,
+        gsm: phone,
+        emails: emails,
+        ...(uitpas && { lidgeld_opmerkingen: 'UiTPAS nr:' + uitpas }),
+        dojos: ['']
     }
 
     const { data, error } = await getSupabaseClient().from('Members').insert(values)
