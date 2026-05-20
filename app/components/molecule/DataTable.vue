@@ -1,198 +1,219 @@
 <script setup lang="ts">
-import type { Column } from '~/types'
+import type { Column } from "~/types";
 
 interface Props {
-  columns: Column[]
-  data: any[]
-  sortKey: string
-  sortOrder: 'asc' | 'desc'
-  changedCoords: { rowId: number; field: string }[]
-  filterItems?: Record<string, any[]>
-  activeFilters?: Record<string, any[]>
-  expandAll?: boolean
-  searchQuery?: string  // active search term from store (for display)
+  columns: Column[];
+  data: any[];
+  sortKey: string;
+  sortOrder: "asc" | "desc";
+  changedCoords: { rowId: number; field: string }[];
+  filterItems?: Record<string, any[]>;
+  activeFilters?: Record<string, any[]>;
+  expandAll?: boolean;
+  searchQuery?: string; // active search term from store (for display)
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  update: [rowId: number, field: string, value: any, arrayIndex?: number]
-  delete: [rowId: number[]]
-  sort: [key: string]
-  addArrayItem: [rowId: number, field: string]
-  removeArrayItem: [rowId: number, field: string, index: number]
-  filter: [key: string, items: any[]]
-  search: [query: string]
-}>()
+  update: [rowId: number, field: string, value: any, arrayIndex?: number];
+  delete: [rowId: number[]];
+  sort: [key: string];
+  addArrayItem: [rowId: number, field: string];
+  removeArrayItem: [rowId: number, field: string, index: number];
+  filter: [key: string, items: any[]];
+  search: [query: string];
+}>();
 
 // ── Filters ────────────────────────────────────────────────────────
-const selectedFilters = ref<Record<string, any[]>>({})
-const stagedFilters = ref<Record<string, any[]>>({})
+const selectedFilters = ref<Record<string, any[]>>({});
+const stagedFilters = ref<Record<string, any[]>>({});
 
 function handleFilter(key: string, items: any[]) {
-  selectedFilters.value[key] = [...items]
-  emit('filter', key, selectedFilters.value[key])
+  selectedFilters.value[key] = [...items];
+  emit("filter", key, selectedFilters.value[key]);
 }
 
 function initColumnFilters(key: string, items: any[]) {
-  selectedFilters.value[key] = [...items]
-  stagedFilters.value[key] = [...items]
+  selectedFilters.value[key] = [...items];
+  stagedFilters.value[key] = [...items];
 }
 
 watch(
-    () => props.activeFilters,
-    (newFilterItems) => {
-      if (!newFilterItems) return
-      for (const [key, items] of Object.entries(newFilterItems)) {
-        initColumnFilters(key, items)
-      }
-    },
-    { immediate: true, deep: true }
-)
+  () => props.activeFilters,
+  (newFilterItems) => {
+    if (!newFilterItems) return;
+    for (const [key, items] of Object.entries(newFilterItems)) {
+      initColumnFilters(key, items);
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 // ── Changed tracking ───────────────────────────────────────────────
-const changedSet = computed(() =>
-    new Set(props.changedCoords.map(c => `${c.rowId}-${c.field}`))
-)
+const changedSet = computed(
+  () => new Set(props.changedCoords.map((c) => `${c.rowId}-${c.field}`)),
+);
 const checkIfChanged = (rowId: number, field: string) =>
-    changedSet.value.has(`${rowId}-${field}`)
+  changedSet.value.has(`${rowId}-${field}`);
 
 // Stable per-row string used by v-memo — only changes when this specific
 // row's changed fields change, so other rows are never re-rendered.
 const changedFieldsByRow = computed(() => {
-  const map = new Map<number, string>()
+  const map = new Map<number, string>();
   for (const c of props.changedCoords) {
-    map.set(c.rowId, (map.get(c.rowId) ?? '') + c.field)
+    map.set(c.rowId, (map.get(c.rowId) ?? "") + c.field);
   }
-  return map
-})
+  return map;
+});
 
 // ── Row selection ──────────────────────────────────────────────────
-const selectedRows = ref<number[]>([])
+const selectedRows = ref<number[]>([]);
 const deleteSelected = (rowId: number) => {
-  const idx = selectedRows.value.indexOf(rowId)
-  if (idx !== -1) selectedRows.value.splice(idx, 1)
-  else selectedRows.value.push(rowId)
-  emit('delete', selectedRows.value)
-}
+  const idx = selectedRows.value.indexOf(rowId);
+  if (idx !== -1) selectedRows.value.splice(idx, 1);
+  else selectedRows.value.push(rowId);
+  emit("delete", selectedRows.value);
+};
 
 // ── Handlers ───────────────────────────────────────────────────────
-const handleUpdate = (rowId: number, field: string, value: any, arrayIndex?: number) =>
-    emit('update', rowId, field, value, arrayIndex)
+const handleUpdate = (
+  rowId: number,
+  field: string,
+  value: any,
+  arrayIndex?: number,
+) => emit("update", rowId, field, value, arrayIndex);
 const handleAddArrayItem = (rowId: number, field: string) =>
-    emit('addArrayItem', rowId, field)
+  emit("addArrayItem", rowId, field);
 const handleRemoveArrayItem = (rowId: number, field: string, index: number) =>
-    emit('removeArrayItem', rowId, field, index)
+  emit("removeArrayItem", rowId, field, index);
 
 // ── Server-side search ─────────────────────────────────────────────
 // `inputValue` is what the user is typing — never triggers a fetch on its own.
 // Fetching only happens on commitSearch() (button click or Enter).
-const inputValue = ref(props.searchQuery ?? '')
+const inputValue = ref(props.searchQuery ?? "");
 
 // Keep input in sync if the store clears/changes the search externally
-watch(() => props.searchQuery, (val) => { inputValue.value = val ?? '' })
+watch(
+  () => props.searchQuery,
+  (val) => {
+    inputValue.value = val ?? "";
+  },
+);
 
 function commitSearch() {
-  emit('search', inputValue.value.trim())
+  emit("search", inputValue.value.trim());
 }
 
 function clearSearch() {
-  inputValue.value = ''
-  emit('search', '')
+  inputValue.value = "";
+  emit("search", "");
 }
 
-const hasActiveSearch = computed(() => !!props.searchQuery?.trim())
+const hasActiveSearch = computed(() => !!props.searchQuery?.trim());
 
 // ── Mobile columns ─────────────────────────────────────────────────
 const mobileColumns = computed(() =>
-    props.columns.filter(c => c.className !== 'dnone')
-)
+  props.columns.filter((c) => c.className !== "dnone"),
+);
 
 // ── Mobile: sort sheet ─────────────────────────────────────────────
-const sortSheetOpen = ref(false)
+const sortSheetOpen = ref(false);
 const sortableColumns = computed(() =>
-    props.columns.filter(c =>
-        c.className !== 'dnone' &&
-        (c.type === 'text' || c.type === 'readonly' || c.type === 'date' || c.type === 'textarea')
-    )
-)
+  props.columns.filter(
+    (c) =>
+      c.className !== "dnone" &&
+      (c.type === "text" ||
+        c.type === "readonly" ||
+        c.type === "date" ||
+        c.type === "textarea"),
+  ),
+);
 const handleMobileSort = (key: string) => {
-  emit('sort', key)
-  sortSheetOpen.value = false
-}
+  emit("sort", key);
+  sortSheetOpen.value = false;
+};
 
 // ── Mobile: filter sheet with staged apply ─────────────────────────
-const filterSheetOpen = ref(false)
+const filterSheetOpen = ref(false);
 const filterableColumns = computed(() =>
-    props.columns.filter(c => props.filterItems?.[c.key]?.length)
-)
+  props.columns.filter((c) => props.filterItems?.[c.key]?.length),
+);
 
 const activeFilterCount = computed(() =>
-    filterableColumns.value.reduce((n, col) => {
-      const all = props.filterItems?.[col.key] ?? []
-      const active = selectedFilters.value[col.key] ?? all
-      return n + (active.length < all.length ? 1 : 0)
-    }, 0)
-)
+  filterableColumns.value.reduce((n, col) => {
+    const all = props.filterItems?.[col.key] ?? [];
+    const active = selectedFilters.value[col.key] ?? all;
+    return n + (active.length < all.length ? 1 : 0);
+  }, 0),
+);
 
 function toggleStagedChip(key: string, item: any) {
-  const all = props.filterItems?.[key] ?? []
-  const current = stagedFilters.value[key] ?? [...all]
+  const all = props.filterItems?.[key] ?? [];
+  const current = stagedFilters.value[key] ?? [...all];
   if (current.includes(item)) {
-    stagedFilters.value[key] = current.filter(i => i !== item)
+    stagedFilters.value[key] = current.filter((i) => i !== item);
   } else {
-    stagedFilters.value[key] = [...current, item]
+    stagedFilters.value[key] = [...current, item];
   }
 }
 
 function isStagedActive(key: string, item: any): boolean {
-  const all = props.filterItems?.[key] ?? []
-  return (stagedFilters.value[key] ?? all).includes(item)
+  const all = props.filterItems?.[key] ?? [];
+  return (stagedFilters.value[key] ?? all).includes(item);
 }
 
 function openFilterSheet() {
   for (const key of Object.keys(selectedFilters.value)) {
-    stagedFilters.value[key] = [...(selectedFilters.value[key] ?? [])]
+    stagedFilters.value[key] = [...(selectedFilters.value[key] ?? [])];
   }
-  filterSheetOpen.value = true
-  sortSheetOpen.value = false
+  filterSheetOpen.value = true;
+  sortSheetOpen.value = false;
 }
 
 function applyFilters() {
   for (const [key, items] of Object.entries(stagedFilters.value)) {
-    selectedFilters.value[key] = [...items]
-    emit('filter', key, items)
+    selectedFilters.value[key] = [...items];
+    emit("filter", key, items);
   }
-  filterSheetOpen.value = false
+  filterSheetOpen.value = false;
 }
 
 function closeFilterSheet() {
   for (const key of Object.keys(selectedFilters.value)) {
-    stagedFilters.value[key] = [...(selectedFilters.value[key] ?? [])]
+    stagedFilters.value[key] = [...(selectedFilters.value[key] ?? [])];
   }
-  filterSheetOpen.value = false
+  filterSheetOpen.value = false;
 }
 </script>
 
 <template>
   <div class="dt-root">
     <!-- ── Desktop search bar ─────────────────────────────────────── -->
-    <div v-if="searchQuery !== undefined" class="desktop-search-bar desktop-only">
+    <div
+      v-if="searchQuery !== undefined"
+      class="desktop-search-bar desktop-only"
+    >
       <div class="search-input-wrap">
-        <IconSearch :size="15" :stroke-width="2" color="secondary" class="search-icon" />
+        <IconSearch
+          :size="15"
+          :stroke-width="2"
+          color="secondary"
+          class="search-icon"
+        />
         <input
-            v-model="inputValue"
-            type="search"
-            placeholder="Zoeken..."
-            class="search-input"
-            :class="{ 'has-active': hasActiveSearch }"
-            @keydown.enter="commitSearch"
+          v-model="inputValue"
+          type="search"
+          placeholder="Zoeken..."
+          class="search-input"
+          :class="{ 'has-active': hasActiveSearch }"
+          @keydown.enter="commitSearch"
         />
         <button
-            v-if="inputValue"
-            class="search-clear"
-            title="Wis zoekopdracht"
-            @click="clearSearch"
+          v-if="inputValue"
+          class="search-clear"
+          title="Wis zoekopdracht"
+          @click="clearSearch"
         >
           <IconClose :size="12" :stroke-width="2.5" color="secondary" />
         </button>
@@ -211,44 +232,64 @@ function closeFilterSheet() {
 
     <!-- ── Mobile toolbar ────────────────────────────────────────── -->
     <div class="mobile-toolbar mobile-only">
-      <div v-if="searchQuery !== undefined" class="search-input-wrap">
-        <IconSearch :size="15" :stroke-width="2" color="secondary" class="search-icon" />
-        <input
+      <div class="search-input-container">
+        <div v-if="searchQuery !== undefined" class="search-input-wrap">
+          <IconSearch
+            :size="15"
+            :stroke-width="2"
+            color="secondary"
+            class="search-icon"
+          />
+          <input
             v-model="inputValue"
             type="search"
             class="search-input"
             :class="{ 'has-active': hasActiveSearch }"
             placeholder="Zoeken..."
             @keydown.enter="commitSearch"
-        />
-        <button v-if="inputValue" class="search-clear" @click="clearSearch">
-          <IconClose :size="12" :stroke-width="2.5" color="secondary" />
+          />
+          <button v-if="inputValue" class="search-clear" @click="clearSearch">
+            <IconClose :size="12" :stroke-width="5" color="secondary" />
+          </button>
+        </div>
+
+        <button
+          v-if="searchQuery !== undefined"
+          class="toolbar-btn search-submit-mobile"
+          @click="commitSearch"
+          title="Zoeken"
+        >
+          <IconSearch :size="16" :stroke-width="2" color="primary" />
         </button>
       </div>
 
-      <button v-if="searchQuery !== undefined" class="toolbar-btn search-submit-mobile" @click="commitSearch" title="Zoeken">
-        <IconSearch :size="16" :stroke-width="2" color="secondary" />
-      </button>
-
       <button
-          class="toolbar-btn"
-          :class="{ active: sortSheetOpen }"
-          @click="sortSheetOpen = !sortSheetOpen; filterSheetOpen = false"
-          title="Sorteren"
+        class="toolbar-btn"
+        :class="{ active: sortSheetOpen }"
+        @click="
+          sortSheetOpen = !sortSheetOpen;
+          filterSheetOpen = false;
+        "
+        title="Sorteren"
       >
         <IconSort :size="16" :stroke-width="2" color="secondary" />
         <span>Sorteren</span>
       </button>
 
       <button
-          class="toolbar-btn"
-          :class="{ active: filterSheetOpen, 'has-filters': activeFilterCount > 0 }"
-          @click="filterSheetOpen ? closeFilterSheet() : openFilterSheet()"
-          title="Filteren"
+        class="toolbar-btn"
+        :class="{
+          active: filterSheetOpen,
+          'has-filters': activeFilterCount > 0,
+        }"
+        @click="filterSheetOpen ? closeFilterSheet() : openFilterSheet()"
+        title="Filteren"
       >
         <IconFilter :size="16" :stroke-width="2" color="secondary" />
         <span>Filteren</span>
-        <span v-if="activeFilterCount > 0" class="filter-badge">{{ activeFilterCount }}</span>
+        <span v-if="activeFilterCount > 0" class="filter-badge">{{
+          activeFilterCount
+        }}</span>
       </button>
     </div>
 
@@ -263,20 +304,20 @@ function closeFilterSheet() {
         </div>
         <div class="sheet-options">
           <button
-              v-for="col in sortableColumns"
-              :key="col.key"
-              class="sheet-pill"
-              :class="{ 'sheet-pill--active': sortKey === col.key }"
-              @click="handleMobileSort(col.key)"
+            v-for="col in sortableColumns"
+            :key="col.key"
+            class="sheet-pill"
+            :class="{ 'sheet-pill--active': sortKey === col.key }"
+            @click="handleMobileSort(col.key)"
           >
             {{ col.label }}
             <IconChevron
-                v-if="sortKey === col.key"
-                :size="10"
-                :stroke-width="2.5"
-                color="accent"
-                :class="{ flip: sortOrder === 'asc' }"
-                class="sort-chevron"
+              v-if="sortKey === col.key"
+              :size="10"
+              :stroke-width="2.5"
+              color="accent"
+              :class="{ flip: sortOrder === 'asc' }"
+              class="sort-chevron"
             />
           </button>
         </div>
@@ -294,15 +335,19 @@ function closeFilterSheet() {
         </div>
 
         <div class="sheet-body">
-          <div v-for="col in filterableColumns" :key="col.key" class="filter-group">
+          <div
+            v-for="col in filterableColumns"
+            :key="col.key"
+            class="filter-group"
+          >
             <p class="filter-group-label">{{ col.label }}</p>
             <div class="filter-chips">
               <button
-                  v-for="item in filterItems?.[col.key]"
-                  :key="item"
-                  class="chip"
-                  :class="{ 'chip--active': isStagedActive(col.key, item) }"
-                  @click="toggleStagedChip(col.key, item)"
+                v-for="item in filterItems?.[col.key]"
+                :key="item"
+                class="chip"
+                :class="{ 'chip--active': isStagedActive(col.key, item) }"
+                @click="toggleStagedChip(col.key, item)"
               >
                 {{ item }}
               </button>
@@ -322,43 +367,57 @@ function closeFilterSheet() {
         <div class="table-row header-row">
           <div class="table-cell table-head delete-head" />
           <MoleculeSortableTableHead
-              v-for="column in columns"
-              :key="column.key"
-              :label="column.label"
-              :sort-key="column.key"
-              :current-sort-key="sortKey"
-              :sort-order="sortOrder"
-              :class-name="column.className"
-              :sticky="column.sticky"
-              :filter-items="filterItems?.[column.key]"
-              :selected-filters="selectedFilters[column.key]"
-              @sort="emit('sort', $event)"
-              @filter="handleFilter"
+            v-for="column in columns"
+            :key="column.key"
+            :label="column.label"
+            :sort-key="column.key"
+            :current-sort-key="sortKey"
+            :sort-order="sortOrder"
+            :class-name="column.className"
+            :sticky="column.sticky"
+            :filter-items="filterItems?.[column.key]"
+            :selected-filters="selectedFilters[column.key]"
+            @sort="emit('sort', $event)"
+            @filter="handleFilter"
           />
         </div>
 
         <div
-            v-for="row in data"
-            :key="row.id"
-            v-memo="[row, changedFieldsByRow.get(row.id), selectedRows.includes(row.id)]"
-            class="table-row"
+          v-for="row in data"
+          :key="row.id"
+          v-memo="[
+            row,
+            changedFieldsByRow.get(row.id),
+            selectedRows.includes(row.id),
+          ]"
+          class="table-row"
+          :class="{ 'selected-row': selectedRows.includes(row.id) }"
         >
           <div class="table-cell delete-wrapper">
             <input type="checkbox" @change="deleteSelected(row.id)" />
           </div>
           <MoleculeEditableTableCell
-              v-for="column in columns"
-              :key="`${row.id}-${column.key}`"
-              :value="row[column.key]"
-              :type="column.type || 'text'"
-              :disabled="column.disabled ? column.disabled(row) : false"
-              :class-name="column.className ?? ''"
-              :changed="checkIfChanged(row.id, column.key)"
-              :options="column.options"
-              :expand-all="expandAll"
-              @update="handleUpdate(row.id, column.key as string, $event.value, $event.index)"
-              @add-array-item="handleAddArrayItem(row.id, column.key as string)"
-              @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
+            v-for="column in columns"
+            :key="`${row.id}-${column.key}`"
+            :value="row[column.key]"
+            :type="column.type || 'text'"
+            :disabled="column.disabled ? column.disabled(row) : false"
+            :class-name="column.className ?? ''"
+            :changed="checkIfChanged(row.id, column.key)"
+            :options="column.options"
+            :expand-all="expandAll"
+            @update="
+              handleUpdate(
+                row.id,
+                column.key as string,
+                $event.value,
+                $event.index,
+              )
+            "
+            @add-array-item="handleAddArrayItem(row.id, column.key as string)"
+            @remove-array-item="
+              handleRemoveArrayItem(row.id, column.key as string, $event)
+            "
           />
         </div>
       </div>
@@ -367,47 +426,66 @@ function closeFilterSheet() {
     <!-- ── Mobile cards ───────────────────────────────────────────── -->
     <div class="mobile-cards mobile-only">
       <div v-if="data.length === 0" class="no-results">
-        <span v-if="hasActiveSearch">Geen resultaten voor "{{ searchQuery }}"</span>
+        <span v-if="hasActiveSearch"
+          >Geen resultaten voor "{{ searchQuery }}"</span
+        >
         <span v-else>Geen gegevens beschikbaar</span>
       </div>
 
       <div
-          v-for="row in data"
-          :key="`card-${row.id}`"
-          v-memo="[row, changedFieldsByRow.get(row.id), selectedRows.includes(row.id)]"
-          class="card"
-          :class="{ 'card--selected': selectedRows.includes(row.id) }"
+        v-for="row in data"
+        :key="`card-${row.id}`"
+        v-memo="[
+          row,
+          changedFieldsByRow.get(row.id),
+          selectedRows.includes(row.id),
+        ]"
+        class="card"
+        :class="{ 'card--selected': selectedRows.includes(row.id) }"
       >
         <div class="card-header">
           <span class="card-id">#{{ row.id }}</span>
           <input
-              type="checkbox"
-              class="card-checkbox"
-              :checked="selectedRows.includes(row.id)"
-              @change="deleteSelected(row.id)"
+            type="checkbox"
+            class="card-checkbox"
+            :checked="selectedRows.includes(row.id)"
+            @change="deleteSelected(row.id)"
           />
         </div>
 
         <div class="card-body">
           <div
-              v-for="column in mobileColumns"
-              :key="`card-${row.id}-${column.key}`"
-              class="card-field"
-              :class="{ 'card-field--changed': checkIfChanged(row.id, column.key) }"
+            v-for="column in mobileColumns"
+            :key="`card-${row.id}-${column.key}`"
+            class="card-field"
+            :class="{
+              'card-field--changed': checkIfChanged(row.id, column.key),
+            }"
           >
             <span class="card-label">{{ column.label }}</span>
             <div class="card-value">
               <MoleculeEditableTableCell
-                  :value="row[column.key]"
-                  :type="column.type || 'text'"
-                  :disabled="column.disabled ? column.disabled(row) : false"
-                  :class-name="column.className ?? ''"
-                  :changed="checkIfChanged(row.id, column.key)"
-                  :options="column.options"
-                  :expand-all="expandAll"
-                  @update="handleUpdate(row.id, column.key as string, $event.value, $event.index)"
-                  @add-array-item="handleAddArrayItem(row.id, column.key as string)"
-                  @remove-array-item="handleRemoveArrayItem(row.id, column.key as string, $event)"
+                :value="row[column.key]"
+                :type="column.type || 'text'"
+                :disabled="column.disabled ? column.disabled(row) : false"
+                :class-name="column.className ?? ''"
+                :changed="checkIfChanged(row.id, column.key)"
+                :options="column.options"
+                :expand-all="expandAll"
+                @update="
+                  handleUpdate(
+                    row.id,
+                    column.key as string,
+                    $event.value,
+                    $event.index,
+                  )
+                "
+                @add-array-item="
+                  handleAddArrayItem(row.id, column.key as string)
+                "
+                @remove-array-item="
+                  handleRemoveArrayItem(row.id, column.key as string, $event)
+                "
               />
             </div>
           </div>
@@ -425,7 +503,9 @@ function closeFilterSheet() {
 }
 
 /* ─── Visibility helpers ──────────────────────────────────────────── */
-.mobile-only { display: none; }
+.mobile-only {
+  display: none;
+}
 
 /* ─── Desktop search bar ──────────────────────────────────────────── */
 .desktop-search-bar {
@@ -456,7 +536,9 @@ function closeFilterSheet() {
       cursor: pointer;
       padding: 0;
       opacity: 0.6;
-      &:hover { opacity: 1; }
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 }
@@ -487,9 +569,15 @@ function closeFilterSheet() {
     color: var(--secondary);
     outline: none;
 
-    &:focus { border-color: var(--accent); }
-    &.has-active { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
-    &::-webkit-search-cancel-button { display: none; }
+    &:focus {
+      border-color: var(--accent);
+    }
+    &.has-active {
+      border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    }
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
   }
 
   .search-clear {
@@ -498,14 +586,18 @@ function closeFilterSheet() {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.2rem;
+    width: fit-content;
     height: 1.2rem;
+    padding: 0.4rem;
     background: none;
     border: none;
     cursor: pointer;
     opacity: 0.5;
     border-radius: 0.25rem;
-    &:hover { opacity: 1; background: var(--secondary-10); }
+    &:hover {
+      opacity: 1;
+      background: var(--secondary-10);
+    }
   }
 }
 
@@ -527,8 +619,12 @@ function closeFilterSheet() {
   flex-shrink: 0;
   transition: none;
 
-  &:hover  { opacity: 0.85; }
-  &:active { opacity: 0.7; }
+  &:hover {
+    opacity: 0.85;
+  }
+  &:active {
+    opacity: 0.7;
+  }
 }
 
 /* ─── Table scroll wrapper ────────────────────────────────────────── */
@@ -541,10 +637,14 @@ function closeFilterSheet() {
   padding-bottom: 1rem;
 
   background:
-      linear-gradient(to right, var(--primary, #fff) 20%, transparent) left center / 3rem 100% local no-repeat,
-      linear-gradient(to left,  var(--primary, #fff) 20%, transparent) right center / 3rem 100% local no-repeat,
-      linear-gradient(to right, rgba(0,0,0,.07), transparent) left center / 1.2rem 100% scroll no-repeat,
-      linear-gradient(to left,  rgba(0,0,0,.07), transparent) right center / 1.2rem 100% scroll no-repeat;
+    linear-gradient(to right, var(--primary, #fff) 20%, transparent) left
+      center / 3rem 100% local no-repeat,
+    linear-gradient(to left, var(--primary, #fff) 20%, transparent) right
+      center / 3rem 100% local no-repeat,
+    linear-gradient(to right, rgba(0, 0, 0, 0.07), transparent) left center /
+      1.2rem 100% scroll no-repeat,
+    linear-gradient(to left, rgba(0, 0, 0, 0.07), transparent) right center /
+      1.2rem 100% scroll no-repeat;
 
   .table {
     display: table;
@@ -554,15 +654,40 @@ function closeFilterSheet() {
       display: table-row;
       font-size: 0.9rem;
 
-      .id { background-color: var(--gray-100); }
+      .id {
+        background-color: var(--gray-100);
+      }
+
+      &.selected-row {
+        background-color: var(--danger-50);
+
+        .id {
+          background-color: var(--danger);
+        }
+      }
 
       &:nth-of-type(even):not(.header-row) {
         background-color: var(--secondary-10);
-        .id { background-color: var(--gray-150); }
+        .id {
+          background-color: var(--gray-150);
+        }
         :deep(.table-cell) {
-          &:has(select), select { background-color: var(--gray-150); }
+          &:has(select),
+          select {
+            background-color: var(--gray-150);
+          }
           .array-item select,
-          .array-horizontal-item select { background-color: var(--gray-200); }
+          .array-horizontal-item select {
+            background-color: var(--gray-200);
+          }
+        }
+
+        &.selected-row {
+          background-color: var(--danger-50);
+
+          .id {
+            background-color: var(--danger);
+          }
         }
       }
 
@@ -571,7 +696,9 @@ function closeFilterSheet() {
         text-align: center;
         vertical-align: middle;
         width: 1rem;
-        input { accent-color: var(--accent); }
+        input {
+          accent-color: var(--accent);
+        }
       }
 
       .delete-head {
@@ -634,7 +761,9 @@ function closeFilterSheet() {
       font-family: system-ui;
     }
 
-    .card-checkbox { accent-color: var(--accent); }
+    .card-checkbox {
+      accent-color: var(--accent);
+    }
   }
 
   .card-body {
@@ -647,7 +776,9 @@ function closeFilterSheet() {
     flex-direction: column;
     border-bottom: 1px solid var(--secondary-10);
     border-right: 1px solid var(--secondary-10);
-    &:last-child { border-bottom: none; }
+    &:last-child {
+      border-bottom: none;
+    }
     &--changed {
       background-color: color-mix(in srgb, var(--warning) 10%, transparent);
     }
@@ -671,7 +802,9 @@ function closeFilterSheet() {
       border: none;
       min-width: unset;
       width: 100%;
-      input[type='text'], input[type='date'], select {
+      input[type="text"],
+      input[type="date"],
+      select {
         min-width: unset;
         width: 100%;
         font-size: 0.85rem;
@@ -687,7 +820,16 @@ function closeFilterSheet() {
   gap: 0.4rem;
   padding: 0.5rem;
 
+  .search-input-container {
+    grid-column: 1/3;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
   .toolbar-btn {
+    grid-row: 2;
+    width: 100%;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -702,9 +844,16 @@ function closeFilterSheet() {
     transition: none;
     flex-shrink: 0;
 
-    &:hover  { background: var(--secondary-10); }
-    &.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
-    &.has-filters { border-color: var(--warning); }
+    &:hover {
+      background: var(--secondary-10);
+    }
+    &.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    &.has-filters {
+      border-color: var(--warning);
+    }
 
     .filter-badge {
       display: inline-flex;
@@ -722,12 +871,16 @@ function closeFilterSheet() {
 
   /* Icon-only search button on mobile */
   .search-submit-mobile {
+    width: fit-content;
     padding: 0.42rem 0.5rem;
     background: var(--accent);
     border-color: var(--accent);
     color: var(--secondary);
     transition: none;
-    &:hover { opacity: 0.85; background: var(--accent); }
+    &:hover {
+      opacity: 0.85;
+      background: var(--accent);
+    }
   }
 }
 
@@ -763,7 +916,10 @@ function closeFilterSheet() {
       padding: 0.15rem;
       border-radius: 0.3rem;
       opacity: 0.6;
-      &:hover { opacity: 1; background: var(--secondary-10); }
+      &:hover {
+        opacity: 1;
+        background: var(--secondary-10);
+      }
     }
   }
 
@@ -786,7 +942,9 @@ function closeFilterSheet() {
     color: var(--secondary);
     cursor: pointer;
 
-    &:hover { background: var(--secondary-10); }
+    &:hover {
+      background: var(--secondary-10);
+    }
 
     &--active {
       border-color: var(--accent);
@@ -795,7 +953,9 @@ function closeFilterSheet() {
     }
 
     .sort-chevron {
-      &.flip { transform: rotate(180deg); }
+      &.flip {
+        transform: rotate(180deg);
+      }
     }
   }
 
@@ -833,7 +993,9 @@ function closeFilterSheet() {
     color: var(--secondary);
     cursor: pointer;
 
-    &:hover { background: var(--secondary-10); }
+    &:hover {
+      background: var(--secondary-10);
+    }
 
     &--active {
       border-color: var(--accent);
@@ -857,23 +1019,40 @@ function closeFilterSheet() {
       font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
-      &:hover  { opacity: 0.85; }
-      &:active { opacity: 0.7; }
+      &:hover {
+        opacity: 0.85;
+      }
+      &:active {
+        opacity: 0.7;
+      }
     }
   }
 }
 
 /* ─── Transitions ─────────────────────────────────────────────────── */
-.sheet-enter-active, .sheet-leave-active { transition: opacity 0.15s, transform 0.15s; }
-.sheet-enter-from,  .sheet-leave-to      { opacity: 0; transform: translateY(-6px); }
+.sheet-enter-active,
+.sheet-leave-active {
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 
 /* ─── Mobile breakpoint ───────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .desktop-only { display: none; }
-  .mobile-only  { display: block; }
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: block;
+  }
 
   .mobile-toolbar {
-    display: flex;
+    display: grid;
     padding: 0.5rem;
   }
 

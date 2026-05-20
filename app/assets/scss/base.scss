@@ -1,24 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Rokkitt:ital,wght@0,100..900;1,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Rokkitt:ital,wght@0,100..900;1,100..900&display=swap");
 
 :root {
   // BASE COLORS
   --white: #fff;
-  --gray-100: #E6E6E6;
+  --gray-100: #e6e6e6;
   --gray-150: #d2d2d2;
-  --gray-200: #C8C8C8;
-  --gray-300: #A9A9A9;
+  --gray-200: #c8c8c8;
+  --gray-300: #a9a9a9;
   --gray-500: #808080;
   --gray-700: #575757;
   --gray-800: #383838;
-  --gray-900: #1A1A1A;
+  --gray-900: #1a1a1a;
   --black: #000;
 
-  --red: #CB161E;
-  --orange: #FD9438;
-  --yellow: #FFE62D;
-  --green: #20AC20;
-  --blue: #2265F7;
-  --brown: #7B5533;
+  --red: #cb161e;
+  --orange: #fd9438;
+  --yellow: #ffe62d;
+  --green: #20ac20;
+  --blue: #2265f7;
+  --brown: #7b5533;
 
   --danger: #dc2626;
   --warning: #ff9407;
@@ -28,8 +28,8 @@
   --primary: var(--gray-100);
   --secondary: var(--gray-900);
   --accent: var(--red);
-  --light: #E6E6E6;
-  --dark: #1A1A1A;
+  --light: #e6e6e6;
+  --dark: #1a1a1a;
 
   // OPACITY COLORS
 
@@ -70,6 +70,7 @@
   --blue-50: rgb(34, 101, 247, 0.5);
   --brown-50: rgb(123, 85, 51, 0.5);
 
+  --danger-30: rgb(220, 38, 38, 0.3);
   --danger-50: rgb(220, 38, 38, 0.5);
   --warning-10: rgb(255, 193, 7, 0.1);
   --warning-50: rgb(255, 193, 7, 0.5);
@@ -82,14 +83,14 @@
 @media (prefers-color-scheme: dark) {
   :root {
     // BASE COLORS
-    --gray-100: #1A1A1A;
+    --gray-100: #1a1a1a;
     --gray-150: #2e2e2e;
     --gray-200: #383838;
     --gray-300: #575757;
     --gray-500: #808080;
-    --gray-700: #A9A9A9;
-    --gray-800: #C8C8C8;
-    --gray-900: #E6E6E6;
+    --gray-700: #a9a9a9;
+    --gray-800: #c8c8c8;
+    --gray-900: #e6e6e6;
 
     // OPACITY COLORS
     --primary-10: rgba(26, 26, 26, 0.1);
@@ -128,7 +129,8 @@
   background: var(--accent);
 }
 
-img::selection, svg::selection {
+img::selection,
+svg::selection {
   background: transparent;
 }
 
@@ -152,7 +154,7 @@ body {
   background-position: top center;
   background-size: cover;
   color: var(--secondary);
-  font-family: 'Rokkitt', Arial, serif;
+  font-family: "Rokkitt", Arial, serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -166,7 +168,9 @@ body {
   }
 }
 
-header, main, footer {
+header,
+main,
+footer {
   margin: 0 var(--page-margin);
 }
 
@@ -219,15 +223,17 @@ h4 {
   font-weight: 400;
 }
 
-input, select, textarea {
-  padding: .4rem .6rem;
-  border-radius: .8rem;
+input,
+select,
+textarea {
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.8rem;
   border: 2px solid var(--secondary-50);
   background-color: var(--primary-60);
   color: var(--secondary);
   font-size: 1.3rem;
   font-weight: 400;
-  font-family: 'Rokkitt', Arial, serif;
+  font-family: "Rokkitt", Arial, serif;
   accent-color: var(--accent);
   transition: none;
 
@@ -258,7 +264,7 @@ textarea:required + label::after,
 select:required + label::after,
 label:has(+ input:required)::after,
 label:has(+ select:required)::after,
-label:has(+ textarea:required)::after{
+label:has(+ textarea:required)::after {
   content: " *";
   color: var(--accent);
 }
@@ -269,15 +275,16 @@ label:has(+ textarea:required)::after{
 //  }
 //}
 
-button, .btn {
+button,
+.btn {
   display: inline-flex;
   align-items: center;
   gap: 1rem;
   width: fit-content;
   height: fit-content;
-  padding: .3rem 1rem;
+  padding: 0.3rem 1rem;
   border-radius: 5rem;
-  font:inherit;
+  font: inherit;
   font-size: 1.1rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -427,29 +434,22 @@ button, .btn {
   }
 }
 
-
 // COPIED VERSIONS
 @media screen and (width >= 40rem) {
-
 }
 
 @media screen and (width >= 48rem) {
-
 }
 
 @media screen and (width >= 64rem) {
-
 }
 
 @media screen and (width >= 80rem) {
-
 }
 
 // SPECIALS
 @media screen and (width >= 32rem) {
-
 }
 
 @media screen and (width >= 90rem) {
-
 }
