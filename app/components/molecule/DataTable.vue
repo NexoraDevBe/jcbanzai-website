@@ -249,7 +249,7 @@ function closeFilterSheet() {
             @keydown.enter="commitSearch"
           />
           <button v-if="inputValue" class="search-clear" @click="clearSearch">
-            <IconClose :size="12" :stroke-width="5" color="secondary" />
+            <IconClose :size="12" :stroke-width="2.5" color="secondary" />
           </button>
         </div>
 
@@ -588,7 +588,7 @@ function closeFilterSheet() {
     justify-content: center;
     width: fit-content;
     height: 1.2rem;
-    padding: 0.4rem;
+    padding: 0.3rem;
     background: none;
     border: none;
     cursor: pointer;
