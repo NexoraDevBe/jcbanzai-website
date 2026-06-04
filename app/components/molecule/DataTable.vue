@@ -140,6 +140,51 @@ const filterableColumns = computed(() =>
   props.columns.filter((c) => props.filterItems?.[c.key]?.length),
 );
 
+const filterFormatItem = computed<(item: unknown) => string>(() => (item) => {
+  switch (item) {
+    case false:
+      return "Nee";
+    case true:
+      return "Ja";
+    case "01-Beginner":
+      return "Beginner";
+    case "02-Kyu 6":
+      return "6e Kyu";
+    case "03-Kyu 5":
+      return "5e Kyu";
+    case "04-Kyu 4":
+      return "4e Kyu";
+    case "05-Kyu 3":
+      return "3e Kyu";
+    case "06-Kyu 2":
+      return "2e Kyu";
+    case "07-Kyu 1":
+      return "1e Kyu";
+    case "08-Dan 1":
+      return "1e Dan";
+    case "09-Dan 2":
+      return "2e Dan";
+    case "10-Dan 3":
+      return "3e Dan";
+    case "11-Dan 4":
+      return "4e Dan";
+    case "12-Dan 5":
+      return "5e Dan";
+    case "13-Dan 6":
+      return "6e Dan";
+    case "14-Dan 7":
+      return "7e Dan";
+    case "15-Dan 8":
+      return "8e Dan";
+    case "16-Dan 9":
+      return "9e Dan";
+    case "17-Dan 10":
+      return "10e Dan";
+    default:
+      return String(item);
+  }
+});
+
 const activeFilterCount = computed(() =>
   filterableColumns.value.reduce((n, col) => {
     const all = props.filterItems?.[col.key] ?? [];
@@ -349,7 +394,7 @@ function closeFilterSheet() {
                 :class="{ 'chip--active': isStagedActive(col.key, item) }"
                 @click="toggleStagedChip(col.key, item)"
               >
-                {{ item }}
+                {{ filterFormatItem(item) }}
               </button>
             </div>
           </div>
