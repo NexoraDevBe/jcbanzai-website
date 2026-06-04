@@ -287,9 +287,8 @@ const cta = () => {
       </div>
       <div class="trainers-api">
         <p>
-          Onze Club-API's (<a href="/pdf/AanspreekPersoon_Integriteit.pdf"
-            >AanspreekPersoon Integriteit</a
-          >) zijn bereikbaar via mail of telefoon. Discretie verzekerd.
+          Onze Club-API's (AanspreekPersoon Integriteit) zijn bereikbaar via
+          mail of telefoon. Discretie verzekerd.
         </p>
         <ul>
           <li>
@@ -315,6 +314,7 @@ const cta = () => {
             </ul>
           </li>
         </ul>
+        <a href="/pdf/AanspreekPersoon_Integriteit.pdf">Meer info.</a>
       </div>
     </section>
   </main>
@@ -355,7 +355,7 @@ const cta = () => {
 
     .card {
       min-width: 12rem;
-      height: none;
+      height: auto;
     }
 
     @media screen and (width >= 40rem) {
