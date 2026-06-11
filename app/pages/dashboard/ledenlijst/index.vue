@@ -50,9 +50,6 @@ const grades = [
 
 // Determine which fields are disabled per row
 const isFieldDisabled = (fieldKey: string) => {
-  if (fieldKey == "created_at") {
-    return true;
-  }
   if (userStore.userRole === "user") {
     switch (fieldKey) {
       case "gordel_behaald_op":
@@ -83,22 +80,23 @@ const handleDownloadClick = async () => {
 const columns = computed(() => [
   { key: "id", label: "ID", type: "readonly", className: "id", sticky: true },
   {
-    key: "actief",
-    label: "Actief",
-    type: "checkbox",
-    disabled: () => isFieldDisabled("actief"),
+    key: "created_at",
+    label: "Aangemaakt op",
+    type: "readonly",
+    disabled: () => isFieldDisabled("created_at"),
+  },
+  {
+    key: "opvolging",
+    label: "Opvolging",
+    type: "textarea",
+    className: "description",
+    disabled: () => isFieldDisabled("opvolging"),
   },
   {
     key: "vergunning",
     label: "Vergunning nr",
     type: "text",
     disabled: () => isFieldDisabled("vergunning"),
-  },
-  {
-    key: "vergunning_geldig_tot",
-    label: "Vergunning datum",
-    type: "date",
-    disabled: () => isFieldDisabled("vergunning_geldig_tot"),
   },
   {
     key: "voornaam",
@@ -127,6 +125,12 @@ const columns = computed(() => [
     label: "Geboorte",
     type: "date",
     disabled: () => isFieldDisabled("geboorte_datum"),
+  },
+  {
+    key: "leeftijd",
+    label: "Leeftijd",
+    type: "readonly",
+    disabled: () => isFieldDisabled("leeftijd"),
   },
   {
     key: "nationaliteit",
@@ -174,12 +178,18 @@ const columns = computed(() => [
     disabled: () => isFieldDisabled("emails"),
   },
   {
-    key: "in_judovlaanderen",
-    label: "In JV",
+    key: "actief",
+    label: "Actief",
     type: "checkbox",
-    disabled: () => isFieldDisabled("in_judovlaanderen"),
+    disabled: () => isFieldDisabled("actief"),
   },
-  // { key: 'dojos', label: 'Dojo\'s', type: 'array-text', className: 'dojos', disabled: () => isFieldDisabled('dojos') },
+  {
+    key: "dojos",
+    label: "Dojo's",
+    type: "array-text",
+    className: "dojos",
+    disabled: () => isFieldDisabled("dojos"),
+  },
   {
     key: "wedstrijd_training",
     label: "Wedstrijd training",
@@ -206,14 +216,17 @@ const columns = computed(() => [
     className: "opmerkingen",
     disabled: () => isFieldDisabled("lidgeld_opmerkingen"),
   },
-  // { key: 'behaald_examen', label: 'Examen behaald', type: 'text', disabled: () => isFieldDisabled('behaald_examen') },
-  // { key: 'door_wie_examen', label: 'Examen door', type: 'text', disabled: () => isFieldDisabled('door_wie_examen') },
-  // { key: 'datum_examen', label: 'Examen datum', type: 'date', disabled: () => isFieldDisabled('datum_examen') },
   {
-    key: "created_at",
-    label: "Aangemaakt op",
-    type: "text",
-    disabled: () => isFieldDisabled("created_at"),
+    key: "vergunning_geldig_tot",
+    label: "Vergunning datum",
+    type: "date",
+    disabled: () => isFieldDisabled("vergunning_geldig_tot"),
+  },
+  {
+    key: "updated_at",
+    label: "Laatst aangepast",
+    type: "readonly",
+    disabled: () => isFieldDisabled("updated_at"),
   },
 ]) as unknown as Column[];
 

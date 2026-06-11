@@ -1,120 +1,164 @@
 <script setup lang="ts">
 interface Props {
-  value: any
-  type: 'text' | 'textarea' | 'checkbox' | 'date' | 'select' | 'array-text' | 'array-select' | 'array-select-horizontal' | 'readonly'
-  disabled?: boolean
-  className?: string
-  options?: Array<{ value: string | number; label: string }>
-  changed?: boolean
-  arrayIndex?: number
-  expandAll?: boolean
+  value: any;
+  type:
+    | "text"
+    | "textarea"
+    | "checkbox"
+    | "date"
+    | "select"
+    | "array-text"
+    | "array-select"
+    | "array-select-horizontal"
+    | "readonly";
+  disabled?: boolean;
+  className?: string;
+  options?: Array<{ value: string | number; label: string }>;
+  changed?: boolean;
+  arrayIndex?: number;
+  expandAll?: boolean;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  update: [value: any, arrayIndex?: number]
-  addArrayItem: []
-  removeArrayItem: [index: number]
-}>()
+  update: [value: any, arrayIndex?: number];
+  addArrayItem: [];
+  removeArrayItem: [index: number];
+}>();
 
 const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement | HTMLSelectElement
-  if (props.type === 'checkbox') {
-    emit('update', { value: (target as HTMLInputElement).checked, index: props.arrayIndex })
+  const target = event.target as HTMLInputElement | HTMLSelectElement;
+  if (props.type === "checkbox") {
+    emit("update", {
+      value: (target as HTMLInputElement).checked,
+      index: props.arrayIndex,
+    });
   } else {
-    emit('update', { value: target.value, index: props.arrayIndex })
+    emit("update", { value: target.value, index: props.arrayIndex });
   }
-}
+};
 
 const handleAddItem = () => {
-  arrayShow.value = true
-  emit('addArrayItem')
-}
+  arrayShow.value = true;
+  emit("addArrayItem");
+};
 
 const handleRemoveItem = (index: number) => {
-  if (index === 1 && props.value.length === 2) arrayShow.value = false
-  emit('removeArrayItem', index)
-}
+  if (index === 1 && props.value.length === 2) arrayShow.value = false;
+  emit("removeArrayItem", index);
+};
 
-const handleTextareaClose = () => { textareaShow.value = false }
+const handleTextareaClose = () => {
+  textareaShow.value = false;
+};
 
-const arrayShow = ref<boolean>(false)
-const textareaShow = ref<boolean>(false)
+const arrayShow = ref<boolean>(false);
+const textareaShow = ref<boolean>(false);
 
-watch(() => props.expandAll, (newVal) => {
-  if (newVal !== undefined && (props.type === 'array-text' || props.type === 'array-select')) {
-    if (props.value.length > 1) arrayShow.value = newVal
-  }
-})
+const tempValue = ref<string>("");
+const handleTextareaInput = (input: string) => {
+  tempValue.value = input;
+};
+
+watch(
+  () => props.expandAll,
+  (newVal) => {
+    if (
+      newVal !== undefined &&
+      (props.type === "array-text" || props.type === "array-select")
+    ) {
+      if (props.value.length > 1) arrayShow.value = newVal;
+    }
+  },
+);
 </script>
 
 <template>
   <div class="table-cell" :class="[className, { changed }]">
-
     <!-- Readonly -->
     <p v-if="type === 'readonly'">{{ value }}</p>
 
     <!-- Checkbox -->
     <input
-        v-else-if="type === 'checkbox'"
-        type="checkbox"
-        :checked="value"
-        :disabled="disabled"
-        @change="handleInput"
+      v-else-if="type === 'checkbox'"
+      type="checkbox"
+      :checked="value"
+      :disabled="disabled"
+      @change="handleInput"
     />
 
     <!-- Date -->
     <input
-        v-else-if="type === 'date'"
-        type="date"
-        :value="value"
-        :disabled="disabled"
-        @input="handleInput"
+      v-else-if="type === 'date'"
+      type="date"
+      :value="value"
+      :disabled="disabled"
+      @input="handleInput"
     />
 
     <!-- Select -->
     <select
-        v-else-if="type === 'select'"
-        :value="value"
-        :disabled="disabled"
-        @change="handleInput"
+      v-else-if="type === 'select'"
+      :value="value"
+      :disabled="disabled"
+      @change="handleInput"
     >
-      <option v-for="option in options" :key="option.value" :value="option.value">
+      <option
+        v-for="option in options"
+        :key="option.value"
+        :value="option.value"
+      >
         {{ option.label }}
       </option>
     </select>
 
     <!-- Horizontal Array Select -->
-    <div v-else-if="type === 'array-select-horizontal'" class="array-horizontal-container">
+    <div
+      v-else-if="type === 'array-select-horizontal'"
+      class="array-horizontal-container"
+    >
       <div class="array-horizontal-items">
-        <div v-for="(item, index) in value" :key="index" class="array-horizontal-item">
+        <div
+          v-for="(item, index) in value"
+          :key="index"
+          class="array-horizontal-item"
+        >
           <select
-              :value="item"
-              :disabled="disabled"
-              @change="emit('update', { value: ($event.target as HTMLSelectElement).value, index })"
+            :value="item"
+            :disabled="disabled"
+            @change="
+              emit('update', {
+                value: ($event.target as HTMLSelectElement).value,
+                index,
+              })
+            "
           >
-            <option v-for="option in options" :key="option.value" :value="option.value">
+            <option
+              v-for="option in options"
+              :key="option.value"
+              :value="option.value"
+            >
               {{ option.label }}
             </option>
           </select>
           <button
-              v-if="!disabled && value.length > 1"
-              type="button"
-              class="btn btn-remove"
-              title="Verwijder item"
-              @click="handleRemoveItem(index)"
+            v-if="!disabled && value.length > 1"
+            type="button"
+            class="btn btn-remove"
+            title="Verwijder item"
+            @click="handleRemoveItem(index)"
           >
             <IconDeleteCross :size="12" :stroke-width="2.5" :color="'danger'" />
           </button>
         </div>
 
         <button
-            v-if="!disabled"
-            type="button"
-            class="btn btn-add"
-            title="Voeg item toe"
-            @click="handleAddItem"
+          v-if="!disabled"
+          type="button"
+          class="btn btn-add"
+          title="Voeg item toe"
+          @click="handleAddItem"
         >
           <IconAddCross :size="12" :stroke-width="2.5" :color="'success'" />
         </button>
@@ -124,62 +168,90 @@ watch(() => props.expandAll, (newVal) => {
     <!-- Arrays (Vertical) -->
     <div v-else-if="type.includes('array')" class="array-container">
       <div
-          v-for="(item, index) in value"
-          v-show="arrayShow || index === 0"
-          :key="index"
-          class="array-item"
+        v-for="(item, index) in value"
+        v-show="arrayShow || index === 0"
+        :key="index"
+        class="array-item"
       >
         <input
-            v-if="type === 'array-text'"
-            type="text"
-            :value="item"
-            :disabled="disabled"
-            @input="emit('update', { value: ($event.target as HTMLInputElement).value, index })"
+          v-if="type === 'array-text'"
+          type="text"
+          :value="item"
+          :disabled="disabled"
+          @input="
+            emit('update', {
+              value: ($event.target as HTMLInputElement).value,
+              index,
+            })
+          "
         />
         <select
-            v-else-if="type === 'array-select'"
-            :value="item"
-            :disabled="disabled"
-            @change="emit('update', { value: ($event.target as HTMLInputElement).value, index })"
+          v-else-if="type === 'array-select'"
+          :value="item"
+          :disabled="disabled"
+          @change="
+            emit('update', {
+              value: ($event.target as HTMLInputElement).value,
+              index,
+            })
+          "
         >
-          <option v-for="option in options" :key="option.value" :value="option.value">
+          <option
+            v-for="option in options"
+            :key="option.value"
+            :value="option.value"
+          >
             {{ option.label }}
           </option>
         </select>
 
         <!-- First item: toggle expand / add -->
         <button
-            v-if="index === 0"
-            type="button"
-            class="btn"
-            :class="[value.length > 1 ? 'btn-show' : 'btn-add', { hidden: disabled && value.length === 1 }]"
-            :title="value.length > 1 ? 'Toon/Verberg items' : 'Voeg item toe'"
-            @click="value.length > 1 ? (arrayShow = !arrayShow) : handleAddItem()"
+          v-if="index === 0"
+          type="button"
+          class="btn"
+          :class="[
+            value.length > 1 ? 'btn-show' : 'btn-add',
+            { hidden: disabled && value.length === 1 },
+          ]"
+          :title="value.length > 1 ? 'Toon/Verberg items' : 'Voeg item toe'"
+          @click="value.length > 1 ? (arrayShow = !arrayShow) : handleAddItem()"
         >
-          <IconChevron v-if="value.length > 1" :class="{ flip: arrayShow }" :size="12" :stroke-width="2.5" :color="'gray-800'" />
-          <IconAddCross v-else :size="16" :stroke-width="2" :color="'success'" />
+          <IconChevron
+            v-if="value.length > 1"
+            :class="{ flip: arrayShow }"
+            :size="12"
+            :stroke-width="2.5"
+            :color="'gray-800'"
+          />
+          <IconAddCross
+            v-else
+            :size="16"
+            :stroke-width="2"
+            :color="'success'"
+          />
         </button>
 
         <!-- Other items: remove -->
         <button
-            v-if="arrayShow && index !== 0"
-            type="button"
-            class="btn btn-remove"
-            :disabled="disabled"
-            :class="{ hidden: disabled }"
-            title="Verwijder item"
-            @click="handleRemoveItem(index)"
+          v-if="arrayShow && index !== 0"
+          type="button"
+          class="btn btn-remove"
+          :disabled="disabled"
+          :class="{ hidden: disabled }"
+          title="Verwijder item"
+          @click="handleRemoveItem(index)"
         >
           <IconDeleteCross :size="16" :stroke-width="2" :color="'danger'" />
         </button>
       </div>
 
       <button
-          v-show="!disabled && arrayShow"
-          type="button"
-          class="btn btn-add btn-add-full"
-          @click="handleAddItem"
-          title="Voeg item toe"
+        v-show="!disabled && arrayShow"
+        type="button"
+        class="btn btn-add btn-add-full"
+        @click="handleAddItem"
+        title="Voeg item toe"
       >
         <IconAddCross :size="16" :stroke-width="2" :color="'success'" />
       </button>
@@ -187,17 +259,42 @@ watch(() => props.expandAll, (newVal) => {
 
     <!-- Textarea -->
     <div
-        v-else-if="type === 'textarea'"
-        class="textarea-trigger"
-        @click="() => { if (!disabled) textareaShow = true }"
+      v-else-if="type === 'textarea'"
+      class="textarea-trigger"
+      @click="
+        () => {
+          if (!disabled) textareaShow = true;
+        }
+      "
     >
-      <p>{{ value.length > 10 ? value.substring(0, 10) + '…' : value }}</p>
+      <p>{{ value.length > 10 ? value.substring(0, 20) + "…" : value }}</p>
 
       <Teleport to="body">
-        <div v-show="textareaShow" class="textarea-overlay" @click.self="handleTextareaClose">
+        <div
+          v-show="textareaShow"
+          class="textarea-overlay"
+          @click.self="handleTextareaClose"
+        >
           <div class="textarea-modal">
-            <textarea :value="value" :disabled="disabled" @input="handleInput" />
-            <button class="btn-close" @click="handleTextareaClose">Sluiten</button>
+            <textarea
+              :value="value"
+              :disabled="disabled"
+              @input="handleTextareaInput"
+            />
+            <button
+              class="btn-save"
+              @click="
+                () => {
+                  handleTextareaClose();
+                  handleInput(tempValue);
+                }
+              "
+            >
+              Opslaan
+            </button>
+            <button class="btn-close" @click="handleTextareaClose">
+              Annuleren
+            </button>
           </div>
         </div>
       </Teleport>
@@ -205,11 +302,11 @@ watch(() => props.expandAll, (newVal) => {
 
     <!-- Text (default) -->
     <input
-        v-else
-        type="text"
-        :value="value"
-        :disabled="disabled"
-        @input="handleInput"
+      v-else
+      type="text"
+      :value="value"
+      :disabled="disabled"
+      @input="handleInput"
     />
   </div>
 </template>
@@ -226,30 +323,44 @@ watch(() => props.expandAll, (newVal) => {
   background: transparent;
   border-radius: 0.4rem;
   cursor: pointer;
-  transition: background-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
   flex-shrink: 0;
 
-  &:active { transform: scale(0.93); }
-  &.hidden { visibility: hidden; }
+  &:active {
+    transform: scale(0.93);
+  }
+  &.hidden {
+    visibility: hidden;
+  }
 }
 
 %btn-remove {
   @extend %btn-base;
   border: 1px solid var(--danger);
-  &:hover { background-color: var(--danger-50); }
+  &:hover {
+    background-color: var(--danger-50);
+  }
 }
 
 %btn-show {
   @extend %btn-base;
   border: 1px solid var(--gray-800);
-  .flip { scale: 1 -1; }
-  &:hover { background-color: var(--secondary-30); }
+  .flip {
+    scale: 1 -1;
+  }
+  &:hover {
+    background-color: var(--secondary-30);
+  }
 }
 
 %btn-add {
   @extend %btn-base;
   border: 1px dashed var(--success);
-  &:hover { background-color: var(--success-50); }
+  &:hover {
+    background-color: var(--success-50);
+  }
 }
 
 /* ─── Cell shell ──────────────────────────────────────────────────── */
@@ -262,13 +373,35 @@ watch(() => props.expandAll, (newVal) => {
   font-family: system-ui;
 
   /* size overrides */
-  &.dnone    { display: none; }
-  &.id       { min-width: 3rem; position: sticky; left: 0; background-color: var(--gray-100); }
-  &.straat   { min-width: 20rem; }
-  &.emails   { min-width: 30rem; }
-  &.translation, &.video { min-width: 30rem; width: 30rem; }
-  &.name, &.opmerkingen  { min-width: 20rem; width: 25rem; }
-  &.belt, &.category     { width: 5rem; }
+  &.dnone {
+    display: none;
+  }
+  &.id {
+    min-width: 3rem;
+    position: sticky;
+    left: 0;
+    background-color: var(--gray-100);
+  }
+  &.straat {
+    min-width: 20rem;
+  }
+  &.emails {
+    min-width: 30rem;
+  }
+  &.translation,
+  &.video {
+    min-width: 30rem;
+    width: 30rem;
+  }
+  &.name,
+  &.opmerkingen {
+    min-width: 20rem;
+    width: 25rem;
+  }
+  &.belt,
+  &.category {
+    width: 5rem;
+  }
   &.beschikbaar:has(.array-horizontal-container),
   &.planning:has(.array-horizontal-container) {
     min-width: 45vw;
@@ -276,10 +409,20 @@ watch(() => props.expandAll, (newVal) => {
     max-width: 65rem;
   }
 
-  &:has(select), select { background-color: var(--gray-100); }
-  &:has(input:focus), &:has(select:focus) { border-color: var(--accent); }
-  &.changed { border-color: var(--warning); }
-  &:has(.array-container) { vertical-align: top; }
+  &:has(select),
+  select {
+    background-color: var(--gray-100);
+  }
+  &:has(input:focus),
+  &:has(select:focus) {
+    border-color: var(--accent);
+  }
+  &.changed {
+    border-color: var(--warning);
+  }
+  &:has(.array-container) {
+    vertical-align: top;
+  }
 
   /* ── Shared input / select / date base ── */
   input[type="text"],
@@ -302,7 +445,9 @@ watch(() => props.expandAll, (newVal) => {
     accent-color: var(--secondary);
     opacity: 0.3;
     border: 1px solid var(--secondary);
-    &:checked { opacity: 1; }
+    &:checked {
+      opacity: 1;
+    }
   }
 
   p {
@@ -341,9 +486,15 @@ watch(() => props.expandAll, (newVal) => {
     }
   }
 
-  .btn         { @extend %btn-base; }
-  .btn-remove  { @extend %btn-remove; }
-  .btn-add     { @extend %btn-add; }
+  .btn {
+    @extend %btn-base;
+  }
+  .btn-remove {
+    @extend %btn-remove;
+  }
+  .btn-add {
+    @extend %btn-add;
+  }
 }
 
 /* ─── Vertical array ──────────────────────────────────────────────── */
@@ -366,14 +517,26 @@ watch(() => props.expandAll, (newVal) => {
       padding: 0.2rem 0.35rem;
       font-size: 0.8rem;
     }
-    select      { background-color: var(--gray-150); }
-    input[type="text"] { background-color: var(--secondary-10); }
+    select {
+      background-color: var(--gray-150);
+    }
+    input[type="text"] {
+      background-color: var(--secondary-10);
+    }
   }
 
-  .btn        { @extend %btn-base; }
-  .btn-remove { @extend %btn-remove; }
-  .btn-show   { @extend %btn-show; }
-  .btn-add    { @extend %btn-add; }
+  .btn {
+    @extend %btn-base;
+  }
+  .btn-remove {
+    @extend %btn-remove;
+  }
+  .btn-show {
+    @extend %btn-show;
+  }
+  .btn-add {
+    @extend %btn-add;
+  }
 
   .btn-add-full {
     width: 100%;
@@ -386,7 +549,9 @@ watch(() => props.expandAll, (newVal) => {
 .textarea-trigger {
   cursor: pointer;
   padding: 0.2rem 0.3rem;
-  p { margin: 0; }
+  p {
+    margin: 0;
+  }
 }
 
 .textarea-overlay {
@@ -401,35 +566,53 @@ watch(() => props.expandAll, (newVal) => {
 }
 
 .textarea-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: min(70%, 60rem);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(10rem, 1fr));
+  gap: 1rem;
+  width: min(90%, 60rem);
   min-width: 15rem;
-  height: 40vh;
-  padding: 1.5rem;
+  padding: 1rem;
   background-color: var(--primary-40);
   border: 1px solid var(--secondary-40);
-  border-radius: 1.8rem;
+  border-radius: 1rem;
 
   textarea {
-    flex: 1;
-    width: 100%;
+    min-height: 40vh;
     background-color: var(--primary);
     border-radius: 0.5rem;
     padding: 0.5rem;
     resize: none;
+    grid-column: 1/3;
+    grid-row: 1;
   }
 
   .btn-close {
-    align-self: flex-end;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: flex-end;
     padding: 0.35rem 1rem;
     border-radius: 0.5rem;
     border: 1px solid var(--danger);
     background: transparent;
     color: var(--danger);
     cursor: pointer;
-    &:hover { background-color: var(--danger-50); }
+    &:hover {
+      background-color: var(--danger-50);
+    }
+  }
+
+  .btn-save {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 0.35rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--success);
+    background: transparent;
+    color: var(--success);
+    cursor: pointer;
+    &:hover {
+      background-color: var(--success-50);
+    }
   }
 }
 </style>

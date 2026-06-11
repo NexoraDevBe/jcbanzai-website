@@ -402,9 +402,8 @@ const getMembers = async (
     id, actief, vergunning, vergunning_geldig_tot,
     voornaam, naam, geslacht, geboorte_datum, nationaliteit,
     straat, postcode, gemeente, gsm, telefoon, emails,
-    in_judovlaanderen, dojos, wedstrijd_training, graad,
-    gordel_behaald_op, behaald_examen, door_wie_examen,
-    datum_examen, lidgeld_opmerkingen, updated_at, created_at
+    opvolging, dojos, wedstrijd_training, graad,
+    gordel_behaald_op, lidgeld_opmerkingen, updated_at, created_at
   `;
 
   let query = getSupabaseClient()
@@ -475,7 +474,7 @@ const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
   const { data, error } = await getSupabaseClient()
     .from("Members")
     .select(
-      "actief, geslacht, nationaliteit, graad, dojos, wedstrijd_training, in_judovlaanderen",
+      "actief, geslacht, nationaliteit, graad, dojos, wedstrijd_training",
     );
 
   if (error) {
@@ -507,35 +506,7 @@ const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
 const getMemberById = async (id: number): Promise<Member> => {
   const { data, error } = await getSupabaseClient()
     .from("Members")
-    .select(
-      `
-        id,
-        actief,
-        vergunning,
-        vergunning_geldig_tot,
-        voornaam,
-        naam,
-        geslacht,
-        geboorte_datum,
-        nationaliteit,
-        straat,
-        postcode,
-        gemeente,
-        gsm,
-        telefoon,
-        emails,
-        in_judovlaanderen,
-        dojos,
-        wedstrijd_training,
-        graad,
-        gordel_behaald_op,
-        behaald_examen,
-        door_wie_examen,
-        datum_examen,
-        lidgeld_opmerkingen,
-        updated_at
-      `,
-    )
+    .select(`*`)
     .eq("id", id);
 
   if (error) {
@@ -645,6 +616,10 @@ const commitMember = async (member: Member) => {
 
   if (member.created_at) {
     delete member.created_at;
+  }
+
+  if (member.leeftijd) {
+    delete member.leeftijd;
   }
 
   const { data, error } = await getSupabaseClient()

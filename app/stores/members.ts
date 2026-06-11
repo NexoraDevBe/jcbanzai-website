@@ -68,6 +68,8 @@ export const useMembersStore = defineStore("members", () => {
 
       members.value = data.map((member) => ({
         ...member,
+        leeftijd: calculateAge(member.geboorte_datum),
+        updated_at: formatDate(member.updated_at!),
         created_at: formatDate(member.created_at!),
       }));
       originalMembers.value = markRaw(structuredClone(data));
@@ -85,6 +87,18 @@ export const useMembersStore = defineStore("members", () => {
   async function fetchFilterOptions() {
     if (Object.keys(filterItems.value).length > 0) return; // already loaded
     filterItems.value = await getMemberFilterOptions();
+  }
+
+  function calculateAge(dateString: string) {
+    const today = new Date();
+    const birthDate = new Date(dateString);
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   function formatDate(dateString: string) {
