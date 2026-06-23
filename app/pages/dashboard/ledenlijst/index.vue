@@ -93,6 +93,12 @@ const columns = computed(() => [
     disabled: () => isFieldDisabled("opvolging"),
   },
   {
+    key: "actief",
+    label: "Actief",
+    type: "checkbox",
+    disabled: () => isFieldDisabled("actief"),
+  },
+  {
     key: "vergunning",
     label: "Vergunning nr",
     type: "text",
@@ -176,12 +182,6 @@ const columns = computed(() => [
     type: "array-text",
     className: "emails",
     disabled: () => isFieldDisabled("emails"),
-  },
-  {
-    key: "actief",
-    label: "Actief",
-    type: "checkbox",
-    disabled: () => isFieldDisabled("actief"),
   },
   {
     key: "dojos",

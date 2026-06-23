@@ -520,23 +520,12 @@ const getMemberById = async (id: number): Promise<Member> => {
   return member as unknown as Member;
 };
 
-const getNewMembersCountSince = async (
-  lastFetchAt: string,
-): Promise<number> => {
-  const { count, error } = await getSupabaseClient()
-    .from("Members")
-    .select("*", {
-      count: "exact",
-      head: true,
-    })
-    .gt("created_at", lastFetchAt);
+const getNewMembersCountSince = async (): Promise<number> => {
+  const { data } = await getSupabaseClient().rpc("get_unreviewed_member_count");
 
-  if (error) {
-    console.error("Error fetching new members count:", error);
-    throw error;
-  }
+  console.log(data);
 
-  return count ?? 0;
+  return data ?? 0;
 };
 
 const insertMember = async (
