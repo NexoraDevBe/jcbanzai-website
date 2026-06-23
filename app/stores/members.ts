@@ -69,8 +69,8 @@ export const useMembersStore = defineStore("members", () => {
       members.value = data.map((member) => ({
         ...member,
         leeftijd: calculateAge(member.geboorte_datum),
-        updated_at: formatDate(member.updated_at!),
-        created_at: formatDate(member.created_at!),
+        updated_at: formatDateTime(member.updated_at!),
+        created_at: formatDateTime(member.created_at!),
       }));
       originalMembers.value = markRaw(structuredClone(data));
       totalCount.value = count;
@@ -99,16 +99,6 @@ export const useMembersStore = defineStore("members", () => {
       age--;
     }
     return age;
-  }
-
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleString("nl-BE", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   }
 
   // — Sort (resets to page 1) —

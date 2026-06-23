@@ -62,52 +62,6 @@ const getSupabaseClient = (): SupabaseClient => {
 
 // LOCAL FUNCTIONS
 
-// const getCache = async (cacheName: string, cacheKey: string, cacheDuration: number): Promise<any[] | null> => {
-//     if (!import.meta.client) return null;
-//
-//     try {
-//         const cache = await caches.open(cacheName);
-//         const cachedResponse = await cache.match(cacheKey);
-//
-//         if (cachedResponse) {
-//             const { data, timestamp } = await cachedResponse.json();
-//             const now = Date.now();
-//
-//             if (now - timestamp < cacheDuration) {
-//                 consoleLog('Cache hit for ', cacheKey);
-//                 return data;
-//             } else {
-//                 consoleLog('Cache expired for ', cacheKey);
-//                 await cache.delete(cacheKey);
-//             }
-//         }
-//     } catch (error) {
-//         consoleErr('Cache API error:', error);
-//     }
-//     return null;
-// };
-//
-// const setCache = async (cacheName: string, cacheKey: string, data: any): Promise<void> => {
-//     if (!import.meta.client) return;
-//
-//     try {
-//         const cache = await caches.open(cacheName);
-//         const cacheData = {
-//             data,
-//             timestamp: Date.now()
-//         };
-//
-//         const response = new Response(JSON.stringify(cacheData), {
-//             headers: { 'Content-Type': 'application/json' }
-//         });
-//
-//         await cache.put(cacheKey, response);
-//         consoleLog('Cache set for ', cacheKey);
-//     } catch (error) {
-//         consoleErr('Failed to cache data:', error);
-//     }
-// };
-
 const checkEmailExists = async (email: string): Promise<boolean> => {
   const { data, error } = await getSupabaseClient().rpc("check_email_exists", {
     check_email: email,
@@ -520,12 +474,48 @@ const getMemberById = async (id: number): Promise<Member> => {
   return member as unknown as Member;
 };
 
-const getNewMembersCountSince = async (): Promise<number> => {
-  const { data } = await getSupabaseClient().rpc("get_unreviewed_member_count");
+const getMemberByNameAndBirthdate = async (
+  firstname: string,
+  lastname: string,
+  date: string,
+): Promise<Member | null> => {
+  const { data, error } = await getSupabaseClient()
+    .from("Members")
+    .select(`*`)
+    .eq("voornaam", firstname)
+    .eq("naam", lastname)
+    .eq("geboorte_datum", date);
 
   console.log(data);
 
+  if (error) {
+    consoleErr("Error fetching members:", error);
+    throw error;
+  }
+
+  const member = data[0] || null;
+  consoleLog("Fetched members from Supabase:", member);
+
+  return member as unknown as Member | null;
+};
+
+const getNewMembersCountSince = async (): Promise<number> => {
+  const { data } = await getSupabaseClient().rpc("get_unreviewed_member_count");
   return data ?? 0;
+};
+
+const getMembersHistory = async (): Promise<{ created_at: any }[]> => {
+  const { data, error } = await getSupabaseClient()
+    .from("Members")
+    .select("created_at")
+    .not("created_at", "eq", "2025-09-30 19:46:25.22567+00");
+
+  if (error) {
+    consoleErr("Error fetching membersHistory:", error);
+    throw error;
+  }
+
+  return data;
 };
 
 const insertMember = async (
@@ -1160,6 +1150,8 @@ export {
   getMembers,
   getMemberFilterOptions,
   getNewMembersCountSince,
+  getMembersHistory,
+  getMemberByNameAndBirthdate,
   insertMember,
   updateMember,
   deleteMember,
