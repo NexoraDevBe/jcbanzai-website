@@ -277,10 +277,11 @@ const handleDelete = () => {
       </template>
       <template #right-actions>
         <button
-          :disabled="userStore.userRole === 'user' || true"
+          :disabled="userStore.userRole === 'user'"
+          @click="() => navigateTo('/dashboard/ledenlijst/create')"
           class="success"
         >
-          Toevoegen
+          Toevoegen {{ userStore.userRole }}
         </button>
         <button
           :disabled="userStore.userRole === 'user' || selectedRows.length <= 0"

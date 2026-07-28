@@ -69,7 +69,7 @@ const infoSections = [
 const membershipGroups = [
   {
     title: "Kleuterjudo",
-    ageGroup: "2020 - 2021",
+    ageGroup: formatAgesToBirthYears([4, 5]),
     cards: [
       {
         japText: "ファミリー",
@@ -83,7 +83,7 @@ const membershipGroups = [
   },
   {
     title: "Judoka's",
-    ageGroup: "2019",
+    ageGroup: formatAgesToBirthYears([6]),
     cards: [
       {
         japText: "ファミリー",
@@ -99,7 +99,7 @@ const membershipGroups = [
   },
   {
     title: "Judoka's",
-    ageGroup: "2013 - 2018",
+    ageGroup: formatAgesToBirthYears([7, 12]),
     cards: [
       {
         japText: "ファミリー",
@@ -115,7 +115,7 @@ const membershipGroups = [
   },
   {
     title: "Judoka's",
-    ageGroup: "2012 of ouder",
+    ageGroup: formatAgesToBirthYears([13, 99]),
     cards: [
       {
         japText: "ファミリー",

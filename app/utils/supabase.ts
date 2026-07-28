@@ -530,6 +530,11 @@ const insertMember = async (
   phone: string,
   emails: string[],
   uitpas?: string,
+  vergunningnr?: string,
+  vergunningDatum?: string,
+  graad?: string,
+  gordelDatum?: string,
+  opvolging?: string,
 ) => {
   const values = {
     voornaam: name,
@@ -543,8 +548,15 @@ const insertMember = async (
     gsm: phone,
     emails: emails,
     ...(uitpas && { lidgeld_opmerkingen: "UiTPAS nr:" + uitpas }),
+    ...(vergunningnr && { vergunning: Number(vergunningnr) }),
+    ...(vergunningDatum && { vergunning_geldig_tot: vergunningDatum }),
+    ...(graad && { graad }),
+    ...(gordelDatum && { gordel_behaald_op: gordelDatum }),
+    ...(opvolging && { opvolging }),
     dojos: [""],
   };
+
+  console.log(values);
 
   const { data, error } = await getSupabaseClient()
     .from("Members")

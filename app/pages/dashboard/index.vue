@@ -49,7 +49,7 @@ const changeNewMembersMode = () => {
 
   section {
     display: grid;
-    grid-template-columns: repeat(4, minmax(300px, 1fr));
+    grid-template-columns: repeat(4, minmax(20rem, 1fr));
     gap: 1rem;
   }
 }

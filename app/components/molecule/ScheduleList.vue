@@ -1,87 +1,103 @@
 <script setup lang="ts">
-type BeltColors = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black'
-type BeltStatus = Record<BeltColors, boolean>
-type ScheduleRow = [string, number[], string[], string, string, BeltStatus]
+type BeltColors =
+  "white" | "yellow" | "orange" | "green" | "blue" | "brown" | "black";
+type BeltStatus = Record<BeltColors, boolean>;
+type ScheduleRow = [string, number[], string[], string, string, BeltStatus];
 
 interface Props {
-  scheduleData: ScheduleRow[],
-  scheduleInfo: string[]
+  scheduleData: ScheduleRow[];
+  scheduleInfo: string[];
 }
 
-defineProps<Props>()
+defineProps<Props>();
 
-const scheduleTitles = ['Groep', 'Geboren in', 'Weekdag', 'Uren', 'Locatie', 'Gordels']
-const allBeltColors: BeltColors[] = ['white', 'yellow', 'orange', 'green', 'blue', 'brown', 'black']
-const currentYear = new Date().getFullYear()
-const activeId = ref<number>(0)
+const scheduleTitles = [
+  "Groep",
+  "Geboren in",
+  "Weekdag",
+  "Uren",
+  "Locatie",
+  "Gordels",
+];
+const allBeltColors: BeltColors[] = [
+  "white",
+  "yellow",
+  "orange",
+  "green",
+  "blue",
+  "brown",
+  "black",
+];
+const activeId = ref<number>(0);
 
 const listFieldConfig = [
   {
-    title: 'Groep & Leeftijd',
+    title: "Groep & Leeftijd",
     fields: [0, 1],
-    primary: true
+    primary: true,
   },
   {
-    title: 'Weekdag',
+    title: "Weekdag",
     fields: [2],
-    primary: false
+    primary: false,
   },
   {
-    title: 'Uren',
+    title: "Uren",
     fields: [3],
-    primary: false
+    primary: false,
   },
   {
-    title: 'Locatie',
+    title: "Locatie",
     fields: [4],
-    primary: false
+    primary: false,
   },
   {
-    title: 'Gordels',
+    title: "Gordels",
     fields: [5],
-    primary: false
-  }
-]
+    primary: false,
+  },
+];
 
-const agesToBirthYears = (ages: number[]): string => {
-  if (!ages.length) return ''
-  if (ages.length === 1) return `${currentYear - ages[0]!}`
-
-  const [minAge, maxAge] = ages.sort((a, b) => a - b)
-  if (maxAge! >= 99) return `${currentYear - minAge!} of ouder`
-
-  return `${currentYear - maxAge!} - ${currentYear - minAge!}`
-}
-
-const formatCellContent = (value: string | string[] | number[] | BeltStatus): string => {
+const formatCellContent = (
+  value: string | string[] | number[] | BeltStatus,
+): string => {
   if (Array.isArray(value)) {
-    return typeof value[0] === 'number'
-        ? agesToBirthYears(value as number[])
-        : (value as string[]).map((newValue) => {
-          return newValue.substring(0, 2)
-        }).join(', ')
+    return typeof value[0] === "number"
+      ? formatAgesToBirthYears(value as number[])
+      : (value as string[])
+          .map((newValue) => {
+            return newValue.substring(0, 2);
+          })
+          .join(", ");
   }
-  return String(value)
-}
+  return String(value);
+};
 
 const getBeltClasses = (beltColor: BeltColors, isEarned: boolean): string =>
-    isEarned ? `stroke-secondary-70 fill-${beltColor}` : 'stroke-secondary-10 fill-secondary-10'
+  isEarned
+    ? `stroke-secondary-70 fill-${beltColor}`
+    : "stroke-secondary-10 fill-secondary-10";
 
-const getFieldContent = (item: ScheduleRow, fieldIndex: number): string | string[] | number[] | BeltStatus => {
-  return item[fieldIndex] as string | string[] | number[] | BeltStatus
-}
+const getFieldContent = (
+  item: ScheduleRow,
+  fieldIndex: number,
+): string | string[] | number[] | BeltStatus => {
+  return item[fieldIndex] as string | string[] | number[] | BeltStatus;
+};
 
 const renderFieldGroup = (item: ScheduleRow, fieldIndexes: number[]) => {
-  return fieldIndexes.map(index => {
-    if (index === 5) return null
-    const content = getFieldContent(item, index)
-    return formatCellContent(content)
-  }).filter(Boolean)
-}
+  return fieldIndexes
+    .map((index) => {
+      if (index === 5) return null;
+      const content = getFieldContent(item, index);
+      return formatCellContent(content);
+    })
+    .filter(Boolean);
+};
 
 const handleClick = (idx: number) => {
-  activeId.value = idx
-}
+  activeId.value = idx;
+};
 </script>
 
 <template>
@@ -98,11 +114,13 @@ const handleClick = (idx: number) => {
             <p v-if="colIdx < 5">{{ formatCellContent(td) }}</p>
             <div v-else class="belts-container">
               <IconJudoBelt
-                  v-for="beltColor in allBeltColors"
-                  :key="beltColor"
-                  class="belt"
-                  :class-name="getBeltClasses(beltColor, (td as BeltStatus)[beltColor])"
-                  :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
+                v-for="beltColor in allBeltColors"
+                :key="beltColor"
+                class="belt"
+                :class-name="
+                  getBeltClasses(beltColor, (td as BeltStatus)[beltColor])
+                "
+                :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
               />
             </div>
           </div>
@@ -113,26 +131,41 @@ const handleClick = (idx: number) => {
       </p>
     </div>
     <div class="schedule-list">
-      <div v-for="(item, idx) in scheduleData" :key="idx" @click="handleClick(idx)" class="schedule-list-item">
+      <div
+        v-for="(item, idx) in scheduleData"
+        :key="idx"
+        @click="handleClick(idx)"
+        class="schedule-list-item"
+      >
         <div
-            v-for="(section, sectionIdx) in listFieldConfig"
-            :key="sectionIdx"
-            class="field-section"
-            :class="[{ 'primary-section': section.primary }, { 'active' : !section.primary && activeId === idx }, { 'belts-section': section.fields.includes(5)}]"
+          v-for="(section, sectionIdx) in listFieldConfig"
+          :key="sectionIdx"
+          class="field-section"
+          :class="[
+            { 'primary-section': section.primary },
+            { active: !section.primary && activeId === idx },
+            { 'belts-section': section.fields.includes(5) },
+          ]"
         >
           <h4 v-if="!section.primary">{{ section.title }}</h4>
           <div v-if="section.fields.includes(5)" class="belts-container">
             <IconJudoBelt
-                v-for="beltColor in allBeltColors"
-                :key="beltColor"
-                class="belt"
-                :class-name="getBeltClasses(beltColor, (item[5] as BeltStatus)[beltColor])"
-                :aria-label="`gordel kleur: ${beltColor}${(item[5] as BeltStatus)[beltColor] ? ' (kan deelnemen)' : ' (kan niet deelnemen)'}`"
+              v-for="beltColor in allBeltColors"
+              :key="beltColor"
+              class="belt"
+              :class-name="
+                getBeltClasses(beltColor, (item[5] as BeltStatus)[beltColor])
+              "
+              :aria-label="`gordel kleur: ${beltColor}${(item[5] as BeltStatus)[beltColor] ? ' (kan deelnemen)' : ' (kan niet deelnemen)'}`"
             />
           </div>
           <div class="field-content">
-            <p v-for="(fieldContent, contentIdx) in renderFieldGroup(item, section.fields)"
-               :key="contentIdx"
+            <p
+              v-for="(fieldContent, contentIdx) in renderFieldGroup(
+                item,
+                section.fields,
+              )"
+              :key="contentIdx"
             >
               {{ fieldContent }}
             </p>
@@ -154,7 +187,7 @@ const handleClick = (idx: number) => {
 .schedule-list {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: 0.5rem;
 
   .schedule-info {
     margin-bottom: 0;
@@ -164,7 +197,7 @@ const handleClick = (idx: number) => {
     display: grid;
     grid-row-gap: 1rem;
     grid-template-columns: 1fr 1fr;
-    padding: .8rem 1rem;
+    padding: 0.8rem 1rem;
     border-radius: 1rem;
     background-color: var(--secondary-10);
     backdrop-filter: blur(5px);
@@ -185,7 +218,8 @@ const handleClick = (idx: number) => {
         margin: 0;
       }
 
-      &.active, &.primary-section {
+      &.active,
+      &.primary-section {
         display: block;
       }
 
@@ -204,7 +238,7 @@ const handleClick = (idx: number) => {
       }
 
       h4 {
-        margin: 0 0 .3rem;
+        margin: 0 0 0.3rem;
         color: var(--secondary-40);
         text-transform: uppercase;
         font-weight: 700;
@@ -214,7 +248,7 @@ const handleClick = (idx: number) => {
       &.belts-section {
         .belts-container {
           display: flex;
-          gap: .25rem;
+          gap: 0.25rem;
           justify-content: flex-end;
 
           .belt {
@@ -229,10 +263,11 @@ const handleClick = (idx: number) => {
 @media screen and (width >= 40rem) {
   .schedule-list {
     .schedule-list-item {
-      grid-template-columns: .8fr 1.2fr 1fr 1fr;
+      grid-template-columns: 0.8fr 1.2fr 1fr 1fr;
 
       .field-section {
-        &.active, &.primary-section {
+        &.active,
+        &.primary-section {
           display: block;
         }
 
@@ -267,9 +302,10 @@ const handleClick = (idx: number) => {
         display: table-row;
         gap: 1rem;
 
-        .th, .td {
+        .th,
+        .td {
           display: table-cell;
-          padding: .5rem 1rem;
+          padding: 0.5rem 1rem;
           vertical-align: middle;
 
           p {
@@ -289,7 +325,7 @@ const handleClick = (idx: number) => {
 
         .belts-container {
           display: flex;
-          gap: .25rem;
+          gap: 0.25rem;
           align-items: flex-end;
 
           .belt {
