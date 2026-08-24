@@ -1,66 +1,67 @@
 <script setup lang="ts">
-import type {News} from "~/types";
+import type { News } from '~/types';
 
-const newsStore = useNewsStore()
+const newsStore = useNewsStore();
 
 useHead({
   title: 'Judoclub Banzai - Judo in Gavere & Nazareth',
   meta: [
     {
       name: 'description',
-      content: 'Welkom bij Judoclub Banzai! Ontdek de uitdagende judosport voor jong en oud. Versterk je lichaam, geest en zelfvertrouwen in een warme club in Gavere en Nazareth. Start vandaag nog met judo!'
+      content:
+        'Welkom bij Judoclub Banzai! Ontdek de uitdagende judosport voor jong en oud. Versterk je lichaam, geest en zelfvertrouwen in een warme club in Gavere en Nazareth. Start vandaag nog met judo!',
     },
     {
       name: 'keywords',
-      content: 'Judoclub Banzai, judo Gavere, judo Nazareth, judo Oost-Vlaanderen, judo lessen, judo club, kleuterjudo, judo volwassenen, judo zelfvertrouwen, sportclub Gavere, sportclub Nazareth'
+      content:
+        'Judoclub Banzai, judo Gavere, judo Nazareth, judo Oost-Vlaanderen, judo lessen, judo club, kleuterjudo, judo volwassenen, judo zelfvertrouwen, sportclub Gavere, sportclub Nazareth',
     },
     {
       property: 'og:title',
-      content: 'Judoclub Banzai - Judo in Gavere & Nazareth'
+      content: 'Judoclub Banzai - Judo in Gavere & Nazareth',
     },
     {
       property: 'og:description',
-      content: 'Word lid van Judoclub Banzai! Judo voor kinderen, jongeren en volwassenen in Gavere en Nazareth. Gratis proeflessen en een sterke, hechte clubwerking.'
+      content:
+        'Word lid van Judoclub Banzai! Judo voor kinderen, jongeren en volwassenen in Gavere en Nazareth. Gratis proeflessen en een sterke, hechte clubwerking.',
     },
     {
       property: 'og:type',
-      content: 'website'
+      content: 'website',
     },
     {
       property: 'og:image',
-      content: '/assets/images/judoclub-banzai-hero.jpg' // optioneel: hero-afbeelding met judoka’s of clublogo
+      content: '/assets/images/judoclub-banzai-hero.jpg', // optioneel: hero-afbeelding met judoka’s of clublogo
     },
     {
       name: 'author',
-      content: 'Judoclub Banzai'
-    }
+      content: 'Judoclub Banzai',
+    },
   ],
-})
+});
 
 const ctaStarten = () => {
-  navigateTo('/starten')
-}
+  navigateTo('/starten');
+};
 
 const ctaInschrijven = () => {
-  navigateTo('/inschrijven')
-}
+  navigateTo('/inschrijven');
+};
 
 onMounted(async () => {
-  await Promise.all([
-    newsStore.fetchNewsposts()
-  ])
-})
+  await Promise.all([newsStore.fetchNewsposts()]);
+});
 
 const posts = computed<News[]>(() => {
-  const today = new Date()
+  const today = new Date();
 
   return newsStore.newsposts.filter((n) => {
-    const start = new Date(n.alert_start_date)
-    const end = new Date(n.alert_end_date)
+    const start = new Date(n.alert_start_date);
+    const end = new Date(n.alert_end_date);
 
-    return n.alert && today >= start && today <= end
-  })
-})
+    return n.alert && today >= start && today <= end;
+  });
+});
 </script>
 
 <template>
@@ -68,18 +69,19 @@ const posts = computed<News[]>(() => {
     <section class="hero">
       <div>
         <AtomJapaneseText :outline="true" :size="4" :vertical="false">バーンザイ</AtomJapaneseText>
-        <h1 class="hero-title">Judoclub<br> <span>Banzai</span></h1>
+        <h1 class="hero-title rokkitt">
+          Judoclub<br />
+          <span>Banzai</span>
+        </h1>
         <div class="cta-container">
-          <AtomCallToAction :on-click="ctaStarten">
-            Initiatie?
-          </AtomCallToAction>
+          <AtomCallToAction :on-click="ctaStarten"> Initiatie? </AtomCallToAction>
           <AtomCallToAction :class-name="'outline'" :on-click="ctaInschrijven">
             Inschrijven?
           </AtomCallToAction>
         </div>
       </div>
       <div class="alert-container">
-        <MoleculeAlertCard v-if="posts" v-for="p in posts" :post="p"/>
+        <MoleculeAlertCard v-if="posts" v-for="p in posts" :post="p" />
       </div>
     </section>
     <section class="intro">
@@ -88,7 +90,10 @@ const posts = computed<News[]>(() => {
           <AtomJapaneseText :vertical="true" :size="3" :outline="true">イントロ</AtomJapaneseText>
         </template>
         <template #content>
-          Ben je op zoek naar een uitdagende, gevarieerde hobby, met veel mogelijkheden? Dan is judo de sport bij uitstek. Naast de fysieke ontwikkeling is ook het mentale welbevinden van judoka's belangrijk. Een groter zelfvertrouwen en leren omgaan met de eigen mogelijkheden zijn kernwaarden.
+          Ben je op zoek naar een uitdagende, gevarieerde hobby, met veel mogelijkheden? Dan is judo
+          de sport bij uitstek. Naast de fysieke ontwikkeling is ook het mentale welbevinden van
+          judoka's belangrijk. Een groter zelfvertrouwen en leren omgaan met de eigen mogelijkheden
+          zijn kernwaarden.
         </template>
       </MoleculeStyledParagraph>
     </section>

@@ -1,49 +1,27 @@
-import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
+import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
 import {
   type AuthError,
   type AuthTokenResponsePassword,
   createClient,
-} from "@supabase/supabase-js";
-import type {
-  Member,
-  Planning,
-  Technique,
-  Trainer,
-  UserData,
-  News,
-} from "~/types";
-import type { RuntimeConfig } from "nuxt/schema";
-import { useUserStore } from "~/stores/user";
+} from '@supabase/supabase-js';
+import type { Member, Planning, Technique, Trainer, UserData, News } from '~/types';
+import type { RuntimeConfig } from 'nuxt/schema';
+import { useUserStore } from '~/stores/user';
 
 let supabaseClient: SupabaseClient | null = null;
 let userData: UserData | null = null;
 let userDataPromise: Promise<UserData | null> | null = null;
 
 const consoleLog = (message: string, value?: any): void => {
-  console.log(
-    "%csupabase%c " + message,
-    "color: green; font-weight: bold",
-    "",
-    value,
-  );
+  console.log('%csupabase%c ' + message, 'color: green; font-weight: bold', '', value);
 };
 
 const consoleWarn = (message: string, value?: any): void => {
-  console.warn(
-    "%csupabase%c " + message,
-    "color: green; font-weight: bold",
-    "",
-    value,
-  );
+  console.warn('%csupabase%c ' + message, 'color: green; font-weight: bold', '', value);
 };
 
 const consoleErr = (message: string, value?: any): void => {
-  console.error(
-    "%csupabase%c " + message,
-    "color: green; font-weight: bold",
-    "",
-    value,
-  );
+  console.error('%csupabase%c ' + message, 'color: green; font-weight: bold', '', value);
 };
 
 // INITIALIZER
@@ -52,10 +30,10 @@ const getSupabaseClient = (): SupabaseClient => {
   if (!supabaseClient) {
     const config: RuntimeConfig = useRuntimeConfig();
     const supabaseUrl: string = config.public.supabaseUrl;
-    const supabaseKey: string = config.public.supabasePublishableKey;
+    const supabaseKey: string = config.public.supabaseAnonKey;
 
     supabaseClient = createClient(supabaseUrl, supabaseKey);
-    consoleLog("client created");
+    consoleLog('client created');
   }
   return supabaseClient;
 };
@@ -63,22 +41,22 @@ const getSupabaseClient = (): SupabaseClient => {
 // LOCAL FUNCTIONS
 
 const checkEmailExists = async (email: string): Promise<boolean> => {
-  const { data, error } = await getSupabaseClient().rpc("check_email_exists", {
+  const { data, error } = await getSupabaseClient().rpc('check_email_exists', {
     check_email: email,
   });
 
-  consoleLog("email check data:", data);
-  if (error) consoleLog("email check error:", error);
+  consoleLog('email check data:', data);
+  if (error) consoleLog('email check error:', error);
 
   if (error) return false;
   return !!data;
 };
 
 const getUserRole = async (): Promise<string | null> => {
-  const { data, error } = await getSupabaseClient().rpc("get_my_role");
+  const { data, error } = await getSupabaseClient().rpc('get_my_role');
 
-  consoleLog("user role data:", data);
-  if (error) consoleWarn("user role error:", error);
+  consoleLog('user role data:', data);
+  if (error) consoleWarn('user role error:', error);
 
   if (error) return null;
   return data;
@@ -92,44 +70,36 @@ const setUserData = async (user: User, session: Session) => {
     session: session,
     role: role,
   };
-  consoleLog("user data set data:", userData);
+  consoleLog('user data set data:', userData);
 };
 
 // GLOBAL FUNCTIONS
 
-const login = async (
-  email: string,
-  password: string,
-): Promise<AuthTokenResponsePassword> => {
+const login = async (email: string, password: string): Promise<AuthTokenResponsePassword> => {
   const { data, error } = await getSupabaseClient().auth.signInWithPassword({
     email: email,
     password: password,
   });
 
-  consoleLog("login data:", data);
-  if (error) consoleErr("login error:", error);
+  consoleLog('login data:', data);
+  if (error) consoleErr('login error:', error);
 
-  if (!error && data.user && data.session)
-    await setUserData(data.user, data.session);
+  if (!error && data.user && data.session) await setUserData(data.user, data.session);
 
   return { data, error } as AuthTokenResponsePassword;
 };
 
-const register = async (
-  email: string,
-  password: string,
-): Promise<AuthTokenResponsePassword> => {
+const register = async (email: string, password: string): Promise<AuthTokenResponsePassword> => {
   if (await checkEmailExists(email)) {
     const { data, error } = await getSupabaseClient().auth.signUp({
       email: email,
       password: password,
     });
 
-    consoleLog("register data:", data);
-    if (error) consoleErr("register error:", error);
+    consoleLog('register data:', data);
+    if (error) consoleErr('register error:', error);
 
-    if (!error && data.user && data.session)
-      await setUserData(data.user!, data.session!);
+    if (!error && data.user && data.session) await setUserData(data.user!, data.session!);
 
     return { data, error } as AuthTokenResponsePassword;
   } else {
@@ -139,8 +109,8 @@ const register = async (
         session: null,
       },
       error: {
-        name: "AuthError",
-        message: "Toegang geweigerd, contacteer een bevoegd persoon.",
+        name: 'AuthError',
+        message: 'Toegang geweigerd, contacteer een bevoegd persoon.',
         status: 403,
       } as AuthError,
     };
@@ -148,7 +118,7 @@ const register = async (
 };
 
 const logout = async () => {
-  navigateTo("/");
+  navigateTo('/');
   userData = null;
   userDataPromise = null;
   useUserStore().clearData();
@@ -156,15 +126,15 @@ const logout = async () => {
 };
 
 const getUserData = async (): Promise<UserData | null> => {
-  consoleLog("getUserData called, current userData:", userData);
+  consoleLog('getUserData called, current userData:', userData);
 
   if (userData?.user && userData?.session) {
-    consoleLog("Returning cached userData");
+    consoleLog('Returning cached userData');
     return userData;
   }
 
   if (userDataPromise) {
-    consoleLog("Waiting for existing getUserData promise");
+    consoleLog('Waiting for existing getUserData promise');
     return userDataPromise;
   }
 
@@ -180,7 +150,7 @@ const getUserData = async (): Promise<UserData | null> => {
       } = await getSupabaseClient().auth.getSession();
 
       if (userError || sessionError || !user || !session) {
-        consoleWarn("No valid user/session found");
+        consoleWarn('No valid user/session found');
         userData = null;
         return null;
       }
@@ -198,19 +168,17 @@ const getUserData = async (): Promise<UserData | null> => {
 // TECHNIQUES
 
 export interface TechniqueQueryParams {
-  sort?: { key: string; order: "asc" | "desc" };
+  sort?: { key: string; order: 'asc' | 'desc' };
   filters?: Record<string, any[]>;
   search?: string;
 }
 
-const getTechniques = async (
-  params: TechniqueQueryParams = {},
-): Promise<Technique[]> => {
+const getTechniques = async (params: TechniqueQueryParams = {}): Promise<Technique[]> => {
   const { sort, filters = {}, search } = params;
 
   let query = getSupabaseClient()
-    .from("Techniques")
-    .select("id, name, belt, category, translation, video");
+    .from('Techniques')
+    .select('id, name, belt, category, translation, video');
 
   // ── Search ──────────────────────────────────────────────────────────
   if (search?.trim()) {
@@ -219,7 +187,7 @@ const getTechniques = async (
     // Text columns — safe for ilike
     const textOrClauses = [`name.ilike.%${q}%`];
 
-    query = query.or(textOrClauses.join(","));
+    query = query.or(textOrClauses.join(','));
   }
 
   // All Technique columns are scalar, so .in() covers everything
@@ -228,29 +196,27 @@ const getTechniques = async (
     query = query.in(field, values);
   }
 
-  const sortKey = sort?.key ?? "name";
+  const sortKey = sort?.key ?? 'name';
   query = query.order(sortKey, {
-    ascending: sort ? sort.order === "asc" : true,
+    ascending: sort ? sort.order === 'asc' : true,
   });
 
   const { data, error } = await query;
 
   if (error) {
-    consoleErr("Error fetching techniques:", error);
+    consoleErr('Error fetching techniques:', error);
     throw error;
   }
 
-  consoleLog("Fetched techniques:", data?.length);
+  consoleLog('Fetched techniques:', data?.length);
   return (data ?? []) as Technique[];
 };
 
 const getTechniqueFilterOptions = async (): Promise<Record<string, any[]>> => {
-  const { data, error } = await getSupabaseClient()
-    .from("Techniques")
-    .select("belt, category");
+  const { data, error } = await getSupabaseClient().from('Techniques').select('belt, category');
 
   if (error) {
-    consoleErr("Error fetching technique filter options:", error);
+    consoleErr('Error fetching technique filter options:', error);
     throw error;
   }
 
@@ -283,59 +249,54 @@ const insertTechnique = async (
     video: video,
   };
 
-  const { data, error } = await getSupabaseClient()
-    .from("Techniques")
-    .insert(values);
+  const { data, error } = await getSupabaseClient().from('Techniques').insert(values);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("insertTechnique:", data);
+  consoleLog('insertTechnique:', data);
   return { success: true, data };
 };
 
 const updateTechnique = async (technique: Technique) => {
   const { data, error } = await getSupabaseClient()
-    .from("Techniques")
+    .from('Techniques')
     .update(technique)
-    .eq("id", technique.id);
+    .eq('id', technique.id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("updateTechnique:", data);
+  consoleLog('updateTechnique:', data);
   return { success: true, data };
 };
 
 const deleteTechnique = async (id: number) => {
-  const { data, error } = await getSupabaseClient()
-    .from("Techniques")
-    .delete()
-    .eq("id", id);
+  const { data, error } = await getSupabaseClient().from('Techniques').delete().eq('id', id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("deleteTechnique:", data);
+  consoleLog('deleteTechnique:', data);
   return { success: true, data };
 };
 
 // MEMBERS
 
 export interface MemberQueryParams {
-  sort?: { key: string; order: "asc" | "desc" };
+  sort?: { key: string; order: 'asc' | 'desc' };
   filters?: Record<string, any[]>;
   page?: number;
   pageSize?: number;
@@ -347,9 +308,7 @@ export interface MemberQueryResult {
   count: number;
 }
 
-const getMembers = async (
-  params: MemberQueryParams = {},
-): Promise<MemberQueryResult> => {
+const getMembers = async (params: MemberQueryParams = {}): Promise<MemberQueryResult> => {
   const { sort, filters = {}, page = 1, pageSize = 50, search } = params;
 
   const SELECT_FIELDS = `
@@ -360,9 +319,7 @@ const getMembers = async (
     gordel_behaald_op, lidgeld_opmerkingen, updated_at, created_at
   `;
 
-  let query = getSupabaseClient()
-    .from("Members")
-    .select(SELECT_FIELDS, { count: "exact" });
+  let query = getSupabaseClient().from('Members').select(SELECT_FIELDS, { count: 'exact' });
 
   // ── Search ──────────────────────────────────────────────────────────
   if (search?.trim()) {
@@ -381,11 +338,9 @@ const getMembers = async (
     // vergunning is bigint — only search it if the input is a number
     // Uses .filter() with ::text cast which Supabase passes through as-is
     if (/^\d+/.test(q)) {
-      query = query.or(
-        [...textOrClauses, `vergunning.eq.${parseInt(q, 10)}`].join(","),
-      );
+      query = query.or([...textOrClauses, `vergunning.eq.${parseInt(q, 10)}`].join(','));
     } else {
-      query = query.or(textOrClauses.join(","));
+      query = query.or(textOrClauses.join(','));
     }
   }
 
@@ -393,7 +348,7 @@ const getMembers = async (
   for (const [field, values] of Object.entries(filters)) {
     if (!values || values.length === 0) continue;
     const col = field as keyof Member;
-    const arrayColumns = ["Emails", "Dojos"];
+    const arrayColumns = ['Emails', 'Dojos'];
     if (arrayColumns.includes(field)) {
       query = query.overlaps(col, values);
     } else {
@@ -403,9 +358,9 @@ const getMembers = async (
 
   // ── Sort ────────────────────────────────────────────────────────────
   if (sort?.key) {
-    query = query.order(sort.key, { ascending: sort.order === "asc" });
+    query = query.order(sort.key, { ascending: sort.order === 'asc' });
   } else {
-    query = query.order("naam", { ascending: true });
+    query = query.order('naam', { ascending: true });
   }
 
   // ── Pagination ──────────────────────────────────────────────────────
@@ -416,23 +371,21 @@ const getMembers = async (
   const { data, error, count } = await query;
 
   if (error) {
-    consoleErr("Error fetching members:", error);
+    consoleErr('Error fetching members:', error);
     throw error;
   }
 
-  consoleLog("Fetched members:", data?.length + " of " + count);
+  consoleLog('Fetched members:', data?.length + ' of ' + count);
   return { data: (data ?? []) as unknown as Member[], count: count ?? 0 };
 };
 
 const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
   const { data, error } = await getSupabaseClient()
-    .from("Members")
-    .select(
-      "actief, geslacht, nationaliteit, graad, dojos, wedstrijd_training",
-    );
+    .from('Members')
+    .select('actief, geslacht, nationaliteit, graad, dojos, wedstrijd_training');
 
   if (error) {
-    consoleErr("Error fetching filter options:", error);
+    consoleErr('Error fetching filter options:', error);
     throw error;
   }
 
@@ -458,18 +411,15 @@ const getMemberFilterOptions = async (): Promise<Record<string, any[]>> => {
 };
 
 const getMemberById = async (id: number): Promise<Member> => {
-  const { data, error } = await getSupabaseClient()
-    .from("Members")
-    .select(`*`)
-    .eq("id", id);
+  const { data, error } = await getSupabaseClient().from('Members').select(`*`).eq('id', id);
 
   if (error) {
-    consoleErr("Error fetching members:", error);
+    consoleErr('Error fetching members:', error);
     throw error;
   }
 
   const member = data[0] || null;
-  consoleLog("Fetched members from Supabase:", member);
+  consoleLog('Fetched members from Supabase:', member);
 
   return member as unknown as Member;
 };
@@ -480,38 +430,38 @@ const getMemberByNameAndBirthdate = async (
   date: string,
 ): Promise<Member | null> => {
   const { data, error } = await getSupabaseClient()
-    .from("Members")
+    .from('Members')
     .select(`*`)
-    .eq("voornaam", firstname)
-    .eq("naam", lastname)
-    .eq("geboorte_datum", date);
+    .eq('voornaam', firstname)
+    .eq('naam', lastname)
+    .eq('geboorte_datum', date);
 
   console.log(data);
 
   if (error) {
-    consoleErr("Error fetching members:", error);
+    consoleErr('Error fetching members:', error);
     throw error;
   }
 
   const member = data[0] || null;
-  consoleLog("Fetched members from Supabase:", member);
+  consoleLog('Fetched members from Supabase:', member);
 
   return member as unknown as Member | null;
 };
 
 const getNewMembersCountSince = async (): Promise<number> => {
-  const { data } = await getSupabaseClient().rpc("get_unreviewed_member_count");
+  const { data } = await getSupabaseClient().rpc('get_unreviewed_member_count');
   return data ?? 0;
 };
 
 const getMembersHistory = async (): Promise<{ created_at: any }[]> => {
   const { data, error } = await getSupabaseClient()
-    .from("Members")
-    .select("created_at")
-    .not("created_at", "eq", "2025-09-30 19:46:25.22567+00");
+    .from('Members')
+    .select('created_at')
+    .not('created_at', 'eq', '2025-09-30 19:46:25.22567+00');
 
   if (error) {
-    consoleErr("Error fetching membersHistory:", error);
+    consoleErr('Error fetching membersHistory:', error);
     throw error;
   }
 
@@ -547,29 +497,27 @@ const insertMember = async (
     gemeente: city,
     gsm: phone,
     emails: emails,
-    ...(uitpas && { lidgeld_opmerkingen: "UiTPAS nr:" + uitpas }),
+    ...(uitpas && { lidgeld_opmerkingen: 'UiTPAS nr:' + uitpas }),
     ...(vergunningnr && { vergunning: Number(vergunningnr) }),
     ...(vergunningDatum && { vergunning_geldig_tot: vergunningDatum }),
     ...(graad && { graad }),
     ...(gordelDatum && { gordel_behaald_op: gordelDatum }),
     ...(opvolging && { opvolging }),
-    dojos: [""],
+    dojos: [''],
   };
 
   console.log(values);
 
-  const { data, error } = await getSupabaseClient()
-    .from("Members")
-    .insert(values);
+  const { data, error } = await getSupabaseClient().from('Members').insert(values);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("insertMember:", data);
+  consoleLog('insertMember:', data);
   return { success: true, data };
 };
 
@@ -588,7 +536,7 @@ const updateMember = async (local: Member, original: Member) => {
     const serverVal = server[key];
 
     // Skip updated_at and same values
-    if (key === "updated_at") continue;
+    if (key === 'updated_at') continue;
     if (serverVal === localVal) continue;
 
     // NOTHING CHANGED LOCALLY → just use serverVal
@@ -598,7 +546,7 @@ const updateMember = async (local: Member, original: Member) => {
     }
   }
 
-  console.log("All fields auto-merged cleanly. Saving…");
+  console.log('All fields auto-merged cleanly. Saving…');
   return commitMember(merged);
 };
 
@@ -614,35 +562,32 @@ const commitMember = async (member: Member) => {
   }
 
   const { data, error } = await getSupabaseClient()
-    .from("Members")
+    .from('Members')
     .update(member)
-    .eq("id", member.id);
+    .eq('id', member.id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("updateMember:", data);
+  consoleLog('updateMember:', data);
   return { success: true, data };
 };
 
 const deleteMember = async (id: number) => {
-  const { data, error } = await getSupabaseClient()
-    .from("Members")
-    .delete()
-    .eq("id", id);
+  const { data, error } = await getSupabaseClient().from('Members').delete().eq('id', id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("deleteMember:", data);
+  consoleLog('deleteMember:', data);
   return { success: true, data };
 };
 
@@ -651,29 +596,27 @@ const deleteMember = async (id: number) => {
 export interface PlanningQueryParams {
   year: number;
   month: number;
-  sort?: { key: string; order: "asc" | "desc" };
+  sort?: { key: string; order: 'asc' | 'desc' };
   filters?: Record<string, any[]>;
 }
 
-const getPlanningByMonth = async (
-  params: PlanningQueryParams,
-): Promise<Planning[]> => {
+const getPlanningByMonth = async (params: PlanningQueryParams): Promise<Planning[]> => {
   const { year, month, sort, filters = {} } = params;
 
   // Zero-pad for reliable string comparison in Postgres
-  const from = `${year}-${String(month).padStart(2, "0")}-01`;
+  const from = `${year}-${String(month).padStart(2, '0')}-01`;
   const nextMonth = month === 12 ? 1 : month + 1;
   const nextYear = month === 12 ? year + 1 : year;
-  const to = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
+  const to = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
 
   let query = getSupabaseClient()
-    .from("Planning")
-    .select("id, day, type, beschikbaar, planning, updated_at")
-    .gte("day", from)
-    .lt("day", to);
+    .from('Planning')
+    .select('id, day, type, beschikbaar, planning, updated_at')
+    .gte('day', from)
+    .lt('day', to);
 
   // Filters — Planning columns are all scalar except beschikbaar/planning (arrays)
-  const arrayColumns = ["beschikbaar", "planning"];
+  const arrayColumns = ['beschikbaar', 'planning'];
   for (const [field, values] of Object.entries(filters)) {
     if (!values || values.length === 0) continue;
     if (arrayColumns.includes(field)) {
@@ -684,31 +627,29 @@ const getPlanningByMonth = async (
   }
 
   // Sort — default to day asc so the table always shows chronologically
-  const sortKey = sort?.key ?? "day";
-  const sortAsc = sort ? sort.order === "asc" : true;
+  const sortKey = sort?.key ?? 'day';
+  const sortAsc = sort ? sort.order === 'asc' : true;
   query = query.order(sortKey, { ascending: sortAsc });
 
   // Secondary sort: within same day keep type order stable
-  if (sortKey !== "id") query = query.order("id", { ascending: true });
+  if (sortKey !== 'id') query = query.order('id', { ascending: true });
 
   const { data, error } = await query;
 
   if (error) {
-    consoleErr("Error fetching planning:", error);
+    consoleErr('Error fetching planning:', error);
     throw error;
   }
 
-  consoleLog("Fetched planning:", data?.length);
+  consoleLog('Fetched planning:', data?.length);
   return (data ?? []) as unknown as Planning[];
 };
 
 const getPlanningFilterOptions = async (): Promise<Record<string, any[]>> => {
-  const { data, error } = await getSupabaseClient()
-    .from("Planning")
-    .select("type");
+  const { data, error } = await getSupabaseClient().from('Planning').select('type');
 
   if (error) {
-    consoleErr("Error fetching planning filter options:", error);
+    consoleErr('Error fetching planning filter options:', error);
     throw error;
   }
 
@@ -722,15 +663,11 @@ const getPlanningFilterOptions = async (): Promise<Record<string, any[]>> => {
   };
 };
 
-const getDistinctPlanningMonths = async (): Promise<
-  { year: number; month: number }[]
-> => {
-  const { data, error } = await getSupabaseClient()
-    .from("Planning")
-    .select("day");
+const getDistinctPlanningMonths = async (): Promise<{ year: number; month: number }[]> => {
+  const { data, error } = await getSupabaseClient().from('Planning').select('day');
 
   if (error) {
-    consoleErr("Error fetching planning dates:", error);
+    consoleErr('Error fetching planning dates:', error);
     throw error;
   }
 
@@ -744,7 +681,7 @@ const getDistinctPlanningMonths = async (): Promise<
 
   return Array.from(monthYearSet)
     .map((ym) => {
-      const [year, month] = ym.split("-").map(Number) as [number, number];
+      const [year, month] = ym.split('-').map(Number) as [number, number];
       return { year, month };
     })
     .sort((a, b) => (a.year !== b.year ? a.year - b.year : a.month - b.month));
@@ -752,13 +689,13 @@ const getDistinctPlanningMonths = async (): Promise<
 
 const getPlanningById = async (id: number): Promise<Planning> => {
   const { data, error } = await getSupabaseClient()
-    .from("Planning")
-    .select("id, day, type, beschikbaar, planning, updated_at")
-    .eq("id", id)
+    .from('Planning')
+    .select('id, day, type, beschikbaar, planning, updated_at')
+    .eq('id', id)
     .single(); // cleaner than data[0]
 
   if (error) {
-    consoleErr("Error fetching planning by id:", error);
+    consoleErr('Error fetching planning by id:', error);
     throw error;
   }
 
@@ -768,30 +705,25 @@ const getPlanningById = async (id: number): Promise<Planning> => {
 const insertPlanning = async (planning: Planning) => {
   // Check if a row for this day+type already exists before inserting
   const { data: existing } = await getSupabaseClient()
-    .from("Planning")
-    .select("id")
-    .eq("day", planning.day)
-    .eq("type", planning.type)
+    .from('Planning')
+    .select('id')
+    .eq('day', planning.day)
+    .eq('type', planning.type)
     .maybeSingle();
 
   if (existing) {
-    consoleWarn("insertPlanning: skipping duplicate", [
-      planning.day,
-      planning.type,
-    ]);
+    consoleWarn('insertPlanning: skipping duplicate', [planning.day, planning.type]);
     return { success: true, data: existing };
   }
 
-  const { data, error } = await getSupabaseClient()
-    .from("Planning")
-    .insert(planning);
+  const { data, error } = await getSupabaseClient().from('Planning').insert(planning);
 
   if (error) {
-    consoleErr("Error details:", error.message);
+    consoleErr('Error details:', error.message);
     return { success: false, error };
   }
 
-  consoleLog("insertPlanning:", data);
+  consoleLog('insertPlanning:', data);
   return { success: true, data };
 };
 
@@ -810,7 +742,7 @@ const updatePlanning = async (local: Planning, original: Planning) => {
     const serverVal = server[key];
 
     // Skip updated_at and same values
-    if (key === "updated_at") continue;
+    if (key === 'updated_at') continue;
     if (serverVal === localVal) continue;
 
     // NOTHING CHANGED LOCALLY → just use serverVal
@@ -827,54 +759,49 @@ const commitPlanning = async (planning: Planning) => {
   planning.updated_at = new Date().toISOString();
 
   const { data, error } = await getSupabaseClient()
-    .from("Planning")
+    .from('Planning')
     .update(planning)
-    .eq("id", planning.id);
+    .eq('id', planning.id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("update Planning:", data);
+  consoleLog('update Planning:', data);
   return { success: true, data };
 };
 
 const deletePlanning = async (id: number) => {
-  const { data, error } = await getSupabaseClient()
-    .from("Planning")
-    .delete()
-    .eq("id", id);
+  const { data, error } = await getSupabaseClient().from('Planning').delete().eq('id', id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("delete Planning:", data);
+  consoleLog('delete Planning:', data);
   return { success: true, data };
 };
 
 // TRAINERS
 
 export interface TrainerQueryParams {
-  sort?: { key: string; order: "asc" | "desc" };
+  sort?: { key: string; order: 'asc' | 'desc' };
   filters?: Record<string, any[]>;
 }
 
-const getTrainers = async (
-  params: TrainerQueryParams = {},
-): Promise<Trainer[]> => {
+const getTrainers = async (params: TrainerQueryParams = {}): Promise<Trainer[]> => {
   const { sort, filters = {} } = params;
 
   let query = getSupabaseClient()
-    .from("Trainers")
+    .from('Trainers')
     .select(
-      "id, voornaam, naam, gsm, email, check_strafregister, check_door, straat, gemeente, postcode, titels",
+      'id, voornaam, naam, gsm, email, check_strafregister, check_door, straat, gemeente, postcode, titels',
     );
 
   for (const [field, values] of Object.entries(filters)) {
@@ -882,29 +809,29 @@ const getTrainers = async (
     query = query.in(field, values);
   }
 
-  const sortKey = sort?.key ?? "Naam";
+  const sortKey = sort?.key ?? 'Naam';
   query = query.order(sortKey, {
-    ascending: sort ? sort.order === "asc" : true,
+    ascending: sort ? sort.order === 'asc' : true,
   });
 
   const { data, error } = await query;
 
   if (error) {
-    consoleErr("Error fetching trainers:", error);
+    consoleErr('Error fetching trainers:', error);
     throw error;
   }
 
-  consoleLog("Fetched trainers:", data?.length);
+  consoleLog('Fetched trainers:', data?.length);
   return (data ?? []) as Trainer[];
 };
 
 const getTrainerFilterOptions = async (): Promise<Record<string, any[]>> => {
   const { data, error } = await getSupabaseClient()
-    .from("Trainers")
-    .select("check_strafregister, titels");
+    .from('Trainers')
+    .select('check_strafregister, titels');
 
   if (error) {
-    consoleErr("Error fetching trainer filter options:", error);
+    consoleErr('Error fetching trainer filter options:', error);
     throw error;
   }
 
@@ -912,8 +839,7 @@ const getTrainerFilterOptions = async (): Promise<Record<string, any[]>> => {
   const titels = new Set<string>();
 
   for (const row of data ?? []) {
-    if (row.check_strafregister !== null)
-      strafregister.add(row.check_strafregister);
+    if (row.check_strafregister !== null) strafregister.add(row.check_strafregister);
     if (Array.isArray(row.titels)) {
       row.titels.forEach((t: string) => titels.add(t));
     } else if (row.titels) {
@@ -931,7 +857,7 @@ const getTrainerFilterOptions = async (): Promise<Record<string, any[]>> => {
 
 const getTrainerNames = async (): Promise<Partial<Trainer>[]> => {
   const { data, error } = await getSupabaseClient()
-    .from("Trainers")
+    .from('Trainers')
     .select(
       `
             id,
@@ -939,15 +865,15 @@ const getTrainerNames = async (): Promise<Partial<Trainer>[]> => {
             naam
         `,
     )
-    .order("voornaam");
+    .order('voornaam');
 
   if (error) {
-    consoleErr("Error fetching trainers:", error);
+    consoleErr('Error fetching trainers:', error);
     throw error;
   }
 
   const trainernames = (data || []) as Partial<Trainer>[];
-  consoleLog("Fetched trainers from Supabase:", trainernames.length);
+  consoleLog('Fetched trainers from Supabase:', trainernames.length);
 
   return trainernames;
 };
@@ -955,7 +881,7 @@ const getTrainerNames = async (): Promise<Partial<Trainer>[]> => {
 // NEWSPOSTS
 
 export interface NewsQueryParams {
-  sort?: { key: string; order: "asc" | "desc" };
+  sort?: { key: string; order: 'asc' | 'desc' };
   filters?: Record<string, any[]>;
   page?: number;
   pageSize?: number;
@@ -967,16 +893,14 @@ export interface NewsQueryResult {
   count: number;
 }
 
-const getNewsposts = async (
-  params: NewsQueryParams = {},
-): Promise<NewsQueryResult> => {
+const getNewsposts = async (params: NewsQueryParams = {}): Promise<NewsQueryResult> => {
   const { sort, filters = {}, page = 1, pageSize = 25, search } = params;
 
   let query = getSupabaseClient()
-    .from("News")
+    .from('News')
     .select(
-      "id, title, description, img_url, post, alert, alert_start_date, alert_end_date, date, created_at",
-      { count: "exact" },
+      'id, title, description, img_url, post, alert, alert_start_date, alert_end_date, date, created_at',
+      { count: 'exact' },
     );
 
   // ── Search ──────────────────────────────────────────────────────────
@@ -986,7 +910,7 @@ const getNewsposts = async (
     // Text columns — safe for ilike
     const textOrClauses = [`title.ilike.%${q}%`, `description.ilike.%${q}%`];
 
-    query = query.or(textOrClauses.join(","));
+    query = query.or(textOrClauses.join(','));
   }
 
   // ── Column filters ──────────────────────────────────────────────────
@@ -996,9 +920,9 @@ const getNewsposts = async (
   }
 
   // ── Sort ────────────────────────────────────────────────────────────
-  const sortKey = sort?.key ?? "id";
+  const sortKey = sort?.key ?? 'id';
   query = query.order(sortKey, {
-    ascending: sort ? sort.order === "asc" : false,
+    ascending: sort ? sort.order === 'asc' : false,
   });
 
   // ── Pagination ──────────────────────────────────────────────────────
@@ -1009,21 +933,21 @@ const getNewsposts = async (
   const { data, error, count } = await query;
 
   if (error) {
-    consoleErr("Error fetching news:", error);
+    consoleErr('Error fetching news:', error);
     throw error;
   }
 
-  consoleLog("Fetched news:", data?.length + " of " + count);
+  consoleLog('Fetched news:', data?.length + ' of ' + count);
   return { data: (data ?? []) as News[], count: count ?? 0 };
 };
 
 const getNewspostFilterOptions = async (): Promise<Record<string, any[]>> => {
   const { data, error } = await getSupabaseClient()
-    .from("News")
-    .select("date, post, alert, alert_start_date, alert_end_date");
+    .from('News')
+    .select('date, post, alert, alert_start_date, alert_end_date');
 
   if (error) {
-    consoleErr("Error fetching filter options:", error);
+    consoleErr('Error fetching filter options:', error);
     throw error;
   }
 
@@ -1048,27 +972,27 @@ const getNewspostFilterOptions = async (): Promise<Record<string, any[]>> => {
   );
 };
 
-const uploadNewsImageToBucket = async (file: File, path: string = "public") => {
-  const fileExt = file.name.split(".").pop();
+const uploadNewsImageToBucket = async (file: File, path: string = 'public') => {
+  const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}.${fileExt}`;
   const filePath = path ? `${path}/${fileName}` : fileName;
 
   const { data, error } = await getSupabaseClient()
-    .storage.from("news-images")
+    .storage.from('news-images')
     .upload(filePath, file, {
-      cacheControl: "3600",
+      cacheControl: '3600',
       upsert: false,
     });
 
   if (error) {
-    consoleErr("Upload error:", error.message);
-    consoleErr("Cause:", error.cause);
+    consoleErr('Upload error:', error.message);
+    consoleErr('Cause:', error.cause);
     return { success: false, error };
   }
 
   // Get public URL
   const { data: publicUrlData } = getSupabaseClient()
-    .storage.from("news-images")
+    .storage.from('news-images')
     .getPublicUrl(filePath);
 
   return {
@@ -1099,52 +1023,49 @@ const insertNewspost = async (
     img_url: imgUrl,
   };
 
-  const { data, error } = await getSupabaseClient().from("News").insert(values);
+  const { data, error } = await getSupabaseClient().from('News').insert(values);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("insertNewspost:", data);
+  consoleLog('insertNewspost:', data);
   return { success: true, data };
 };
 
 const updateNewspost = async (newspost: News) => {
   const { data, error } = await getSupabaseClient()
-    .from("News")
+    .from('News')
     .update(newspost)
-    .eq("id", newspost.id);
+    .eq('id', newspost.id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("updateNews:", data);
+  consoleLog('updateNews:', data);
   return { success: true, data };
 };
 
 const deleteNewspost = async (id: number) => {
-  const { data, error } = await getSupabaseClient()
-    .from("News")
-    .delete()
-    .eq("id", id);
+  const { data, error } = await getSupabaseClient().from('News').delete().eq('id', id);
 
   console.log(id);
 
   if (error) {
-    consoleErr("Error details:", error.message);
-    consoleErr("Error hint:", error.hint);
-    consoleErr("Error details:", error.details);
+    consoleErr('Error details:', error.message);
+    consoleErr('Error hint:', error.hint);
+    consoleErr('Error details:', error.details);
     return { success: false, error };
   }
 
-  consoleLog("deleteNews:", data);
+  consoleLog('deleteNews:', data);
   return { success: true, data };
 };
 

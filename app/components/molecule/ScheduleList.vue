@@ -1,6 +1,5 @@
 <script setup lang="ts">
-type BeltColors =
-  "white" | "yellow" | "orange" | "green" | "blue" | "brown" | "black";
+type BeltColors = 'white' | 'yellow' | 'orange' | 'green' | 'blue' | 'brown' | 'black';
 type BeltStatus = Record<BeltColors, boolean>;
 type ScheduleRow = [string, number[], string[], string, string, BeltStatus];
 
@@ -11,72 +10,61 @@ interface Props {
 
 defineProps<Props>();
 
-const scheduleTitles = [
-  "Groep",
-  "Geboren in",
-  "Weekdag",
-  "Uren",
-  "Locatie",
-  "Gordels",
-];
+const scheduleTitles = ['Groep', 'Geboren in', 'Weekdag', 'Uren', 'Locatie', 'Gordels'];
 const allBeltColors: BeltColors[] = [
-  "white",
-  "yellow",
-  "orange",
-  "green",
-  "blue",
-  "brown",
-  "black",
+  'white',
+  'yellow',
+  'orange',
+  'green',
+  'blue',
+  'brown',
+  'black',
 ];
 const activeId = ref<number>(0);
 
 const listFieldConfig = [
   {
-    title: "Groep & Leeftijd",
+    title: 'Groep & Leeftijd',
     fields: [0, 1],
     primary: true,
   },
   {
-    title: "Weekdag",
+    title: 'Weekdag',
     fields: [2],
     primary: false,
   },
   {
-    title: "Uren",
+    title: 'Uren',
     fields: [3],
     primary: false,
   },
   {
-    title: "Locatie",
+    title: 'Locatie',
     fields: [4],
     primary: false,
   },
   {
-    title: "Gordels",
+    title: 'Gordels',
     fields: [5],
     primary: false,
   },
 ];
 
-const formatCellContent = (
-  value: string | string[] | number[] | BeltStatus,
-): string => {
+const formatCellContent = (value: string | string[] | number[] | BeltStatus): string => {
   if (Array.isArray(value)) {
-    return typeof value[0] === "number"
+    return typeof value[0] === 'number'
       ? formatAgesToBirthYears(value as number[])
       : (value as string[])
           .map((newValue) => {
             return newValue.substring(0, 2);
           })
-          .join(", ");
+          .join(', ');
   }
   return String(value);
 };
 
 const getBeltClasses = (beltColor: BeltColors, isEarned: boolean): string =>
-  isEarned
-    ? `stroke-secondary-70 fill-${beltColor}`
-    : "stroke-secondary-10 fill-secondary-10";
+  isEarned ? `stroke-secondary-70 fill-${beltColor}` : 'stroke-secondary-10 fill-secondary-10';
 
 const getFieldContent = (
   item: ScheduleRow,
@@ -106,7 +94,7 @@ const handleClick = (idx: number) => {
       <div class="table">
         <div class="tr">
           <div v-for="(th, idx) in scheduleTitles" :key="idx" class="th">
-            <h4>{{ th }}</h4>
+            <h4 class="rokkitt">{{ th }}</h4>
           </div>
         </div>
         <div v-for="(tr, rowIdx) in scheduleData" :key="rowIdx" class="tr">
@@ -117,9 +105,7 @@ const handleClick = (idx: number) => {
                 v-for="beltColor in allBeltColors"
                 :key="beltColor"
                 class="belt"
-                :class-name="
-                  getBeltClasses(beltColor, (td as BeltStatus)[beltColor])
-                "
+                :class-name="getBeltClasses(beltColor, (td as BeltStatus)[beltColor])"
                 :aria-label="`gordel kleur: ${beltColor}${(td as BeltStatus)[beltColor] ? ' (behaald)' : ' (niet behaald)'}`"
               />
             </div>
@@ -153,18 +139,13 @@ const handleClick = (idx: number) => {
               v-for="beltColor in allBeltColors"
               :key="beltColor"
               class="belt"
-              :class-name="
-                getBeltClasses(beltColor, (item[5] as BeltStatus)[beltColor])
-              "
+              :class-name="getBeltClasses(beltColor, (item[5] as BeltStatus)[beltColor])"
               :aria-label="`gordel kleur: ${beltColor}${(item[5] as BeltStatus)[beltColor] ? ' (kan deelnemen)' : ' (kan niet deelnemen)'}`"
             />
           </div>
           <div class="field-content">
             <p
-              v-for="(fieldContent, contentIdx) in renderFieldGroup(
-                item,
-                section.fields,
-              )"
+              v-for="(fieldContent, contentIdx) in renderFieldGroup(item, section.fields)"
               :key="contentIdx"
             >
               {{ fieldContent }}

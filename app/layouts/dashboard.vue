@@ -1,11 +1,11 @@
-<template>
-  <NuxtPage/>
+<template class="dashboard">
+  <NuxtPage />
 </template>
 
 <style scoped lang="scss">
 .page-enter-active,
 .page-leave-active {
-  transition: all .2s;
+  transition: all 0.2s;
 }
 .page-enter-from,
 .page-leave-to {

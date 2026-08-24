@@ -34,10 +34,7 @@ const props = defineProps<Props>();
     <h5 v-if="card.title" class="card-title">
       {{ card.title }}<span v-if="card.starred" class="color-accent">*</span>
     </h5>
-    <div
-      v-if="card.content || card.price || card.subContent"
-      class="card-content"
-    >
+    <div v-if="card.content || card.price || card.subContent" class="card-content">
       <p v-if="card.content" class="main-content">
         {{ card.content }}
       </p>
@@ -45,10 +42,10 @@ const props = defineProps<Props>();
         {{ card.subContent }}
       </p>
       <p v-if="card.price" class="price">
-        <span>€</span>{{ card.price.toFixed(2).replace(".", ",") }}
+        <span>€</span>{{ card.price.toFixed(2).replace('.', ',') }}
       </p>
       <p v-if="card.price" class="ex-price">
-        ¥ {{ (card.price * 184.98).toFixed(2).replace(".", ",") }}
+        ¥ {{ (card.price * 184.98).toFixed(2).replace('.', ',') }}
       </p>
     </div>
   </div>
@@ -103,7 +100,7 @@ const props = defineProps<Props>();
 
   .card-title {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     text-align: center;
     white-space: pre-line;
   }
@@ -144,12 +141,12 @@ const props = defineProps<Props>();
 
     .ex-price {
       position: relative;
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--secondary-50);
 
       &::after {
-        content: "";
+        content: '';
         position: absolute;
         top: 50%;
         left: 50%;
@@ -182,7 +179,7 @@ const props = defineProps<Props>();
     }
 
     .card-title {
-      font-size: 1.8rem;
+      font-size: 1.4rem;
     }
 
     .card-content {
@@ -192,11 +189,11 @@ const props = defineProps<Props>();
       }
 
       .sub-content {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
       }
 
       .ex-price {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
       }
     }
   }
@@ -215,21 +212,21 @@ const props = defineProps<Props>();
     }
 
     .card-title {
-      font-size: 2rem;
+      font-size: 1.5rem;
     }
 
     .card-content {
       .main-content,
       .price {
-        font-size: 2.25rem;
+        font-size: 2rem;
       }
 
       .sub-content {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
       }
 
       .ex-price {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
       }
     }
   }
@@ -244,21 +241,21 @@ const props = defineProps<Props>();
     }
 
     .card-title {
-      font-size: 1.8rem;
+      font-size: 1.4rem;
     }
 
     .card-content {
       .main-content,
       .price {
-        font-size: 2rem;
+        font-size: 1.5rem;
       }
 
       .sub-content {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
       }
 
       .ex-price {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
       }
     }
   }
@@ -273,21 +270,21 @@ const props = defineProps<Props>();
     }
 
     .card-title {
-      font-size: 2rem;
+      font-size: 1.5rem;
     }
 
     .card-content {
       .main-content,
       .price {
-        font-size: 2.25rem;
+        font-size: 2.1rem;
       }
 
       .sub-content {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
       }
 
       .ex-price {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
       }
     }
   }

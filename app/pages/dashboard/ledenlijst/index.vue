@@ -1,336 +1,483 @@
 <script setup lang="ts">
-import { useMembersStore } from "~/stores/members";
-import { useUserStore } from "~/stores/user";
-import { countries } from "countries-list";
-import { getMembers, type MemberQueryParams } from "~/utils/supabase";
-import type { Column } from "~/types";
-import { downloadCSV } from "~/utils/files";
+import { useUserStore } from '~/stores/user';
+import { countries } from 'countries-list';
+import { downloadExcel } from '~/utils/files';
+import { useMembers } from '~/composables/members/useMembers';
+import type { ColumnDef } from '~/components/molecule/table/Table.vue';
+import type { Member } from '~/utils/query/members/get';
+import { type UpsertMember } from '~/utils/query/members/upsert';
+import { useMemberMutation } from '~/composables/members/useMemberMutation';
+import { InputType } from '~/utils/enums/inputs';
+import { Dojo, Geslacht, GeslachtLabel, Graad, GraadLabel } from '~/utils/enums/members';
+import { formatEnumToOptions } from '~/utils/inputs/formatter';
 
 definePageMeta({
-  middleware: "auth",
-  layout: "dashboard",
+  middleware: 'auth',
+  layout: 'dashboard',
 });
 
 const userStore = useUserStore();
-const membersStore = useMembersStore();
+const { upsertMember, upsert, removeMember } = useMemberMutation();
+const { isDataColumn } = useTable<Member>();
+const { cancelLoading } = useEditableCell<Member>();
 
-// Fetch members on mount
-onMounted(async () => {
-  await Promise.all([
-    membersStore.fetchMembers(),
-    membersStore.fetchFilterOptions(), // one-time, populates checkboxes
-  ]);
+const { data, isLoading } = useMembers();
+const safeData = computed(() => data.value ?? []);
+
+const countryOptions = computed(() =>
+  Object.entries(countries).map(([key, c]) => ({
+    value: key,
+    label: c.name,
+  })),
+);
+
+const columns = computed<ColumnDef<Member>[]>(() => [
+  {
+    key: 'voornaam',
+    label: 'Voornaam',
+    sticky: true,
+    sort: true,
+    search: true,
+  },
+  {
+    key: 'naam',
+    label: 'Achternaam',
+    sort: true,
+    search: true,
+  },
+  {
+    key: 'opvolging',
+    label: 'Opvolging',
+    search: true,
+  },
+  {
+    key: 'actief',
+    label: 'Actief',
+    filter: true,
+  },
+  {
+    key: 'vergunning',
+    label: 'Vergunning nr',
+    sort: true,
+    search: true,
+  },
+  {
+    key: 'geslacht',
+    label: 'Geslacht',
+    filter: true,
+    options: formatEnumToOptions(Geslacht, GeslachtLabel),
+  },
+  {
+    key: 'geboorte_datum',
+    label: 'Geboorte',
+    sort: true,
+  },
+  {
+    key: 'leeftijd',
+    label: 'Leeftijd',
+    filter: true,
+  },
+  {
+    key: 'nationaliteit',
+    label: 'Nationaliteit',
+    filter: true,
+  },
+  {
+    key: 'straat',
+    label: 'Straat + nr',
+    search: true,
+  },
+  {
+    key: 'postcode',
+    label: 'Postcode',
+    filter: true,
+  },
+  {
+    key: 'gemeente',
+    label: 'Gemeente',
+    filter: true,
+    search: true,
+  },
+  {
+    key: 'gsm',
+    label: 'GSM',
+  },
+  {
+    key: 'telefoon',
+    label: 'Telefoon',
+  },
+  {
+    key: 'emails',
+    label: 'Emails',
+  },
+  {
+    key: 'dojos',
+    label: "Dojo's",
+    filter: true,
+    search: true,
+  },
+  {
+    key: 'wedstrijd_training',
+    label: 'Wedstrijd training',
+    filter: true,
+    search: true,
+  },
+  {
+    key: 'graad',
+    label: 'Graad',
+    sort: true,
+    filter: true,
+    options: formatEnumToOptions(Graad, GraadLabel),
+  },
+  {
+    key: 'gordel_behaald_op',
+    label: 'Gordel behaald op',
+    sort: true,
+    filter: true,
+    type: 'date',
+  },
+  {
+    key: 'lidgeld_opmerkingen',
+    label: 'Opmerkingen',
+    search: true,
+  },
+  {
+    key: 'vergunning_geldig_tot',
+    label: 'Vergunning datum',
+    sort: true,
+    filter: true,
+    type: 'date',
+  },
+  {
+    key: 'updated_at',
+    label: 'Laatst aangepast',
+    sort: true,
+  },
+  {
+    key: 'created_at',
+    label: 'Aangemaakt op',
+    sort: true,
+  },
+  { key: 'actions', label: '', virtual: true, sticky: false, width: 30, minWidth: 30 },
+]);
+const searchColumns = computed(() =>
+  columns.value
+    .filter(isDataColumn)
+    .filter((c) => c.search)
+    .map((c) => c.key),
+);
+
+const {
+  sort,
+  filters,
+  search,
+  result: filteredData,
+} = useTableQuery(safeData, {
+  searchKeys: searchColumns.value,
 });
 
-// Country options
-const countryOptions = Object.entries(countries).map(([key, c]) => ({
-  value: key,
-  label: c.name,
-}));
-
-const grades = [
-  { value: "01-Beginner", label: "Beginner" },
-  { value: "02-Kyu 6", label: "6e Kyu" },
-  { value: "03-Kyu 5", label: "5e Kyu" },
-  { value: "04-Kyu 4", label: "4e Kyu" },
-  { value: "05-Kyu 3", label: "3e Kyu" },
-  { value: "06-Kyu 2", label: "2e Kyu" },
-  { value: "07-Kyu 1", label: "1e Kyu" },
-  { value: "08-Dan 1", label: "1e Dan" },
-  { value: "09-Dan 2", label: "2e Dan" },
-  { value: "10-Dan 3", label: "3e Dan" },
-  { value: "11-Dan 4", label: "4e Dan" },
-  { value: "12-Dan 5", label: "5e Dan" },
-  { value: "13-Dan 6", label: "6e Dan" },
-  { value: "14-Dan 7", label: "7e Dan" },
-  { value: "15-Dan 8", label: "8e Dan" },
-  { value: "16-Dan 9", label: "9e Dan" },
-  { value: "17-Dan 10", label: "10e Dan" },
-];
-
-// Determine which fields are disabled per row
-const isFieldDisabled = (fieldKey: string) => {
-  if (userStore.userRole === "user") {
-    switch (fieldKey) {
-      case "gordel_behaald_op":
-      case "door_wie_examen":
-      case "behaald_examen":
-      case "datum_examen":
-        return false;
-      default:
-        return true;
-    }
-  }
-  return false;
-};
-
 const handleDownloadClick = async () => {
-  const params: MemberQueryParams = {
-    pageSize: 1000,
-  };
-
-  const { data } = await getMembers(params);
-
+  if (!data.value) return;
   const date = Date.now();
-
-  downloadCSV(data, date + "-ledenlijst.csv");
+  downloadExcel<Member>(data.value, date + '-ledenbestand.xlsx');
 };
 
-// Define all columns
-const columns = computed(() => [
-  { key: "id", label: "ID", type: "readonly", className: "id", sticky: true },
-  {
-    key: "created_at",
-    label: "Aangemaakt op",
-    type: "readonly",
-    disabled: () => isFieldDisabled("created_at"),
-  },
-  {
-    key: "opvolging",
-    label: "Opvolging",
-    type: "textarea",
-    className: "description",
-    disabled: () => isFieldDisabled("opvolging"),
-  },
-  {
-    key: "actief",
-    label: "Actief",
-    type: "checkbox",
-    disabled: () => isFieldDisabled("actief"),
-  },
-  {
-    key: "vergunning",
-    label: "Vergunning nr",
-    type: "text",
-    disabled: () => isFieldDisabled("vergunning"),
-  },
-  {
-    key: "voornaam",
-    label: "Voornaam",
-    type: "text",
-    disabled: () => isFieldDisabled("voornaam"),
-  },
-  {
-    key: "naam",
-    label: "Achternaam",
-    type: "text",
-    disabled: () => isFieldDisabled("naam"),
-  },
-  {
-    key: "geslacht",
-    label: "Geslacht",
-    type: "select",
-    options: [
-      { value: "M", label: "M" },
-      { value: "V", label: "V" },
-    ],
-    disabled: () => isFieldDisabled("geslacht"),
-  },
-  {
-    key: "geboorte_datum",
-    label: "Geboorte",
-    type: "date",
-    disabled: () => isFieldDisabled("geboorte_datum"),
-  },
-  {
-    key: "leeftijd",
-    label: "Leeftijd",
-    type: "readonly",
-    disabled: () => isFieldDisabled("leeftijd"),
-  },
-  {
-    key: "nationaliteit",
-    label: "Nationaliteit",
-    type: "select",
-    options: countryOptions,
-    disabled: () => isFieldDisabled("nationaliteit"),
-  },
-  {
-    key: "straat",
-    label: "Straat + nr",
-    type: "text",
-    className: "straat",
-    disabled: () => isFieldDisabled("straat"),
-  },
-  {
-    key: "postcode",
-    label: "Postcode",
-    type: "text",
-    disabled: () => isFieldDisabled("postcode"),
-  },
-  {
-    key: "gemeente",
-    label: "Gemeente",
-    type: "text",
-    disabled: () => isFieldDisabled("gemeente"),
-  },
-  {
-    key: "gsm",
-    label: "GSM",
-    type: "text",
-    disabled: () => isFieldDisabled("gsm"),
-  },
-  {
-    key: "telefoon",
-    label: "Telefoon",
-    type: "text",
-    disabled: () => isFieldDisabled("telefoon"),
-  },
-  {
-    key: "emails",
-    label: "Emails",
-    type: "array-text",
-    className: "emails",
-    disabled: () => isFieldDisabled("emails"),
-  },
-  {
-    key: "dojos",
-    label: "Dojo's",
-    type: "array-text",
-    className: "dojos",
-    disabled: () => isFieldDisabled("dojos"),
-  },
-  {
-    key: "wedstrijd_training",
-    label: "Wedstrijd training",
-    type: "text",
-    disabled: () => isFieldDisabled("wedstrijd_training"),
-  },
-  {
-    key: "graad",
-    label: "Graad",
-    type: "select",
-    options: grades,
-    disabled: () => isFieldDisabled("graad"),
-  },
-  {
-    key: "gordel_behaald_op",
-    label: "Gordel behaald op",
-    type: "date",
-    disabled: () => isFieldDisabled("gordel_behaald_op"),
-  },
-  {
-    key: "lidgeld_opmerkingen",
-    label: "Opmerkingen",
-    type: "text",
-    className: "opmerkingen",
-    disabled: () => isFieldDisabled("lidgeld_opmerkingen"),
-  },
-  {
-    key: "vergunning_geldig_tot",
-    label: "Vergunning datum",
-    type: "date",
-    disabled: () => isFieldDisabled("vergunning_geldig_tot"),
-  },
-  {
-    key: "updated_at",
-    label: "Laatst aangepast",
-    type: "readonly",
-    disabled: () => isFieldDisabled("updated_at"),
-  },
-]) as unknown as Column[];
-
-const selectedRows = ref<number[]>([]);
-const handleEmitDelete = (rowId: number[]) => {
-  selectedRows.value = rowId;
-};
-
-const handleDelete = () => {
-  if (selectedRows.value.length <= 0) return;
-  const answer = window.confirm(
-    `Ben je zeker dat je de rij(en) ${selectedRows.value} wilt verwijderen`,
+const onCommit = (
+  row: UpsertMember,
+  key: keyof UpsertMember,
+  value: UpsertMember[keyof UpsertMember],
+) => {
+  upsertMember(
+    { ...row, [key]: value },
+    {
+      onError: (err) => {
+        window.alert(
+          'Opslaan mislukt, contacteer Laurens met deze melding: \n\nSave member data: \n' + err,
+        );
+      },
+      onSettled: cancelLoading,
+    },
   );
-  if (answer) {
-    console.log("answer", answer);
-    for (const id of selectedRows.value) {
-      membersStore.removeMember(id);
-    }
-  }
+};
+
+const onRemove = (id: number) => {
+  removeMember(id, {
+    onError: (err) =>
+      window.alert(
+        'Verwijderen mislukt, contacteer Laurens met deze melding: \n\nDelete member data: \n' +
+          err,
+      ),
+    onSettled: cancelLoading,
+  });
 };
 </script>
 
 <template>
   <main id="leden-page">
-    <MoleculePageHeader
-      title="Ledenlijst"
-      :hide-admin-actions="userStore.userRole === 'user'"
-    >
-      <template #left-actions>
-        <button
-          @click="membersStore.saveChanges"
-          class="warning"
-          :disabled="!membersStore.hasUnsavedChanges || membersStore.isSaving"
-        >
-          {{
-            membersStore.isSaving
-              ? "Bezig..."
-              : `Opslaan${membersStore.changedCount > 0 ? ` (${membersStore.changedCount})` : ""}`
-          }}
-        </button>
-        <button
-          @click="handleDownloadClick"
-          v-show="userStore.userRole === 'superadmin'"
-          class="secondary"
-        >
-          Download
-        </button>
-      </template>
-      <template #right-actions>
-        <button
-          :disabled="userStore.userRole === 'user'"
-          @click="() => navigateTo('/dashboard/ledenlijst/create')"
-          class="success"
-        >
-          Toevoegen {{ userStore.userRole }}
-        </button>
-        <button
-          :disabled="userStore.userRole === 'user' || selectedRows.length <= 0"
-          class="danger"
-          @click="handleDelete"
-        >
-          Verwijderen
-        </button>
-      </template>
-    </MoleculePageHeader>
-
     <section class="data-table-container">
-      <MoleculeDataTable
-        v-if="!membersStore.isLoading"
+      <MoleculeTableActions
+        v-model:search="search"
+        v-model:sort="sort"
+        v-model:filters="filters"
         :columns="columns"
-        :data="membersStore.members"
-        :filter-items="membersStore.filterItems"
-        :active-filters="membersStore.activeFilters"
-        :sort-key="membersStore.sortKey"
-        :sort-order="membersStore.sortOrder"
-        :changed-coords="membersStore.changedCoords"
-        :search-query="membersStore.searchQuery"
-        @sort="membersStore.setSort"
-        @filter="membersStore.setFilter"
-        @search="membersStore.setSearch"
-        @update="membersStore.updateMemberField"
-        @add-array-item="membersStore.addArrayItem"
-        @remove-array-item="membersStore.removeArrayItem"
-        @delete="handleEmitDelete"
-      />
+        :data="safeData"
+        search-placeholder="Zoek op naam, gemeente..."
+      >
+        <AtomTableButton
+          v-show="userStore.userRole === 'superadmin'"
+          @click="handleDownloadClick"
+          :disabled="upsert.isPending.value"
+        >
+          <IconDownload :size="16" :stroke-width="2" color="secondary" />
+        </AtomTableButton>
+        <AtomTableButton
+          @click="() => navigateTo('/dashboard/ledenlijst/create')"
+          :disabled="upsert.isPending.value"
+          className="success"
+        >
+          <IconAddCross :size="16" :stroke-width="2" color="secondary" />
+          Toevoegen
+        </AtomTableButton>
+      </MoleculeTableActions>
 
-      <div v-else class="loading">
-        <AtomLoader />
-      </div>
+      <MoleculeTable
+        :columns="columns"
+        :data="filteredData ?? []"
+        :isLoading="isLoading"
+        storage-key="members-table"
+        resizable
+        reorderable
+      >
+        <template #cell-voornaam="{ row, cell, key }">
+          <AtomTableInput
+            :loading="upsert.isPending"
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-naam="{ row, cell, key }">
+          <AtomTableInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-opvolging="{ row, cell, key }">
+          <AtomTableTextarea
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-lidgeld_opmerkingen="{ row, cell, key }">
+          <AtomTableTextarea
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-created_at="{ cell }">
+          <AtomTableCell :value="formatDateTime(cell)" />
+        </template>
+
+        <template #cell-updated_at="{ cell }">
+          <AtomTableCell :value="formatDateTime(cell)" />
+        </template>
+
+        <template #cell-actief="{ row, cell, key }">
+          <AtomTableCheckbox
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-vergunning="{ row, cell, key }">
+          <AtomTableInput
+            :type="InputType.NUMBER"
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-geslacht="{ row, cell, key }">
+          <AtomTableSelect
+            :row="row"
+            :column="key"
+            :value="cell"
+            :options="formatEnumToOptions(Geslacht, GeslachtLabel)"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-nationaliteit="{ row, cell, key }">
+          <AtomTableSelect
+            :row="row"
+            :column="key"
+            :value="cell"
+            :options="countryOptions"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-graad="{ row, cell, key }">
+          <AtomTableSelect
+            :row="row"
+            :column="key"
+            :value="cell"
+            :options="formatEnumToOptions(Graad, GraadLabel)"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-straat="{ row, cell, key }">
+          <AtomTableInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-postcode="{ row, cell, key }">
+          <AtomTableInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-gemeente="{ row, cell, key }">
+          <AtomTableInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-gsm="{ row, cell, key }">
+          <AtomTableInput
+            :type="InputType.PHONE"
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-telefoon="{ row, cell, key }">
+          <AtomTableInput
+            :type="InputType.PHONE"
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-wedstrijd_training="{ row, cell, key }">
+          <AtomTableInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-emails="{ row, cell, key }">
+          <AtomTableListInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-dojos="{ row, cell, key }">
+          <AtomTableMultiSelect
+            :row="row"
+            :column="key"
+            :value="cell"
+            :options="formatEnumToOptions(Dojo)"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-geboorte_datum="{ row, cell, key }">
+          <AtomTableDateInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-gordel_behaald_op="{ row, cell, key }">
+          <AtomTableDateInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-vergunning_geldig_tot="{ row, cell, key }">
+          <AtomTableDateInput
+            :row="row"
+            :column="key"
+            :value="cell"
+            @commit="onCommit(row, key, $event)"
+          />
+        </template>
+
+        <template #cell-actions="{ row, key }">
+          <AtomTableDeleteButton
+            @delete="onRemove(row.id)"
+            :row="{ ...row, actions: key }"
+            :column="key"
+          />
+        </template>
+      </MoleculeTable>
     </section>
   </main>
 </template>
 
 <style scoped lang="scss">
 #leden-page {
-  margin-bottom: var(--page-margin);
+  padding: 4rem 0 calc(var(--page-margin) / 2);
+  margin-bottom: 0;
+  height: 100dvh;
 
-  .loading {
-    width: 100%;
-    height: 50vh;
-    font-size: 1.3rem;
+  .actions {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100%;
+    gap: 0.5rem;
+
+    > :first-child {
+      flex-grow: 1;
+    }
+  }
+
+  .data-table-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+    height: 100%;
   }
 }
 </style>

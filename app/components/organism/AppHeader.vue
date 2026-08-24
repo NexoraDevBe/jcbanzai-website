@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from "~/stores/user";
+import { useUserStore } from '~/stores/user';
 
 const store = useUserStore();
 const userRole = computed(() => store.userRole);
@@ -14,7 +14,7 @@ const navigationItems = computed(() => [
   { to: '/nieuws', label: 'Nieuws' },
   { to: '/gallerij', label: 'Gallerij' },
   { to: 'https://banzai.inker-shops.com/', label: 'Webshop', external: true },
-])
+]);
 
 const dashboardItems = [
   { to: '/', label: 'Website' },
@@ -23,40 +23,44 @@ const dashboardItems = [
   { to: '/dashboard/leerlijn', label: 'Leerlijn' },
   { to: '/dashboard/planning', label: 'Planning' },
   { to: '/dashboard/nieuws', label: 'Nieuws' },
-]
+];
 
-const state = ref<boolean>(false)
-const hasInteracted = ref<boolean>(false)
-const route = useRoute()
-const dashboardpath = computed(() => route.path.split('/')[1])
-const authpath = computed(() => route.path === '/dashboard/auth')
+const state = ref<boolean>(false);
+const hasInteracted = ref<boolean>(false);
+const route = useRoute();
+const dashboardpath = computed(() => route.path.split('/')[1]);
+const authpath = computed(() => route.path === '/dashboard/auth');
 
-watch(() => route.path, () => {
-  state.value = false
-}, { immediate: true })
+watch(
+  () => route.path,
+  () => {
+    state.value = false;
+  },
+  { immediate: true },
+);
 
 const toggle = () => {
-  hasInteracted.value = true
-  state.value = !state.value
-}
+  hasInteracted.value = true;
+  state.value = !state.value;
+};
 </script>
 
 <template>
   <header>
     <nav :class="{ 'nav-open': state }">
-      <MoleculeNavList v-if="!authpath && dashboardpath === 'dashboard'" :items="dashboardItems"/>
-      <MoleculeNavList v-else-if="!authpath && dashboardpath !== 'dashboard'" :items="navigationItems"/>
+      <MoleculeNavList v-if="!authpath && dashboardpath === 'dashboard'" :items="dashboardItems" />
+      <MoleculeNavList
+        v-else-if="!authpath && dashboardpath !== 'dashboard'"
+        :items="navigationItems"
+      />
     </nav>
-    <AtomBurgerMenu
-        :is-open="state"
-        :has-interacted="hasInteracted"
-        @toggle="toggle"
-    />
+    <AtomBurgerMenu :is-open="state" :has-interacted="hasInteracted" @toggle="toggle" />
   </header>
 </template>
 
 <style scoped lang="scss">
 header {
+  font-family: 'Rokkitt';
   position: fixed;
   inset: 0;
   width: 100vw;

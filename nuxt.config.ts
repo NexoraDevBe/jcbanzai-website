@@ -11,23 +11,22 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'nl',
       },
-      link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-      ],
+      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
     },
-    pageTransition: { name: 'page', mode: 'out-in' }
+    pageTransition: { name: 'page', mode: 'out-in' },
   },
 
   runtimeConfig: {
     public: {
       supabaseUrl: 'https://dxakjqfsxazwzyrhfoqn.supabase.co',
-      supabasePublishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YWtqcWZzeGF6d3p5cmhmb3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNzM1MTksImV4cCI6MjA3NDY0OTUxOX0.OHEfthLPPwbhuFM1fOPDeq9bwiPjb_PxnQSgtZ8WyOQ',
+      supabaseAnonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YWtqcWZzeGF6d3p5cmhmb3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNzM1MTksImV4cCI6MjA3NDY0OTUxOX0.OHEfthLPPwbhuFM1fOPDeq9bwiPjb_PxnQSgtZ8WyOQ',
     },
   },
 
-  modules: ['@nuxt/scripts', '@pinia/nuxt'],
+  modules: ['@nuxt/scripts', '@pinia/nuxt', '@peterbud/nuxt-query', '@vueuse/nuxt'],
 
   pinia: {
     storesDirs: ['./stores/**'],
   },
-})
+});

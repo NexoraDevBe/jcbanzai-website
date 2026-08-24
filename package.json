@@ -7,26 +7,43 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.6.2",
     "@nuxt/scripts": "^0.12.1",
+    "@nuxtjs/supabase": "^2.0.9",
+    "@peterbud/nuxt-query": "^1.9.0",
     "@pinia/nuxt": "^0.11.3",
     "@supabase/supabase-js": "^2.58.0",
+    "@tanstack/vue-query": "^5.101.4",
+    "@tanstack/vue-virtual": "^3.13.35",
     "@unhead/vue": "^2.0.17",
+    "@vueuse/core": "^14.4.0",
     "countries-list": "^3.2.0",
     "easy-currencies": "^1.8.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.10.0",
     "nuxt": "^4.0.3",
     "pinia": "^3.0.4",
+    "prettier": "^3.9.6",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.20",
-    "vue-router": "^4.5.1"
+    "vue-eslint-parser": "^10.4.1",
+    "vue-router": "^4.5.1",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "eslint": "^9.39.1",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
     "sass-embedded": "^1.91.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "typescript-eslint": "^8.65.0"
   }
 }

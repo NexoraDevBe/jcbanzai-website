@@ -1,23 +1,26 @@
 <script setup lang="ts">
 interface Props {
-  onClick?: () => void
-  className?: string
+  onClick?: () => void;
+  className?: string;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const handleClick = () => {
-  if (!props.onClick) return
-  props.onClick()
-}
+  if (!props.onClick) return;
+  props.onClick();
+};
 </script>
 
 <template>
-<button :class="className" @click="handleClick">
-  <slot>
-  </slot>
-  <IconArrowExtd aria-label="arrow pointing right" :class-name="className === 'outline' ? 'fill-secondary' : 'fill-light'" :height="24"/>
-</button>
+  <button :class="className" @click="handleClick">
+    <slot> </slot>
+    <IconArrowExtd
+      aria-label="arrow pointing right"
+      :class-name="className === 'outline' ? 'fill-secondary' : 'fill-light'"
+      :height="20"
+    />
+  </button>
 </template>
 
 <style scoped lang="scss">
@@ -31,10 +34,10 @@ button {
   border-radius: 5rem;
   background-color: var(--accent);
   color: var(--light);
-  font-size: 1.5rem;
-  font-weight: 500;
-  font-family: 'Rokkitt', Arial, serif;
-  text-transform: uppercase;
+  font-size: 1.25rem;
+  font-weight: 700;
+  // font-family: 'Rokkitt', Arial, serif;
+  text-transform: capitalize;
   cursor: pointer;
   border: 2px solid var(--accent);
 

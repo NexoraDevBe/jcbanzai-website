@@ -1,15 +1,17 @@
 <script setup lang="ts">
-const cursor = ref<HTMLElement>()
+const cursor = ref<HTMLElement>();
 
-document.body.onpointermove = event => {
+document.body.onpointermove = (event) => {
   const { clientX, clientY } = event;
   if (!cursor.value) return;
-  cursor.value.animate({
-    left: `${clientX}px`,
-    top: `${clientY}px`
-
-  }, {duration: 1000, fill: "forwards"})
-}
+  cursor.value.animate(
+    {
+      left: `${clientX}px`,
+      top: `${clientY}px`,
+    },
+    { duration: 1000, fill: 'forwards' },
+  );
+};
 </script>
 
 <template>

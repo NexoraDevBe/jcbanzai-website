@@ -1,26 +1,26 @@
 <script setup lang="ts">
 interface Props {
-  right?: boolean
-  maxWidth?: string
+  right?: boolean;
+  maxWidth?: string;
 }
 
 withDefaults(defineProps<Props>(), {
-  right: false
-})
+  right: false,
+});
 </script>
 
 <template>
-<div class="styled-paragraph" :class="right ? 'right' : 'left'" :style="{maxWidth: maxWidth}">
-  <div v-if="$slots.styleElement" class="style-element">
-    <slot name="styleElement"/>
+  <div class="styled-paragraph" :class="right ? 'right' : 'left'" :style="{ maxWidth: maxWidth }">
+    <div v-if="$slots.styleElement" class="style-element">
+      <slot name="styleElement" />
+    </div>
+    <h3 v-if="$slots.title" class="rokkitt">
+      <slot name="title" />
+    </h3>
+    <p v-if="$slots.content">
+      <slot name="content" />
+    </p>
   </div>
-  <h3 v-if="$slots.title">
-    <slot name="title"/>
-  </h3>
-  <p v-if="$slots.content">
-    <slot name="content"/>
-  </p>
-</div>
 </template>
 
 <style scoped lang="scss">
@@ -35,11 +35,17 @@ withDefaults(defineProps<Props>(), {
     font-weight: 700;
   }
 
-  h3, p {
+  h3,
+  p {
     margin: 0;
   }
 
-  &.left, &.right {
+  p {
+    line-height: 160%;
+  }
+
+  &.left,
+  &.right {
     .style-element {
       position: absolute;
       top: 50%;
@@ -63,7 +69,8 @@ withDefaults(defineProps<Props>(), {
       transform: translateX(1.5rem) translateY(-50%);
     }
 
-    h3, p {
+    h3,
+    p {
       text-align: right;
     }
   }

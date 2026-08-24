@@ -1,18 +1,18 @@
 <script setup lang="ts">
 export interface NewsPost {
-  title: string
-  description: string
-  date: string
-  img_url?: string
+  title: string;
+  description: string;
+  date: string;
+  img_url?: string;
 }
 
-defineProps<{ post: NewsPost }>()
+defineProps<{ post: NewsPost }>();
 </script>
 
 <template>
   <div class="news-card">
     <div v-if="post.img_url" class="news-card-image">
-      <img :src="post.img_url" :alt="post.title">
+      <img :src="post.img_url" :alt="post.title" />
     </div>
     <div class="news-card-content">
       <h4 class="title">{{ post.title }}</h4>
@@ -34,10 +34,9 @@ defineProps<{ post: NewsPost }>()
   .news-card-image {
     padding: 1rem 1rem 0;
     width: 100%;
-    height: 20rem;
 
     img {
-      border-radius: .8rem;
+      border-radius: 0.8rem;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -50,9 +49,17 @@ defineProps<{ post: NewsPost }>()
     gap: 1rem;
     padding: 2rem;
 
-    .title, .date, .description { margin: 0; }
-    .title { font-size: 2rem; }
-    .date { color: var(--gray-500); }
+    .title,
+    .date,
+    .description {
+      margin: 0;
+    }
+    .title {
+      font-size: 2rem;
+    }
+    .date {
+      color: var(--gray-500);
+    }
   }
 }
 </style>

@@ -1,24 +1,21 @@
 <script setup lang="ts">
-import { useOverviewStore } from "~/stores/overview";
+import { useOverviewStore } from '~/stores/overview';
 
 definePageMeta({
-  middleware: "auth",
-  layout: "dashboard",
+  middleware: 'auth',
+  layout: 'dashboard',
 });
 
 const overviewStore = useOverviewStore();
 
-const newMembersMode = ref<"week" | "maand">("week");
+const newMembersMode = ref<'week' | 'maand'>('week');
 
 onMounted(async () => {
-  await Promise.all([
-    overviewStore.fetchNewMembersCount(),
-    overviewStore.fetchMembersHistory(),
-  ]);
+  await Promise.all([overviewStore.fetchNewMembersCount(), overviewStore.fetchMembersHistory()]);
 });
 
 const changeNewMembersMode = () => {
-  newMembersMode.value = newMembersMode.value === "week" ? "maand" : "week";
+  newMembersMode.value = newMembersMode.value === 'week' ? 'maand' : 'week';
 };
 </script>
 

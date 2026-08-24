@@ -18,7 +18,7 @@ export interface ValidationOptions {
  */
 export const validateText = (
   value: string,
-  fieldName: string = "Dit veld",
+  fieldName: string = 'Dit veld',
   options: ValidationOptions = {},
 ): ValidationResult => {
   const { required = true, minLength, maxLength, pattern } = options;
@@ -60,11 +60,10 @@ export const validateText = (
  */
 export const validateName = (
   value: string,
-  fieldName: string = "Naam",
-  options: Omit<ValidationOptions, "pattern"> = {},
+  fieldName: string = 'Naam',
+  options: Omit<ValidationOptions, 'pattern'> = {},
 ): ValidationResult => {
-  const namePattern =
-    /^[a-zA-ZàáâãäåçèéêëìíîïðñòóôõöùúûüýÿÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝŸ\s'-]+$/;
+  const namePattern = /^[a-zA-ZàáâãäåçèéêëìíîïðñòóôõöùúûüýÿÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝŸ\s'-]+$/;
 
   return validateText(value, fieldName, {
     ...options,
@@ -80,7 +79,7 @@ export const validateName = (
  */
 export const validateEmail = (
   value: string,
-  fieldName: string = "Email",
+  fieldName: string = 'Email',
   options: { required?: boolean; maxLength?: number } = {},
 ): ValidationResult => {
   const { required = true, maxLength = 254 } = options;
@@ -110,10 +109,10 @@ export const validateEmail = (
  */
 export const validatePhone = (
   value: string,
-  fieldName: string = "Telefoonnummer",
-  options: { required?: boolean; country?: "BE" | "NL" | "generic" } = {},
+  fieldName: string = 'Telefoonnummer',
+  options: { required?: boolean; country?: 'BE' | 'NL' | 'generic' } = {},
 ): ValidationResult => {
-  const { required = true, country = "BE" } = options;
+  const { required = true, country = 'BE' } = options;
 
   if (required && (!value || value.trim().length === 0)) {
     return { isValid: false, error: `${fieldName} is verplicht` };
@@ -123,18 +122,18 @@ export const validatePhone = (
     return { isValid: true }; // Optional and empty
   }
 
-  const cleanPhone = value.replace(/[\s\-\.\/\(\)]/g, "");
+  const cleanPhone = value.replace(/[\s\-\.\/\(\)]/g, '');
 
   let phoneRegex: RegExp;
   let errorMsg: string;
 
   switch (country) {
-    case "BE":
+    case 'BE':
       // Belgian: 04XX XX XX XX or 0X XXX XX XX
       phoneRegex = /^(\+32|0032|0)?[1-9]\d{7,8}$/;
       errorMsg = `${fieldName} is ongeldig (verwacht Belgisch nummer)`;
       break;
-    case "NL":
+    case 'NL':
       // Dutch: 06 XXXX XXXX or 0XX XXX XXXX
       phoneRegex = /^(\+31|0031|0)?[1-9]\d{8,9}$/;
       errorMsg = `${fieldName} is ongeldig (verwacht Nederlands nummer)`;
@@ -157,11 +156,11 @@ export const validatePhone = (
  */
 export const validateDate = (
   value: string,
-  fieldName: string = "Datum",
+  fieldName: string = 'Datum',
   options: {
     required?: boolean;
-    min?: Date | "today" | "past";
-    max?: Date | "today" | "future";
+    min?: Date | 'today' | 'past';
+    max?: Date | 'today' | 'future';
     minAge?: number;
     maxAge?: number;
   } = {},
@@ -185,13 +184,13 @@ export const validateDate = (
   }
 
   // Handle min constraint
-  if (min === "today" && date < today) {
+  if (min === 'today' && date < today) {
     return {
       isValid: false,
       error: `${fieldName} moet vandaag of in de toekomst zijn`,
     };
   }
-  if (min === "past" && date >= today) {
+  if (min === 'past' && date >= today) {
     return {
       isValid: false,
       error: `${fieldName} moet in het verleden liggen`,
@@ -202,13 +201,13 @@ export const validateDate = (
   }
 
   // Handle max constraint
-  if (max === "today" && date > today) {
+  if (max === 'today' && date > today) {
     return {
       isValid: false,
       error: `${fieldName} kan niet in de toekomst liggen`,
     };
   }
-  if (max === "future" && date <= today) {
+  if (max === 'future' && date <= today) {
     return { isValid: false, error: `${fieldName} moet in de toekomst liggen` };
   }
   if (max instanceof Date && date > max) {
@@ -220,8 +219,7 @@ export const validateDate = (
     const age = today.getFullYear() - date.getFullYear();
     const monthDiff = today.getMonth() - date.getMonth();
     const dayDiff = today.getDate() - date.getDate();
-    const actualAge =
-      monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
 
     if (minAge && actualAge < minAge) {
       return {
@@ -246,7 +244,7 @@ export const validateDate = (
  */
 export const validateSelect = (
   value: string,
-  fieldName: string = "Dit veld",
+  fieldName: string = 'Dit veld',
   options: { required?: boolean; allowedValues?: string[] } = {},
 ): ValidationResult => {
   const { required = true, allowedValues } = options;
@@ -271,7 +269,7 @@ export const validateSelect = (
  */
 export const validateCheckbox = (
   value: boolean,
-  fieldName: string = "Dit veld",
+  fieldName: string = 'Dit veld',
   options: { required?: boolean } = {},
 ): ValidationResult => {
   const { required = true } = options;
@@ -288,7 +286,7 @@ export const validateCheckbox = (
  */
 export const validateNumber = (
   value: string | number,
-  fieldName: string = "Dit veld",
+  fieldName: string = 'Dit veld',
   options: {
     required?: boolean;
     min?: number;
@@ -334,10 +332,10 @@ export const validateNumber = (
  */
 export const validateZipcode = (
   value: string,
-  fieldName: string = "Postcode",
-  options: { required?: boolean; country?: "BE" | "NL" | "generic" } = {},
+  fieldName: string = 'Postcode',
+  options: { required?: boolean; country?: 'BE' | 'NL' | 'generic' } = {},
 ): ValidationResult => {
-  const { required = true, country = "BE" } = options;
+  const { required = true, country = 'BE' } = options;
 
   if (required && (!value || value.trim().length === 0)) {
     return { isValid: false, error: `${fieldName} is verplicht` };
@@ -351,12 +349,12 @@ export const validateZipcode = (
   let errorMsg: string;
 
   switch (country) {
-    case "BE":
+    case 'BE':
       // Belgian: 4 digits, first digit 1-9
       zipRegex = /^[1-9]\d{3}$/;
       errorMsg = `${fieldName} moet 4 cijfers bevatten`;
       break;
-    case "NL":
+    case 'NL':
       // Dutch: 4 digits + 2 letters (1234 AB)
       zipRegex = /^\d{4}\s?[A-Z]{2}$/i;
       errorMsg = `${fieldName} moet het formaat 1234 AB hebben`;
@@ -377,33 +375,30 @@ export const validateZipcode = (
 /**
  * Validates zipcode/postal code
  */
-export const validateGraad = (
-  value: string,
-  fieldName: string = "Graad",
-): ValidationResult => {
+export const validateGraad = (value: string, fieldName: string = 'Graad'): ValidationResult => {
   if (!value || value.trim().length === 0) {
     return { isValid: true }; // Optional and empty
   }
 
   let errorMsg: string;
   const ranks = [
-    "01-Beginner",
-    "02-Kyu 6",
-    "03-Kyu 5",
-    "04-Kyu 4",
-    "05-Kyu 3",
-    "06-Kyu 2",
-    "07-Kyu 1",
-    "08-Dan 1",
-    "09-Dan 2",
-    "10-Dan 3",
-    "11-Dan 4",
-    "12-Dan 5",
-    "13-Dan 6",
-    "14-Dan 7",
-    "15-Dan 8",
-    "16-Dan 9",
-    "17-Dan 10",
+    '01-Beginner',
+    '02-Kyu 6',
+    '03-Kyu 5',
+    '04-Kyu 4',
+    '05-Kyu 3',
+    '06-Kyu 2',
+    '07-Kyu 1',
+    '08-Dan 1',
+    '09-Dan 2',
+    '10-Dan 3',
+    '11-Dan 4',
+    '12-Dan 5',
+    '13-Dan 6',
+    '14-Dan 7',
+    '15-Dan 8',
+    '16-Dan 9',
+    '17-Dan 10',
   ] as const;
 
   if (!(ranks as readonly string[]).includes(value)) {

@@ -1,199 +1,81 @@
 <script setup lang="ts">
-import { countries } from "countries-list";
-import { insertMember } from "~/utils/supabase";
-import {
-  validateName,
-  validateNumber,
-  validateGraad,
-  validateSelect,
-  validateDate,
-  validateText,
-  validateZipcode,
-  validateEmail,
-  validatePhone,
-  validateCheckbox,
-} from "~/utils/validation";
+import { countries } from 'countries-list';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '~/utils/zodValidator';
+import { useMembers } from '~/composables/members/useMembers';
+import { useMemberMutation } from '~/composables/members/useMemberMutation';
+import { Graad, GraadLabel } from '~/utils/enums/members';
+import { upsertMemberSchema, type UpsertMember } from '~/utils/query/members/upsert';
 
-const name = ref<string>("");
-const lastname = ref<string>("");
-const gender = ref<string>("");
-const birthdate = ref<string>("");
-const nation = ref<string>("BE");
-const street = ref<string>("");
-const city = ref<string>("");
-const zipcode = ref<string>("");
-const phone = ref<string>("");
-const email2 = ref<string>("");
-const email = ref<string>("");
-const uitpas = ref<string>("");
-const vergunningnr = ref<string>("");
-const vergunningDatum = ref<string>("");
-const graad = ref<string>("");
-const gordelDatum = ref<string>("");
-const opvolging = ref<string>("");
-const errors = ref<Record<string, string>>({});
-const error = ref<string>("");
-const success = ref<string>("");
-
-const ranks = [
-  { key: "01-Beginner", label: "Beginner" },
-  { key: "02-Kyu 6", label: "6e Kyu" },
-  { key: "03-Kyu 5", label: "5e Kyu" },
-  { key: "04-Kyu 4", label: "4e Kyu" },
-  { key: "05-Kyu 3", label: "3e Kyu" },
-  { key: "06-Kyu 2", label: "2e Kyu" },
-  { key: "07-Kyu 1", label: "1e Kyu" },
-  { key: "08-Dan 1", label: "1e Dan" },
-  { key: "09-Dan 2", label: "2e Dan" },
-  { key: "10-Dan 3", label: "3e Dan" },
-  { key: "11-Dan 4", label: "4e Dan" },
-  { key: "12-Dan 5", label: "5e Dan" },
-  { key: "13-Dan 6", label: "6e Dan" },
-  { key: "14-Dan 7", label: "7e Dan" },
-  { key: "15-Dan 8", label: "8e Dan" },
-  { key: "16-Dan 9", label: "9e Dan" },
-  { key: "17-Dan 10", label: "10e Dan" },
-];
+definePageMeta({
+  middleware: 'auth',
+  layout: 'dashboard',
+});
 
 const showDuplicateModal = ref(false);
 const stayOnPage = ref(false);
+const success = ref('');
 
-const pendingSubmission = ref(false);
+const pendingValues = ref<UpsertMember | null>(null);
 
-const handleSubmit = async (event: SubmitEvent) => {
-  const submitter = event.submitter as HTMLButtonElement;
-  stayOnPage.value = submitter?.value === "stay";
+const { handleSubmit, errors, defineField } = useForm({
+  validationSchema: toTypedSchema(upsertMemberSchema),
+  initialValues: {
+    nationaliteit: 'BE',
+    emails: [],
+    dojos: [],
+  },
+});
 
-  // Reset errors
-  errors.value = {};
-  error.value = "";
-  success.value = "";
+const [voornaam, voornaamAttrs] = defineField('voornaam');
+const [naam, naamAttrs] = defineField('naam');
+const [geslacht, geslachtAttrs] = defineField('geslacht');
+const [geboorteDatum, geboorteDatumAttrs] = defineField('geboorte_datum');
+const [nationaliteit, nationaliteitAttrs] = defineField('nationaliteit');
+const [straat, straatAttrs] = defineField('straat');
+const [postcode, postcodeAttrs] = defineField('postcode');
+const [gemeente, gemeenteAttrs] = defineField('gemeente');
+const [emails, emailsAttrs] = defineField('emails');
+const [gsm, gsmAttrs] = defineField('gsm');
+const [uitpas, uitpasAttrs] = defineField('lidgeld_opmerkingen');
+const [vergunning, vergunningAttrs] = defineField('vergunning');
+const [vergunningGeldigTot, vergunningGeldigTotAttrs] = defineField('vergunning_geldig_tot');
+const [graad, graadAttrs] = defineField('graad');
+const [gordelBehaaldOp, gordelBehaaldOpAttrs] = defineField('gordel_behaald_op');
+const [opvolging, opvolgingAttrs] = defineField('opvolging');
 
-  // Validate all fields
-  const validations: Record<string, any> = {
-    name: validateName(name.value, "Voornaam"),
-    lastname: validateName(lastname.value, "Achternaam"),
-    gender: validateSelect(gender.value, "Geslacht", {
-      allowedValues: ["M", "V"],
-    }),
-    birthdate: validateDate(birthdate.value, "Geboortedatum", { max: "today" }),
-    nation: validateSelect(nation.value, "Nationaliteit"),
-    street: validateText(street.value, "Straat + Nummer", {
-      minLength: 3,
-      maxLength: 100,
-    }),
-    zipcode: validateZipcode(zipcode.value, "Postcode", {
-      country: nation.value as "BE" | "NL",
-    }),
-    city: validateText(city.value, "Gemeente", { minLength: 2, maxLength: 50 }),
-    email: validateEmail(email.value, "Email"),
-    phone: validatePhone(phone.value, "GSM", { country: "BE" }),
-    uitpas:
-      validateText(uitpas.value, "UiTPAS", {
-        required: false,
-        pattern: /^\d{13}$/,
-        customMessage: "UiTPAS moet 13 cijfers bevatten",
-      }) ?? null,
-    vergunningnr:
-      validateNumber(vergunningnr.value, "Vergunning nummer", {
-        required: false,
-      }) ?? null,
-    vergunningDatum:
-      validateDate(vergunningDatum.value, "Vergunning datum", {
-        required: false,
-        max: "today",
-      }) ?? null,
-    graad: validateGraad(graad.value, "Graad") ?? null,
-    gordelDatum:
-      validateDate(gordelDatum.value, "Behaalde gordel datum", {
-        required: false,
-        max: "today",
-      }) ?? null,
-    opvolging:
-      validateText(opvolging.value, "Opvolging", {
-        required: false,
-      }) ?? null,
-    email2:
-      validateEmail(email2.value, "Tweede Email", {
-        required: false,
-      }) ?? null,
-  };
+const { exists } = useMembers();
+const { upsertMember } = useMemberMutation();
 
-  // Collect errors
-  for (const [field, result] of Object.entries(validations)) {
-    if (!result.isValid) {
-      errors.value[field] = result.error!;
+const onSubmit = handleSubmit(
+  (data) => {
+    success.value = '';
+
+    const existingMember = exists(data.voornaam, data.naam, data.geboorte_datum);
+
+    if (existingMember) {
+      pendingValues.value = data;
+      showDuplicateModal.value = true;
+      return;
     }
+
+    upsertMember(data);
+  },
+  (data) => {
+    console.log('invalid', data);
+  },
+);
+
+const confirmDuplicate = () => {
+  if (pendingValues.value) {
+    upsertMember(pendingValues.value);
   }
-
-  // Check if form is valid
-  if (Object.keys(errors.value).length > 0) {
-    error.value = "Gelieve alle velden correct in te vullen";
-    return;
-  }
-
-  // Check if member already exists
-  const existingMember = await getMemberByNameAndBirthdate(
-    name.value,
-    lastname.value,
-    birthdate.value,
-  );
-
-  if (existingMember) {
-    showDuplicateModal.value = true;
-    return;
-  }
-
-  await submitMember();
+  showDuplicateModal.value = false;
 };
 
-const submitMember = async () => {
-  await insertMember(
-    name.value,
-    lastname.value,
-    gender.value,
-    birthdate.value,
-    nation.value,
-    street.value,
-    city.value,
-    zipcode.value,
-    phone.value,
-    email2.value ? [email.value, email2.value] : [email.value],
-    uitpas.value,
-    vergunningnr.value,
-    vergunningDatum.value,
-    graad.value,
-    gordelDatum.value,
-    opvolging.value,
-  );
-
-  success.value = name.value + " succesvol ingeschreven!";
-
-  name.value = "";
-  lastname.value = "";
-  email2.value = "";
-  email.value = "";
-  gender.value = "";
-  phone.value = "";
-  birthdate.value = "";
-  nation.value = "BE";
-  street.value = "";
-  city.value = "";
-  zipcode.value = "";
-  uitpas.value = "";
-  vergunningnr.value = "";
-  vergunningDatum.value = "";
-  graad.value = "";
-  gordelDatum.value = "";
-  opvolging.value = "";
-
+const cancelDuplicate = () => {
   showDuplicateModal.value = false;
-
-  if (stayOnPage.value) {
-    scrollTo(0, 0);
-  } else {
-    navigateTo("/dashboard/ledenlijst");
-  }
+  pendingValues.value = null;
 };
 </script>
 
@@ -203,168 +85,154 @@ const submitMember = async () => {
     title="Bestaand lid gevonden"
     :message="
       'Er bestaat al een lid met dezelfde naam en geboortedatum. Ben je zeker dat je ' +
-      name +
+      pendingValues?.voornaam +
       ' wilt inschrijven?'
     "
-    @cancel="showDuplicateModal = false"
-    @confirm="submitMember"
+    @cancel="cancelDuplicate"
+    @confirm="confirmDuplicate"
   />
   <main id="inschrijven-page">
     <h1>Nieuw lid inschrijven</h1>
 
-    <p v-if="error" class="error-message">{{ error }}</p>
     <p v-if="success" class="success-message">{{ success }}</p>
 
     <section>
-      <form @submit.prevent="handleSubmit">
+      <form @submit.prevent="onSubmit">
         <div class="form-group">
-          <label for="name">Voornaam</label>
+          <label for="voornaam">Voornaam</label>
           <input
-            id="name"
-            v-model="name"
+            id="voornaam"
+            v-model="voornaam"
+            v-bind="voornaamAttrs"
             type="text"
-            required
-            :class="{ error: errors.name }"
+            :class="{ error: errors.voornaam }"
           />
-          <span v-if="errors.name" class="error-text">{{ errors.name }}</span>
+          <span v-if="errors.voornaam" class="error-text">{{ errors.voornaam }}</span>
         </div>
 
         <div class="form-group">
-          <label for="lastname">Achternaam</label>
+          <label for="naam">Achternaam</label>
           <input
-            id="lastname"
-            v-model="lastname"
+            id="naam"
+            v-model="naam"
+            v-bind="naamAttrs"
             type="text"
-            required
-            :class="{ error: errors.lastname }"
+            :class="{ error: errors.naam }"
           />
-          <span v-if="errors.lastname" class="error-text">{{
-            errors.lastname
-          }}</span>
+          <span v-if="errors.naam" class="error-text">{{ errors.naam }}</span>
         </div>
 
         <div class="form-group">
-          <label for="gender">Geslacht</label>
+          <label for="geslacht">Geslacht</label>
           <select
-            id="gender"
-            v-model="gender"
-            required
-            :class="{ error: errors.gender }"
+            id="geslacht"
+            v-model="geslacht"
+            v-bind="geslachtAttrs"
+            :class="{ error: errors.geslacht }"
           >
             <option value="M">Man</option>
             <option value="V">Vrouw</option>
           </select>
-          <span v-if="errors.gender" class="error-text">{{
-            errors.gender
-          }}</span>
+          <span v-if="errors.geslacht" class="error-text">{{ errors.geslacht }}</span>
         </div>
 
         <div class="form-group">
-          <label for="birthdate">Geboortedatum</label>
+          <label for="geboorte_datum">Geboortedatum</label>
           <input
-            id="birthdate"
-            v-model="birthdate"
+            id="geboorte_datum"
+            v-model="geboorteDatum"
+            v-bind="geboorteDatumAttrs"
             type="date"
-            required
-            :class="{ error: errors.birthdate }"
+            :class="{ error: errors.geboorte_datum }"
           />
-          <span v-if="errors.birthdate" class="error-text">{{
-            errors.birthdate
-          }}</span>
+          <span v-if="errors.geboorte_datum" class="error-text">{{ errors.geboorte_datum }}</span>
         </div>
 
         <div class="form-group">
-          <label for="nation">Nationaliteit</label>
+          <label for="nationaliteit">Nationaliteit</label>
           <select
-            id="nation"
-            v-model="nation"
-            required
-            :class="{ error: errors.nation }"
+            id="nationaliteit"
+            v-model="nationaliteit"
+            v-bind="nationaliteitAttrs"
+            :class="{ error: errors.nationaliteit }"
           >
             <option v-for="(c, key) in countries" :value="key" :key="key">
               {{ c.native }}
             </option>
           </select>
-          <span v-if="errors.nation" class="error-text">{{
-            errors.nation
-          }}</span>
+          <span v-if="errors.nationaliteit" class="error-text">{{ errors.nationaliteit }}</span>
         </div>
 
         <div class="form-group">
-          <label for="street">Straat + Nummer</label>
+          <label for="straat">Straat + Nummer</label>
           <input
-            id="street"
-            v-model="street"
+            id="straat"
+            v-model="straat"
+            v-bind="straatAttrs"
             type="text"
-            required
-            :class="{ error: errors.street }"
+            :class="{ error: errors.straat }"
           />
-          <span v-if="errors.street" class="error-text">{{
-            errors.street
-          }}</span>
+          <span v-if="errors.straat" class="error-text">{{ errors.straat }}</span>
         </div>
 
         <div class="form-group">
-          <label for="zipcode">Postcode</label>
+          <label for="postcode">Postcode</label>
           <input
-            id="zipcode"
-            v-model="zipcode"
+            id="postcode"
+            v-model="postcode"
+            v-bind="postcodeAttrs"
             type="text"
-            required
-            :class="{ error: errors.zipcode }"
+            :class="{ error: errors.postcode }"
           />
-          <span v-if="errors.zipcode" class="error-text">{{
-            errors.zipcode
-          }}</span>
+          <span v-if="errors.postcode" class="error-text">{{ errors.postcode }}</span>
         </div>
 
         <div class="form-group">
-          <label for="city">Gemeente</label>
+          <label for="gemeente">Gemeente</label>
           <input
-            id="city"
-            v-model="city"
+            id="gemeente"
+            v-model="gemeente"
+            v-bind="gemeenteAttrs"
             type="text"
-            required
-            :class="{ error: errors.city }"
+            :class="{ error: errors.gemeente }"
           />
-          <span v-if="errors.city" class="error-text">{{ errors.city }}</span>
+          <span v-if="errors.gemeente" class="error-text">{{ errors.gemeente }}</span>
         </div>
 
         <div class="form-group">
           <label for="email">Email</label>
           <input
             id="email"
-            v-model="email"
+            v-model="emails[0]"
+            v-bind="emailsAttrs"
             type="email"
-            required
-            :class="{ error: errors.email }"
+            :class="{ error: errors.emails }"
           />
-          <span v-if="errors.email" class="error-text">{{ errors.email }}</span>
+          <span v-if="errors.emails" class="error-text">{{ errors.emails }}</span>
         </div>
 
         <div class="form-group">
           <label for="email2">Tweede Email</label>
           <input
             id="email2"
-            v-model="email2"
+            v-model="emails[1]"
+            v-bind="emailsAttrs"
             type="email"
-            :class="{ error: errors.email2 }"
+            :class="{ error: errors.emails }"
           />
-          <span v-if="errors.email2" class="error-text">{{
-            errors.email2
-          }}</span>
+          <span v-if="errors.emails" class="error-text">{{ errors.emails }}</span>
         </div>
 
         <div class="form-group">
-          <label for="phone">GSM</label>
+          <label for="gsm">GSM</label>
           <input
-            id="phone"
-            v-model="phone"
+            id="gsm"
+            v-model="gsm"
+            v-bind="gsmAttrs"
             type="tel"
-            required
-            :class="{ error: errors.phone }"
+            :class="{ error: errors.gsm }"
           />
-          <span v-if="errors.phone" class="error-text">{{ errors.phone }}</span>
+          <span v-if="errors.gsm" class="error-text">{{ errors.gsm }}</span>
         </div>
 
         <div class="form-group">
@@ -372,90 +240,80 @@ const submitMember = async () => {
           <input
             id="uitpas"
             v-model="uitpas"
+            v-bind="uitpasAttrs"
             type="text"
             :class="{ error: errors.uitpas }"
           />
-          <span v-if="errors.uitpas" class="error-text">{{
-            errors.uitpas
-          }}</span>
+          <span v-if="errors.uitpas" class="error-text">{{ errors.uitpas }}</span>
         </div>
 
         <div class="form-group">
-          <label for="vergunningnr">Vergunning nr.</label>
+          <label for="vergunning">Vergunning nr.</label>
           <input
-            id="vergunningnr"
-            v-model="vergunningnr"
-            type="text"
-            :class="{ error: errors.vergunningnr }"
+            id="vergunning"
+            v-model="vergunning"
+            v-bind="vergunningAttrs"
+            type="number"
+            :class="{ error: errors.vergunning }"
           />
-          <span v-if="errors.vergunningnr" class="error-text">{{
-            errors.vergunningnr
-          }}</span>
+          <span v-if="errors.vergunning" class="error-text">{{ errors.vergunning }}</span>
         </div>
 
         <div class="form-group">
-          <label for="vergunningDatum">Vergunning datum</label>
+          <label for="vergunning_geldig_tot">Vergunning datum</label>
           <input
-            id="vergunningDatum"
-            v-model="vergunningDatum"
+            id="vergunning_geldig_tot"
+            v-model="vergunningGeldigTot"
+            v-bind="vergunningGeldigTotAttrs"
             type="date"
-            :class="{ error: errors.vergunningDatum }"
+            :class="{ error: errors.vergunning_geldig_tot }"
           />
-          <span v-if="errors.vergunningDatum" class="error-text">{{
-            errors.vergunningDatum
+          <span v-if="errors.vergunning_geldig_tot" class="error-text">{{
+            errors.vergunning_geldig_tot
           }}</span>
         </div>
 
         <div class="form-group">
           <label for="graad">Graad</label>
-          <select id="graad" v-model="graad" :class="{ error: errors.graad }">
-            <option v-for="{ key, label } in ranks" :value="key" :key="key">
-              {{ label }}
+          <select id="graad" v-model="graad" v-bind="graadAttrs" :class="{ error: errors.graad }">
+            <option v-for="key in Graad" :value="key" :key="key">
+              {{ GraadLabel[key] }}
             </option>
           </select>
           <span v-if="errors.graad" class="error-text">{{ errors.graad }}</span>
         </div>
 
         <div class="form-group">
-          <label for="gordelDatum">Behaalde gordel datum</label>
+          <label for="gordel_behaald_op">Behaalde gordel datum</label>
           <input
-            id="gordelDatum"
-            v-model="gordelDatum"
+            id="gordel_behaald_op"
+            v-model="gordelBehaaldOp"
+            v-bind="gordelBehaaldOpAttrs"
             type="date"
-            :class="{ error: errors.gordelDatum }"
+            :class="{ error: errors.gordel_behaald_op }"
           />
-          <span v-if="errors.gordelDatum" class="error-text">{{
-            errors.gordelDatum
+          <span v-if="errors.gordel_behaald_op" class="error-text">{{
+            errors.gordel_behaald_op
           }}</span>
         </div>
 
         <div class="form-group full">
-          <label for="opvoling">Opvolging</label>
+          <label for="opvolging">Opvolging</label>
           <textarea
-            id="opvoling"
+            id="opvolging"
             v-model="opvolging"
+            v-bind="opvolgingAttrs"
             rows="10"
             :class="{ error: errors.opvolging }"
           />
-          <span v-if="errors.opvolging" class="error-text">{{
-            errors.opvolging
-          }}</span>
+          <span v-if="errors.opvolging" class="error-text">{{ errors.opvolging }}</span>
         </div>
 
         <div class="form-item">
-          <!-- <button type="submit" class="submit-btn" @click="stay = true">
-            Opslaan en nog één toevoegen
-          </button>
-          <button type="submit" class="submit-btn" @click="stay = false">
-            Opslaan
-          </button> -->
-          <button type="submit" class="btn warning" name="action" value="stay">
+          <button type="submit" class="btn warning" @click="stayOnPage = true">
             Opslaan en blijven
           </button>
-
-          <button type="submit" class="btn success" name="action" value="back">
-            Opslaan
-          </button>
+          <button type="submit" class="btn success" @click="stayOnPage = false">Opslaan</button>
         </div>
       </form>
     </section>
@@ -466,11 +324,42 @@ const submitMember = async () => {
 #inschrijven-page {
   section {
     padding: var(--page-margin);
+    max-width: 80rem;
+    margin: 0 auto;
 
     form {
       display: grid;
       grid-template-columns: 100%;
       gap: 1rem;
+
+      .form-group {
+        position: relative;
+
+        .error-text {
+          position: absolute;
+          bottom: -1.2rem;
+          left: 0;
+          font-size: 0.75rem;
+        }
+      }
+
+      label {
+        font-size: 0.9rem;
+        letter-spacing: 3%;
+        color: var(--gray-800);
+      }
+
+      input,
+      select {
+        font-family: 'DM Sans';
+        font-size: 1rem;
+        letter-spacing: 3%;
+        color-scheme: light;
+
+        @media (prefers-color-scheme: dark) {
+          color-scheme: dark;
+        }
+      }
 
       /* button[type="submit"] {
         display: inline-flex;

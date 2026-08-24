@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Rokkitt:ital,wght@0,100..900;1,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Rokkitt:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
   // BASE COLORS
@@ -12,6 +12,8 @@
   --gray-800: #383838;
   --gray-900: #1a1a1a;
   --black: #000;
+
+  --accent-100: #e3d0d1;
 
   --red: #cb161e;
   --orange: #fd9438;
@@ -70,10 +72,15 @@
   --blue-50: rgb(34, 101, 247, 0.5);
   --brown-50: rgb(123, 85, 51, 0.5);
 
+  --danger-20: rgb(220, 38, 38, 0.2);
   --danger-30: rgb(220, 38, 38, 0.3);
+  --danger-40: rgb(220, 38, 38, 0.4);
   --danger-50: rgb(220, 38, 38, 0.5);
+  --danger-70: rgb(220, 38, 38, 0.7);
   --warning-10: rgb(255, 193, 7, 0.1);
+  --warning-20: rgb(255, 193, 7, 0.2);
   --warning-50: rgb(255, 193, 7, 0.5);
+  --success-20: rgb(22, 163, 74, 0.2);
   --success-50: rgb(22, 163, 74, 0.5);
 
   // SPACERS
@@ -91,6 +98,8 @@
     --gray-700: #a9a9a9;
     --gray-800: #c8c8c8;
     --gray-900: #e6e6e6;
+
+    --accent-100: #2d1a1b;
 
     // OPACITY COLORS
     --primary-10: rgba(26, 26, 26, 0.1);
@@ -137,10 +146,13 @@ svg::selection {
 :focus-visible {
   transition: none;
   outline: var(--accent) solid 2px;
+  border-radius: 8px;
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondary-50) transparent;
 }
 
 body {
@@ -149,22 +161,23 @@ body {
   min-height: 100dvh;
   margin: 0 auto;
   background-color: var(--primary);
-  background-image: url("/assets/svg/background-light.svg");
+  background-image: url('/assets/svg/background-light.svg');
   background-repeat: no-repeat;
   background-position: top center;
   background-size: cover;
-  color: var(--secondary);
-  font-family: "Rokkitt", Arial, serif;
+  font-family: 'DM Sans', Arial, serif;
   font-optical-sizing: auto;
-  font-weight: 400;
+  font-weight: 500;
   font-style: normal;
-  font-size: 1.25rem;
+  font-size: 1rem;
+  letter-spacing: 3%;
+  color: var(--secondary);
   overflow-x: hidden;
 }
 
 @media (prefers-color-scheme: dark) {
   body {
-    background-image: url("/assets/svg/background-dark.svg");
+    background-image: url('/assets/svg/background-dark.svg');
   }
 }
 
@@ -184,7 +197,7 @@ main {
 
     &::after {
       position: absolute;
-      content: "";
+      content: '';
       bottom: 1px;
       left: 0;
       display: block;
@@ -200,15 +213,17 @@ section {
 }
 
 h1 {
+  font-family: 'Rokkitt', Arial, serif;
   margin-top: 1rem;
   margin-bottom: 5rem;
   font-size: 3rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 h2 {
+  font-family: 'Rokkitt', Arial, serif;
   font-size: 3.5rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0;
 }
 
@@ -223,36 +238,41 @@ h4 {
   font-weight: 400;
 }
 
+b {
+  font-weight: 800;
+}
+
 input,
 select,
 textarea {
   padding: 0.4rem 0.6rem;
-  border-radius: 0.8rem;
+  border-radius: 0.5rem;
   border: 2px solid var(--secondary-50);
   background-color: var(--primary-60);
   color: var(--secondary);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 400;
-  font-family: "Rokkitt", Arial, serif;
+  font-family: 'Rokkitt', Arial, serif;
+  letter-spacing: 2%;
   accent-color: var(--accent);
   transition: none;
 
-  &:focus {
+  &:focus,
+  &:focus-visible {
     outline: none;
     border-color: var(--accent);
+    border-radius: 0.5rem;
   }
 
-  &[type="checkbox"] {
+  &[type='checkbox'] {
+    outline: none;
     cursor: pointer;
-  }
-
-  &[type="checkbox"]:focus {
-    outline: var(--accent) solid 2px;
   }
 }
 
 label {
-  font-size: 1.2rem;
+  font-size: 1.125rem;
+  color: var(--gray-800);
 }
 
 option {
@@ -265,7 +285,7 @@ select:required + label::after,
 label:has(+ input:required)::after,
 label:has(+ select:required)::after,
 label:has(+ textarea:required)::after {
-  content: " *";
+  content: ' *';
   color: var(--accent);
 }
 
@@ -340,6 +360,37 @@ button,
       background-color: var(--gray-700);
     }
   }
+
+  &.action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    border: none;
+    background: var(--secondary-10);
+    color: var(--secondary);
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.4rem;
+
+    &.danger {
+      background: var(--danger-20);
+      color: var(--danger);
+      border: none;
+    }
+
+    &.warning {
+      background: var(--warning-20);
+      color: var(--warning);
+      border: none;
+    }
+
+    &.success {
+      background: var(--success-20);
+      color: var(--success);
+      border: none;
+    }
+  }
 }
 
 // BREAKPOINTS
@@ -400,13 +451,13 @@ button,
   }
 
   h3 {
-    font-size: 3.2rem;
+    font-size: 2.8rem;
     font-weight: 400;
   }
 
   h4 {
     color: var(--accent);
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 400;
   }
 }
@@ -417,13 +468,13 @@ button,
   }
 
   h3 {
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 400;
   }
 
   h4 {
     color: var(--accent);
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 400;
   }
 }

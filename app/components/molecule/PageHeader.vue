@@ -1,10 +1,10 @@
 <script setup lang="ts">
 interface Props {
-  title: string
-  hideAdminActions?: boolean
+  title: string;
+  hideAdminActions?: boolean;
 }
 
-defineProps<Props>()
+defineProps<Props>();
 </script>
 
 <template>
@@ -60,13 +60,11 @@ defineProps<Props>()
   }
 }
 
-
-
 @media screen and (width >= 64rem) {
   .page-header {
     flex-direction: row;
     justify-content: space-between;
-    margin: 5rem 0 1rem;
+    margin: 0;
 
     h1 {
       order: 2;
