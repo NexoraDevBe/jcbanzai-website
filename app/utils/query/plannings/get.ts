@@ -32,6 +32,7 @@ export const get = async (body: GetPlanning): Promise<Plannings> => {
     .from('Planning')
     .select('*')
     .order('day', { ascending: false })
+    .order('type', { ascending: false })
     .gte('day', parsed.from)
     .lt('day', parsed.to)
     .overrideTypes<PlanningResponse[], { merge: false }>();

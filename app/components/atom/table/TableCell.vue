@@ -1,27 +1,16 @@
 <script setup lang="ts">
-defineProps<{ value: string | string[]; className?: string; badge?: string }>();
+defineProps<{ value?: string | string[]; className?: string }>();
 </script>
 <template>
   <div class="cell" :class="[className]">
-    <div
-      v-if="Array.isArray(value)"
-      v-for="item in value"
-      :class="[badge ? 'badge-' + badge + '-' + item : '']"
-      :key="item"
-    >
-      {{ item }}
+    <div v-if="Array.isArray(value)" v-for="item in value" :key="item">
+      <span>{{ item }}</span>
     </div>
-    <div v-else :class="[badge ? 'badge-' + badge : '']">{{ value }}</div>
+    <div v-else-if="value">{{ value }}</div>
+    <slot v-else />
   </div>
 </template>
 <style lang="scss" scoped>
-@mixin badge {
-  flex-grow: 1;
-  padding: 0 0.3rem;
-  border-radius: 0.5rem;
-  width: fit-content;
-}
-
 .cell {
   display: flex;
   flex-direction: column;
@@ -31,30 +20,10 @@ defineProps<{ value: string | string[]; className?: string; badge?: string }>();
   margin: 1px;
   overflow: hidden;
 
-  .badge- {
-    &maandag {
-      @include badge;
-      background: yellowgreen;
-      color: var(--dark);
-    }
-
-    &woensdag {
-      @include badge;
-      background: darkorange;
-      color: var(--dark);
-    }
-
-    &donderdag {
-      @include badge;
-      background: steelblue;
-      color: var(--light);
-    }
-
-    &zondag {
-      @include badge;
-      background: whitesmoke;
-      color: var(--dark);
-    }
+  &.badge-wrapper {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 }
 </style>

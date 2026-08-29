@@ -80,11 +80,13 @@ const typeOptions = [
   { value: 'kleuters', label: 'kleuters' },
   { value: 'geen-les', label: 'geen les' },
 ];
+const selectedMonth = ref<string>('2026-08');
 
-const { data, isLoading } = usePlannings();
+const { data, isLoading, distinctMonthOptions, planningByMonth } = usePlannings({
+  from: selectedMonth.value + '-01',
+  to: selectedMonth.value + '-31',
+});
 const safeData = computed(() => data.value ?? []);
-
-console.log(data.value);
 
 const columns = computed<ColumnDef<Planning>[]>(() => [
   {
@@ -131,6 +133,12 @@ onMounted(async () => {
   // now distinctMonths is populated before we check it
   await planningStore.fetchPlanningByMonth(year, month);
 });
+
+const logType = (year: number, month: number) => {
+  console.log(planningByMonth.value.get(year + '-' + month));
+};
+
+const user = await userStore.getUser();
 </script>
 
 <template>
@@ -159,6 +167,11 @@ onMounted(async () => {
 
     <section class="data-table-container">
       <MoleculeTableActions :columns="columns" :data="[]" hideFilter hideSearch hideSort>
+        <select v-model="selectedMonth">
+          <option v-for="month in distinctMonthOptions" :key="month.value" :value="month.value">
+            {{ month.label }}
+          </option>
+        </select>
         <AtomTableButton
           @click="() => navigateTo('/dashboard/planning/create')"
           :disabled="false"
@@ -184,27 +197,26 @@ onMounted(async () => {
         reorderable
       >
         <template #cell-weekday="{ cell }">
-          <AtomTableCell :value="cell" :badge="cell" />
+          <AtomTableCell className="badge-wrapper">
+            <AtomBadge :variant="cell">
+              {{ cell }}
+            </AtomBadge>
+          </AtomTableCell>
+        </template>
+
+        <template #cell-day="{ cell }">
+          <AtomTableCell :value="formatDateTo(cell, 'MMD')" :badge="cell" />
+        </template>
+
+        <template #cell-planning="{ cell }">
+          <AtomTableCell className="badge-wrapper">
+            <AtomBadge v-for="item in cell.filter(Boolean)" :key="item" variant="default">
+              {{ item }}
+            </AtomBadge>
+          </AtomTableCell>
         </template>
       </MoleculeTable>
     </section>
-
-    <!-- <section class="data-table-container">
-      <MoleculeDataTable
-        v-if="!planningStore.isLoading"
-        :columns="columns"
-        :data="planningStore.planning"
-        :filter-items="planningStore.filterItems"
-        :sort-key="planningStore.sortKey"
-        :sort-order="planningStore.sortOrder"
-        :changed-coords="planningStore.changedCoords"
-        @sort="planningStore.setSort"
-        @filter="planningStore.setFilter"
-        @update="planningStore.updatePlanningField"
-        @add-array-item="planningStore.addArrayItem"
-        @remove-array-item="planningStore.removeArrayItem"
-      />
-    </section> -->
   </main>
 </template>
 
@@ -213,16 +225,6 @@ onMounted(async () => {
   padding: 4rem 0 calc(var(--page-margin) / 2);
   margin-bottom: 0;
   height: 100dvh;
-
-  .actions {
-    display: flex;
-    width: 100%;
-    gap: 0.5rem;
-
-    > :first-child {
-      flex-grow: 1;
-    }
-  }
 
   .data-table-container {
     display: flex;

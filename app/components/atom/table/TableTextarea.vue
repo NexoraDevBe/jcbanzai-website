@@ -81,7 +81,12 @@ const handleCommit = () => {
       <button class="save" @click="handleCommit">Opslaan</button>
     </div>
     <AtomTableCell
-      :value="localValue ? localValue.toString() : ''"
+      :value="
+        localValue
+          ? localValue.toString().substring(0, 50) +
+            (localValue.toString().length > 50 ? '...' : '')
+          : ''
+      "
       @click="startEdit(row, column)"
     />
     <div v-if="loading" class="loadingState" />

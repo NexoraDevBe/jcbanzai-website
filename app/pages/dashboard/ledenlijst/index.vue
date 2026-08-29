@@ -462,16 +462,6 @@ const onRemove = (id: number) => {
   margin-bottom: 0;
   height: 100dvh;
 
-  .actions {
-    display: flex;
-    width: 100%;
-    gap: 0.5rem;
-
-    > :first-child {
-      flex-grow: 1;
-    }
-  }
-
   .data-table-container {
     display: flex;
     flex-direction: column;

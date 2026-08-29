@@ -17,9 +17,12 @@
 
   --red: #cb161e;
   --orange: #fd9438;
+  --orange-yellow: #fdc56f;
   --yellow: #ffe62d;
   --green: #20ac20;
+  --teal: #14b8a6;
   --blue: #2265f7;
+  --indigo: #6366f1;
   --brown: #7b5533;
 
   --danger: #dc2626;
@@ -33,7 +36,36 @@
   --light: #e6e6e6;
   --dark: #1a1a1a;
 
+  // WEEKDAY COLORS
+  --monday: var(--red);
+  --tuesday: var(--orange);
+  --wednesday: var(--orange-yellow);
+  --thursday: var(--teal);
+  --friday: var(--blue);
+  --saturday: var(--indigo);
+  --sunday: var(--light);
+
   // OPACITY COLORS
+
+  --light-10: rgba(230, 230, 230, 0.1);
+  --light-20: rgba(230, 230, 230, 0.2);
+  --light-30: rgba(230, 230, 230, 0.3);
+  --light-40: rgba(230, 230, 230, 0.4);
+  --light-50: rgba(230, 230, 230, 0.5);
+  --light-60: rgba(230, 230, 230, 0.6);
+  --light-70: rgba(230, 230, 230, 0.7);
+  --light-80: rgba(230, 230, 230, 0.8);
+  --light-90: rgba(230, 230, 230, 0.9);
+
+  --dark-10: rgba(26, 26, 26, 0.1);
+  --dark-20: rgba(26, 26, 26, 0.2);
+  --dark-30: rgba(26, 26, 26, 0.3);
+  --dark-40: rgba(26, 26, 26, 0.4);
+  --dark-50: rgba(26, 26, 26, 0.5);
+  --dark-60: rgba(26, 26, 26, 0.6);
+  --dark-70: rgba(26, 26, 26, 0.7);
+  --dark-80: rgba(26, 26, 26, 0.8);
+  --dark-90: rgba(26, 26, 26, 0.9);
 
   --primary-10: rgba(230, 230, 230, 0.1);
   --primary-20: rgba(230, 230, 230, 0.2);
