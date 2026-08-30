@@ -1,5 +1,5 @@
 import z from 'zod';
-import type { PlanningType } from '~/utils/enums/planning';
+import { PlanningType, PlanningTypeOrder } from '~/utils/enums/planning';
 
 export type Planning = {
   id: number;
@@ -31,13 +31,25 @@ export const get = async (body: GetPlanning): Promise<Plannings> => {
   const { data } = await supabase
     .from('Planning')
     .select('*')
-    .order('day', { ascending: false })
-    .order('type', { ascending: false })
+    // .order('day', { ascending: true })
+    // .order('type', { ascending: false })
     .gte('day', parsed.from)
     .lt('day', parsed.to)
     .overrideTypes<PlanningResponse[], { merge: false }>();
 
-  return (data ?? []).map((planning) => ({
+  const sorted = computed(() =>
+    (data ?? []).sort((a, b) => {
+      const dayComparison = a.day.localeCompare(b.day);
+
+      if (dayComparison !== 0) {
+        return dayComparison;
+      }
+
+      return PlanningTypeOrder.indexOf(a.type) - PlanningTypeOrder.indexOf(b.type);
+    }),
+  );
+
+  return sorted.value.map((planning) => ({
     ...planning,
     weekday: formatDateToWeekDay(planning.day),
   }));

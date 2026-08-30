@@ -17,3 +17,11 @@ export const PlanningTypeLabel = {
 } as const;
 
 export type PlanningTypeLabel = (typeof PlanningTypeLabel)[keyof typeof PlanningTypeLabel];
+
+export const PlanningTypeOrder: PlanningType[] = [
+  PlanningType.KLEUTERS,
+  PlanningType.JEUGD,
+  PlanningType.GEZAMENLIJK,
+  PlanningType.VOLWASSENEN,
+  PlanningType.WEDSTRIJDEN,
+];
