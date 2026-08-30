@@ -137,19 +137,27 @@ export async function upsert(body: UpsertMember): Promise<Member | undefined> {
   };
   const { data: parsed, error } = upsertMemberSchema.safeParse(payload);
 
-  window.alert(
-    'Opslaan mislukt, contacteer Laurens met deze melding: \n\nUpsert member data: \n' + error,
-  );
   if (error) {
+    window.alert(
+      'Opslaan mislukt, contacteer Laurens met deze melding: \n\nUpsert member data: \n' + error,
+    );
     return undefined;
   }
 
-  const { data: result } = await supabase
+  const { data: result, error: supabaseError } = await supabase
     .from('Members')
     .upsert(parsed)
     .select('*')
     .eq('id', parsed.id)
     .overrideTypes<Members, { merge: false }>();
+
+  if (supabaseError) {
+    window.alert(
+      'Opslaan mislukt, contacteer Laurens met deze melding: \n\nSupabase upsert member data: \n' +
+        supabaseError,
+    );
+    return undefined;
+  }
 
   const member = result?.[0];
   if (!member) return undefined;

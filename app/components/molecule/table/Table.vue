@@ -356,7 +356,7 @@ function measureRow(el: Element | ComponentPublicInstance | null, index: number)
 
     .tr {
       background: var(--primary);
-      border: 1px solid var(--secondary-20);
+      border: 1px solid var(--gray-300);
       border-radius: 0.75rem;
       overflow: hidden;
     }
@@ -370,7 +370,7 @@ function measureRow(el: Element | ComponentPublicInstance | null, index: number)
       width: 100%;
       box-sizing: border-box;
       padding: 0.3rem 0.5rem;
-      border-bottom: 1px solid var(--secondary-10);
+      border-bottom: 1px solid var(--gray-200);
       min-height: 2.25rem;
 
       &::before {
@@ -413,7 +413,7 @@ function measureRow(el: Element | ComponentPublicInstance | null, index: number)
 
   @media (min-width: 48rem) {
     overflow: auto;
-    border: 1px solid var(--secondary-20);
+    border: 1px solid var(--gray-300);
     border-radius: 0.75rem;
     background: var(--primary);
 

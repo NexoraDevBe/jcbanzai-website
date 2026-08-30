@@ -6,7 +6,9 @@ defineProps<{ value?: string | string[]; className?: string }>();
     <div v-if="Array.isArray(value)" v-for="item in value" :key="item">
       <span>{{ item }}</span>
     </div>
-    <div v-else-if="value">{{ value }}</div>
+    <div v-else-if="value">
+      <span>{{ value }}</span>
+    </div>
     <slot v-else />
   </div>
 </template>
@@ -19,6 +21,12 @@ defineProps<{ value?: string | string[]; className?: string }>();
   min-height: 1.5rem;
   margin: 1px;
   overflow: hidden;
+
+  > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   &.badge-wrapper {
     flex-direction: row;

@@ -39,7 +39,7 @@ export const get = async (body: GetPlanning): Promise<Plannings> => {
 
   const sorted = computed(() =>
     (data ?? []).sort((a, b) => {
-      const dayComparison = a.day.localeCompare(b.day);
+      const dayComparison = a.day.localeCompare(b.day) * -1;
 
       if (dayComparison !== 0) {
         return dayComparison;

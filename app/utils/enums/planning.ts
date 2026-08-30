@@ -1,19 +1,21 @@
 export const PlanningType = {
   KLEUTERS: 'kleuters',
-  GEZAMENLIJK: 'gezamenlijk',
   JEUGD: 'jeugd',
+  GEZAMENLIJK: 'gezamenlijk',
   VOLWASSENEN: 'volwassenen',
-  WEDSTRIJDEN: 'wedstrijden',
+  WEDSTRIJD: 'wedstrijd',
+  GEEN_LES: 'geen-les',
 } as const;
 
 export type PlanningType = (typeof PlanningType)[keyof typeof PlanningType];
 
 export const PlanningTypeLabel = {
   [PlanningType.KLEUTERS]: 'Kleuters',
-  [PlanningType.GEZAMENLIJK]: 'Gezamenlijk',
   [PlanningType.JEUGD]: 'Jeugd',
+  [PlanningType.GEZAMENLIJK]: 'Gezamenlijk',
   [PlanningType.VOLWASSENEN]: 'Volwassenen',
-  [PlanningType.WEDSTRIJDEN]: 'Wedstrijden',
+  [PlanningType.WEDSTRIJD]: 'Wedstrijd',
+  [PlanningType.GEEN_LES]: 'Geen les',
 } as const;
 
 export type PlanningTypeLabel = (typeof PlanningTypeLabel)[keyof typeof PlanningTypeLabel];
@@ -23,5 +25,20 @@ export const PlanningTypeOrder: PlanningType[] = [
   PlanningType.JEUGD,
   PlanningType.GEZAMENLIJK,
   PlanningType.VOLWASSENEN,
-  PlanningType.WEDSTRIJDEN,
+  PlanningType.WEDSTRIJD,
+];
+
+interface WeeklySchedule {
+  day: number;
+  type: PlanningType;
+}
+
+export const WeekSchedule: WeeklySchedule[] = [
+  { day: 1, type: PlanningType.JEUGD },
+  { day: 1, type: PlanningType.VOLWASSENEN },
+  { day: 3, type: PlanningType.WEDSTRIJD },
+  { day: 4, type: PlanningType.JEUGD },
+  { day: 4, type: PlanningType.VOLWASSENEN },
+  { day: 0, type: PlanningType.KLEUTERS },
+  { day: 0, type: PlanningType.GEZAMENLIJK },
 ];

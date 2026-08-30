@@ -1,32 +1,30 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-
 const sponsorItems = [
-  {
-    path: '/assets/images/cbl-welding.png',
-    link: 'https://cbl-welding.com/',
-    name: 'CBL Welding',
-  },
+  // {
+  //   path: '/assets/images/cbl-welding.png',
+  //   link: 'https://cbl-welding.com/',
+  //   name: 'CBL Welding',
+  // },
   {
     path: '/assets/images/d-bro.png',
     link: 'https://d-bro.eu/',
     name: 'D-Bro',
   },
-  {
-    path: '/assets/images/devoldere-advocaten.png',
-    link: 'https://devoldere.be/',
-    name: 'Devoldere Advocaten',
-  },
+  // {
+  //   path: '/assets/images/devoldere-advocaten.png',
+  //   link: 'https://devoldere.be/',
+  //   name: 'Devoldere Advocaten',
+  // },
   {
     path: '/assets/images/heyde-jelle.png',
     link: 'https://velit.be/',
     name: 'Heyde Jelle',
   },
-  {
-    path: '/assets/images/pijpaert.png',
-    link: 'https://thierrypijpaert.be/',
-    name: 'Pijpaert',
-  },
+  // {
+  //   path: '/assets/images/pijpaert.png',
+  //   link: 'https://thierrypijpaert.be/',
+  //   name: 'Pijpaert',
+  // },
   {
     path: '/assets/images/renovatie.png',
     link: 'https://www.goedonderjedak.be/',

@@ -9,10 +9,20 @@ export type PlanningParams = {
 };
 
 export const usePlannings = (params?: PlanningParams) => {
+  const now = new Date();
+  const threeMonthsAgo = new Date(now);
+  threeMonthsAgo.setMonth(now.getMonth() - 3);
+
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
   const { data, ...rest } = useQuery<Plannings, Error, Plannings, QueryKey[]>({
     queryKey: [QueryKey.PLANNINGS],
     queryFn: () =>
-      api.plannings.get({ from: params?.from ?? '2026-01-01', to: params?.to ?? '2026-12-31' }),
+      api.plannings.get({
+        from: params?.from ?? `${threeMonthsAgo.getFullYear()}-${threeMonthsAgo.getMonth() + 1}-01`,
+        to: params?.to ?? `${year + 1}-${month}-01`,
+      }),
   });
 
   const distinctMonthOptions = computed(() => {
@@ -26,7 +36,8 @@ export const usePlannings = (params?: PlanningParams) => {
     }
 
     return Array.from(months.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
+      .sort()
+      .reverse()
       .map(([value, label]) => ({ value, label }));
   });
 

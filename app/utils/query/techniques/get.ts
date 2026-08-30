@@ -1,16 +1,16 @@
 import type { Belt } from '~/utils/enums/tehcniques';
 
-export type Planning = {
+export type Technique = {
   id: number;
   name: string;
   belt: Belt;
 };
 
-export type MemberResponse = Omit<Planning, 'leeftijd'>;
+export type MemberResponse = Omit<Technique, 'leeftijd'>;
 
-export type Plannings = Planning[];
+export type Plannings = Technique[];
 
-export const get = async (): Promise<Members> => {
+export const get = async (): Promise<Technique> => {
   const supabase = useSupabase();
 
   const { data } = await supabase

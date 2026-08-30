@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type {News} from "~/types";
+import type { News } from '~/types';
 
 defineProps<{
-  post: News
-}>()
+  post: News;
+}>();
 </script>
 
 <template>
-<div class="alert-card">
-  <h4 class="title">{{ post.title }}</h4>
-  <p v-if="post.description" class="description">
-    {{ post.description }}
-  </p>
-</div>
+  <div class="alert-card">
+    <h4 class="title">{{ post.title }}</h4>
+    <p v-if="post.description" class="description">
+      {{ post.description }}
+    </p>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -24,25 +24,30 @@ defineProps<{
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: .6rem;
+  gap: 0.6rem;
 
   width: 100%;
-  height: 3.5rem;
-  padding: .6rem 1.2rem;
-  border-radius: .8rem;
+  height: fit-content;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+
   @media screen and (width >= 64rem) {
     padding: 1.2rem;
     border-radius: 1rem;
     height: fit-content;
   }
 
-  .title, .date, .description { margin: 0; }
+  .title,
+  .date,
+  .description {
+    margin: 0;
+  }
   .title {
-    font-size: 1.3rem;
+    font-size: 0.8rem;
     color: var(--secondary);
 
     @media screen and (width >= 64rem) {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
     }
   }
   .description {
@@ -53,6 +58,8 @@ defineProps<{
       display: block;
     }
   }
-  .date { color: var(--gray-500); }
+  .date {
+    color: var(--gray-500);
+  }
 }
 </style>

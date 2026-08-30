@@ -1,180 +1,180 @@
 <script setup lang="ts">
-import type {Column} from "~/types";
-
+import type { ColumnDef } from '~/components/molecule/table/Table.vue';
+import { usePlannings } from '~/composables/planning/usePlannings';
+import { PlanningType, PlanningTypeLabel } from '~/utils/enums/planning';
+import { formatEnumToOptions } from '~/utils/inputs/formatter';
+import type { Planning } from '~/utils/query/plannings/get';
 definePageMeta({
   middleware: 'auth',
   requiredRole: 'admin',
   layout: 'dashboard',
-})
+});
 
-const userStore = useUserStore()
-const planningStore = usePlanningStore()
-const trainersStore = useTrainersStore()
+// Fetch planning on mount
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
 
-const now = new Date()
-const year = now.getFullYear()
-const month = now.getMonth() + 1
+const trainerOptions = computed(() => {
+  const mapped = trainersStore.trainerNames
+    .filter((trainer) => trainer.naam && trainer.voornaam)
+    .map((trainer) => {
+      if (trainer.naam && trainer.voornaam) {
+        const lastnameCapital = trainer.naam
+          .split(' ')
+          .map((lastname) => lastname.substring(0, 1))
+          .join('');
+        const name = trainer.voornaam + ' ' + lastnameCapital;
 
-// Add state for collapse/expand all
-const allExpanded = ref(false)
+        return {
+          value: name,
+          label: name,
+        };
+      }
+      return {
+        value: 'NA',
+        label: 'NA',
+      };
+    });
+
+  return [...mapped, { value: '', label: ' ' }];
+});
+
+const selectedMonth = ref<string>(`${year}-${month.toString().padStart(2, '0')}`);
+
+const { data, isLoading, distinctMonthOptions, planningByMonth } = usePlannings();
+
+const safeData = computed(
+  () => planningByMonth.value.get(selectedMonth.value ?? `${year}-${month}`) ?? [],
+);
+
+const columns = computed<ColumnDef<Planning>[]>(() => [
+  {
+    key: 'weekday',
+    label: 'Dag',
+    filter: true,
+  },
+  {
+    key: 'day',
+    label: 'Datum',
+    type: 'date',
+    sticky: true,
+    filter: true,
+    sort: true,
+  },
+  {
+    key: 'type',
+    label: 'Type',
+    options: formatEnumToOptions(PlanningType, PlanningTypeLabel),
+    filter: true,
+    sort: true,
+  },
+  {
+    key: 'planning',
+    label: 'Planning',
+    filter: true,
+    sort: true,
+  },
+  // {
+  //   key: 'beschikbaar',
+  //   label: 'Beschikbaar',
+  //   filter: true,
+  //   sort: true,
+  // },
+]);
+const trainersStore = useTrainersStore();
 
 const allowedMonths = computed(() => {
-  const generated = [...planningStore.distinctMonths]
+  const generated = [...distinctMonthOptions.value.map((m) => m.value)];
 
   for (let i = 1; i <= 12; i++) {
     if (month + i > 12) {
       const ty = year + 1;
-      const tm = (month + i) - 12;
+      const tm = month + i - 12;
 
-      if (!generated.some(g => g.year === ty && g.month === tm)) {
-        generated.push({year: ty, month: tm})
+      if (!generated.some((g) => g.year === ty && g.month === tm)) {
+        generated.push({ year: ty, month: tm });
       }
-    }
-    else {
-      if (!generated.some(g => g.year === year && g.month === month + i)) {
-        generated.push({year, month: month + i})
+    } else {
+      if (!generated.some((g) => g.year === year && g.month === month + i)) {
+        generated.push({ year, month: month + i });
       }
     }
   }
 
-  return generated
-})
+  return generated;
+});
 
-const trainerOptions = computed(() => {
-  const mapped = trainersStore.trainerNames
-      .filter((trainer) => trainer.naam && trainer.voornaam)
-      .map((trainer) => {
-        if (trainer.naam && trainer.voornaam) {
-          const achternaam = trainer.naam.split(' ')
-              .map((deelnaam) => deelnaam.substring(0, 1))
-              .join('')
-          const naam = trainer.voornaam + ' ' + achternaam
-
-          return {
-            value: naam,
-            label: naam,
-          }
-        }
-        return {
-          value: 'NA',
-          label: 'NA',
-        }
-      })
-
-  return [
-    ...mapped,
-    { value: '', label: ' ' }
-  ]
-})
-
-const typeOptions = [
-  { value: 'jeugd', label: 'jeugd' },
-  { value: 'volwassenen', label: 'volwassenen' },
-  { value: 'wedstrijd', label: 'wedstrijd' },
-  { value: 'gezamenlijk', label: 'gezamenlijk' },
-  { value: 'kleuters', label: 'kleuters' },
-  { value: 'geen-les', label: 'geen les' },
-]
-
-const columns = computed<Column[]>(() => [
-  { key: 'id', label: 'ID', type: 'readonly', className: 'dnone' },
-  { key: 'day', label: 'datum', type: 'readonly', className: 'datum' },
-  { key: 'type', label: 'type', type: 'select', options: typeOptions, className: 'type' },
-  { key: 'planning', label: 'Planning', type: 'array-select', options: trainerOptions.value, className: 'planning' },
-  { key: 'beschikbaar', label: 'Beschikbaar', type: 'array-select', options: trainerOptions.value, className: 'beschikbaar' },
-])
-
-// Fetch planning on mount
-onMounted(async () => {
-  await Promise.all([
-    trainersStore.fetchTrainerNames(),
-    planningStore.fetchDistinctMonths(),  // must come first (or in parallel)
-    planningStore.fetchFilterOptions(),
-  ])
-  // now distinctMonths is populated before we check it
-  await planningStore.fetchPlanningByMonth(year, month)
-})
-
-onBeforeRouteLeave((to, from, next) => {
-  if (planningStore.hasUnsavedChanges) {
-    const answer = window.confirm(
-        `Je hebt ${planningStore.changedCount} niet-opgeslagen wijzigingen. Weet je zeker dat je wilt vertrekken?`
-    )
-    if (answer) { planningStore.discardChanges(); next() }
-    else next(false)
-  } else next()
-})
-
-// Toggle all arrays function
-const toggleAllArrays = () => {
-  allExpanded.value = !allExpanded.value
-}
-
-const cMonth = ref<number>()
-const cYear = ref<number>()
+const cMonth = ref<number>();
+const cYear = ref<number>();
 
 const setCreateMonth = (year: number, month: number) => {
-  cMonth.value = month
-  cYear.value = year
-}
+  cMonth.value = month;
+  cYear.value = year;
+};
 
 const createMonth = async () => {
   if (cMonth.value && cYear.value) {
-    await planningStore.fetchPlanningByMonth(cYear.value, cMonth.value)
-    await planningStore.fetchDistinctMonths()
+    await planningStore.fetchPlanningByMonth(cYear.value, cMonth.value);
+    await planningStore.fetchDistinctMonths();
   }
-}
+};
 </script>
 
 <template>
   <main id="planning-page">
-    <MoleculePageHeader title="Maak planning">
-      <template #left-actions>
-        <MoleculeSelectMonth :distinct-months="allowedMonths" :limit-years="true" @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)" />
-        <button
-            @click="planningStore.saveChanges"
-            class="warning"
-            :disabled="!planningStore.hasUnsavedChanges || planningStore.isSaving || !userStore.allowAccess('admin')"
-        >
-          {{ planningStore.isSaving ? 'Bezig...' : `Opslaan${planningStore.changedCount > 0 ? ` (${planningStore.changedCount})` : ''}` }}
-        </button>
-      </template>
-      <template #right-actions>
-        <button
-            @click="toggleAllArrays"
-            class="secondary"
-        >
-          <IconCollapse v-show="allExpanded" :size="20" :stroke-width="2" :color="'primary'"/>
-          <IconExpand v-show="!allExpanded" :size="20" :stroke-width="2" :color="'primary'"/>
-        </button>
-        <button
-            @click="navigateTo('/dashboard/planning')"
-            class="secondary"
-        >
-          Terug
-        </button>
-      </template>
-    </MoleculePageHeader>
-
+    <button @click="navigateTo('/dashboard/planning')" class="secondary">Terug</button>
     <section class="data-table-container">
-      <MoleculeDataTable
-          v-if="!planningStore.isLoading"
-          :columns="columns"
-          :data="planningStore.planning"
-          :filter-items="planningStore.filterItems"
-          :sort-key="planningStore.sortKey"
-          :sort-order="planningStore.sortOrder"
-          :changed-coords="planningStore.changedCoords"
-          :expand-all="allExpanded"
-          @sort="planningStore.setSort"
-          @filter="planningStore.setFilter"
-          @update="planningStore.updatePlanningField"
-          @add-array-item="planningStore.addArrayItem"
-          @remove-array-item="planningStore.removeArrayItem"
-      />
-      <div v-else class="loading">
-        <AtomLoader/>
-      </div>
+      <MoleculeTableActions :columns="columns" :data="[]" hideFilter hideSearch hideSort>
+        <select v-model="selectedMonth">
+          <option v-for="month in distinctMonthOptions" :key="month.value" :value="month.value">
+            {{ month.label }}
+          </option>
+        </select>
+        <AtomTableButton
+          @click="() => navigateTo('/dashboard/planning/create')"
+          :disabled="false"
+          className="success"
+        >
+          Planning
+        </AtomTableButton>
+        <AtomTableButton
+          @click="() => navigateTo('/dashboard/planning/beschikbaarheden')"
+          :disabled="false"
+          className="warning"
+        >
+          Beschikbaarheden
+        </AtomTableButton>
+      </MoleculeTableActions>
+
+      <MoleculeTable
+        :columns="columns"
+        :data="safeData"
+        :isLoading="isLoading"
+        storage-key="plannings-table"
+        resizable
+        reorderable
+      >
+        <template #cell-weekday="{ cell }">
+          <AtomTableCell className="badge-wrapper">
+            <AtomBadge :variant="cell">
+              {{ cell }}
+            </AtomBadge>
+          </AtomTableCell>
+        </template>
+
+        <template #cell-day="{ cell }">
+          <AtomTableCell :value="formatDateTo(cell, 'MMD')" :badge="cell" />
+        </template>
+
+        <template #cell-planning="{ cell }">
+          <AtomTableCell className="badge-wrapper">
+            <AtomBadge v-for="item in cell.filter(Boolean)" :key="item" variant="default">
+              {{ item }}
+            </AtomBadge>
+          </AtomTableCell>
+        </template>
+      </MoleculeTable>
     </section>
   </main>
 </template>
@@ -196,7 +196,7 @@ const createMonth = async () => {
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: rgba(0, 0, 0, .1);
+      background-color: rgba(0, 0, 0, 0.1);
     }
   }
 }

@@ -1,7 +1,9 @@
-import type { Column } from '~/types';
 <script setup lang="ts">
 import type { ColumnDef } from '~/components/molecule/table/Table.vue';
 import { usePlannings } from '~/composables/planning/usePlannings';
+import { PlanningType, PlanningTypeLabel } from '~/utils/enums/planning';
+import { formatEnumToOptions } from '~/utils/inputs/formatter';
+import { api } from '~/utils/query';
 import type { Planning } from '~/utils/query/plannings/get';
 
 definePageMeta({
@@ -10,8 +12,6 @@ definePageMeta({
   layout: 'dashboard',
 });
 
-const userStore = useUserStore();
-const planningStore = usePlanningStore();
 const trainersStore = useTrainersStore();
 
 // Fetch planning on mount
@@ -44,49 +44,13 @@ const trainerOptions = computed(() => {
   return [...mapped, { value: '', label: ' ' }];
 });
 
-const plannedMonths = computed(() => {
-  const grouped = planningStore.planning.reduce((acc: any, dm) => {
-    const year = dm.day.substring(0, 4);
-    const month = dm.day.substring(5, 7);
-    const key = `${year}-${month}`;
+const selectedMonth = ref<string>(`${year}-${month.toString().padStart(2, '0')}`);
 
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(dm);
+const { data, isLoading, distinctMonthOptions, planningByMonth } = usePlannings();
 
-    return acc;
-  }, {});
-
-  return Object.entries(grouped)
-    .filter(([key, days]) => {
-      // destructure the tuple
-      return (days as any[]).every((dm: any) => {
-        // now dm is a day object
-        return dm.type === 'geen-les'
-          ? dm.planning.length <= 1 || dm.planning[0] === '' // .length not .length()
-          : dm.planning.length > 0 && dm.planning[0] !== ''; // .length not .length()
-      });
-    })
-    .map(([key]) => ({
-      year: +key.substring(0, 4),
-      month: +key.substring(5, 7),
-    }));
-});
-
-const typeOptions = [
-  { value: 'jeugd', label: 'jeugd' },
-  { value: 'volwassenen', label: 'volwassenen' },
-  { value: 'wedstrijd', label: 'wedstrijd' },
-  { value: 'gezamenlijk', label: 'gezamenlijk' },
-  { value: 'kleuters', label: 'kleuters' },
-  { value: 'geen-les', label: 'geen les' },
-];
-const selectedMonth = ref<string>('2026-08');
-
-const { data, isLoading, distinctMonthOptions, planningByMonth } = usePlannings({
-  from: selectedMonth.value + '-01',
-  to: selectedMonth.value + '-31',
-});
-const safeData = computed(() => data.value ?? []);
+const safeData = computed(
+  () => planningByMonth.value.get(selectedMonth.value ?? `${year}-${month}`) ?? [],
+);
 
 const columns = computed<ColumnDef<Planning>[]>(() => [
   {
@@ -105,7 +69,7 @@ const columns = computed<ColumnDef<Planning>[]>(() => [
   {
     key: 'type',
     label: 'Type',
-    options: typeOptions,
+    options: formatEnumToOptions(PlanningType, PlanningTypeLabel),
     filter: true,
     sort: true,
   },
@@ -123,48 +87,13 @@ const columns = computed<ColumnDef<Planning>[]>(() => [
   // },
 ]);
 
-// Fetch planning on mount
-onMounted(async () => {
-  await Promise.all([
-    trainersStore.fetchTrainerNames(),
-    planningStore.fetchDistinctMonths(), // must come first (or in parallel)
-    planningStore.fetchFilterOptions(),
-  ]);
-  // now distinctMonths is populated before we check it
-  await planningStore.fetchPlanningByMonth(year, month);
-});
-
-const logType = (year: number, month: number) => {
-  console.log(planningByMonth.value.get(year + '-' + month));
+const generate = () => {
+  api.plannings.generate.insert({ year: 2026, month: 9 });
 };
-
-const user = await userStore.getUser();
 </script>
 
 <template>
   <main id="trainers-page">
-    <!-- <MoleculePageHeader title="Planning">
-      <template #left-actions>
-        <MoleculeSelectMonth
-          :distinct-months="plannedMonths"
-          :limit-months="true"
-          @selectedMonth="planningStore.fetchPlanningByMonth($event.year, $event.month)"
-        />
-      </template>
-      <template #right-actions>
-        <button
-          v-if="userStore.allowAccess('admin')"
-          class="success"
-          @click="() => navigateTo('/dashboard/planning/create')"
-        >
-          Maak planning
-        </button>
-        <button class="secondary" @click="() => navigateTo('/dashboard/planning/beschikbaarheden')">
-          Beschikbaarheden
-        </button>
-      </template>
-    </MoleculePageHeader> -->
-
     <section class="data-table-container">
       <MoleculeTableActions :columns="columns" :data="[]" hideFilter hideSearch hideSort>
         <select v-model="selectedMonth">
@@ -172,6 +101,9 @@ const user = await userStore.getUser();
             {{ month.label }}
           </option>
         </select>
+        <AtomTableButton @click="generate" :disabled="false" className="danger">
+          Generate
+        </AtomTableButton>
         <AtomTableButton
           @click="() => navigateTo('/dashboard/planning/create')"
           :disabled="false"
